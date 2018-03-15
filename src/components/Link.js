@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
 import Modal from 'react-modal';
 
+import FontAwesomeIcon from '@fortawesome/react-fontawesome';
+import { faTimes, faEdit } from '@fortawesome/fontawesome-free-solid';
+
 const modalStyles = {
   content: {
     top:         '50%',
@@ -50,11 +53,9 @@ class Link extends Component {
         <a href={link.url}>
           <img className='link-image' src={link.image} alt='Link'/>
         </a>
-        <div className="link-footer">
-          <p>
-            <span>{link.label}</span>
-            <i className="fa fa-pencil" onClick={() => this.openModal()}></i>
-          </p>
+        <div className='link-footer'>
+          <div>{link.label}</div>
+          <FontAwesomeIcon icon={faEdit} onClick={() => this.openModal()} />
         </div>
         <Modal
           isOpen={this.state.modalIsOpen}
@@ -62,6 +63,7 @@ class Link extends Component {
           style={modalStyles}
           contentLabel='Example Modal'
         >
+          <FontAwesomeIcon icon={faTimes} onClick={() => this.closeModal()} />
           <h2>{link.label}</h2>
           <form onChange={event => this.updateLink(event)}>
             <div>
@@ -77,7 +79,6 @@ class Link extends Component {
               <input type='text' id='image' name='image' defaultValue={link.image}/>
             </div>
           </form>
-          <button onClick={() => this.closeModal()}>close</button>
           <button className='delete' onClick={() => this.removeLink(link)}>delete</button>
         </Modal>
       </div>

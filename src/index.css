@@ -1,3 +1,10 @@
+@import './styles/normalize.css';
+
+@font-face {
+  font-family: Anton;
+  src: url('./styles/fonts/Anton-Regular.ttf');
+}
+
 body {
   font-size: 0.8em;
   background-color: #18354a;
