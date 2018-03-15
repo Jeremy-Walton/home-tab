@@ -17,7 +17,7 @@ class App extends Component {
       links[key]['key'] = index;
     });
 
-    this.state = { links, backgroundUrl: data.backgroundUrl, backgroundEditorOpen: false };
+    this.state = { links, backgroundUrl: data.backgroundUrl ? data.backgroundUrl : '', backgroundEditorOpen: false };
   }
 
   componentDidUpdate(prevProps, prevState) {
