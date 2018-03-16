@@ -6,7 +6,7 @@ import './App.css';
 import FontAwesomeIcon from '@fortawesome/react-fontawesome'
 import faPlus from '@fortawesome/fontawesome-free-solid/faPlus'
 
-import packageJson from '../package.json';
+import { version } from '../package.json';
 
 class App extends Component {
   constructor() {
@@ -38,7 +38,7 @@ class App extends Component {
   addLink() {
     var timestamp = (new Date()).getTime();
     const links = this.state.links;
-    links[timestamp] = { key: timestamp, label: 'New Tab page', url: 'http://jeremy-walton.bitbucket.org/', image: 'http://i.imgur.com/iUI8B7S.jpg'};
+    links[timestamp] = { key: timestamp, label: 'New Tab page', url: 'https://www.launchtabs.com/home-tab', image: 'https://i.imgur.com/iUI8B7S.jpg'};
     this.setState({ links });
   }
 
@@ -87,7 +87,7 @@ class App extends Component {
             <FontAwesomeIcon icon={faPlus} size='4x' />
           </div>
         </div>
-        <div className='closing-text'>© 2018 Jeremy Walton. All Rights Reserved. <a href="https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=0CB4QFjAAahUKEwja-J-1uvXHAhVKjA0KHWocD4E&url=https%3A%2F%2Fchrome.google.com%2Fwebstore%2Fdetail%2Fnew-tab-redirect%2Ficpgjfneehieebagbmdbhnlpiopdcmna%3Fhl%3Den&usg=AFQjCNGD4wPwU__qhusrsJYNjSgIL6dp0g&sig2=0C5gcrLHvFXMtUcngGLM2g">Use this extention to redirect to this page when opening a new tab.</a> v{packageJson.version}</div>
+        <div className='closing-text'>© 2018 Jeremy Walton. All Rights Reserved. <a href="https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=0CB4QFjAAahUKEwja-J-1uvXHAhVKjA0KHWocD4E&url=https%3A%2F%2Fchrome.google.com%2Fwebstore%2Fdetail%2Fnew-tab-redirect%2Ficpgjfneehieebagbmdbhnlpiopdcmna%3Fhl%3Den&usg=AFQjCNGD4wPwU__qhusrsJYNjSgIL6dp0g&sig2=0C5gcrLHvFXMtUcngGLM2g">Use this extention to redirect to this page when opening a new tab.</a> v{version}</div>
       </div>
     );
   }
