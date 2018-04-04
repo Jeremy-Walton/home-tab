@@ -1,0 +1,45 @@
+.header {
+  background-color: var(--darkblue);
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.header h1 {
+  color: var(--offwhite);
+}
+
+.settings {
+  position: absolute;
+  left: 0;
+  padding-left: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.settings svg {
+  color: var(--offwhite);
+  cursor: pointer;
+}
+
+.settings svg:hover {
+  color: white;
+}
+
+.settings button, .settings input {
+  padding: 5px;
+  margin: 5px;
+  border: none;
+  background-color: var(--offwhite);
+}
+
+.settings button:hover {
+  background-color: white;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+}
+
+.settings input {
+  margin-left: 20px;
+  margin-right: 0;
+}

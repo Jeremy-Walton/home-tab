@@ -1,7 +1,12 @@
+:root {
+  --offwhite: #d5dce2;
+  --darkblue: #142b3f;
+}
+
 .link-container {
   display: flex;
   flex-wrap: wrap;
-  min-height: 100vh;
+  min-height: calc(100vh - 50px);
   justify-content: space-evenly;
   align-items: center;
   align-content: center;
@@ -9,7 +14,7 @@
 }
 
 .link {
-  background-color: #d5dce2;
+  background-color: var(--offwhite);
   position: relative;
   margin: 5px;
   width: 150px;
@@ -52,38 +57,3 @@
 .delete {
   float: right;
 }
-
-.theme-selector {
-  position: absolute;
-  font-family: 'serif';
-  z-index: 100; }
-
-    .theme-selector .themes button {
-      margin-left: 0;
-      margin-right: 0;
-      border: 1px solid gray; }
-
-      .theme-selector .themes button.begin {
-        border-radius: 5px 0 0 5px; }
-
-      .theme-selector .themes button.end {
-        border-radius: 0 5px 5px 0; }
-
-      .theme-selector .themes button:hover {
-        background-color: gray; }
-
-  .theme-selector button, .theme-selector input {
-    padding: 5px;
-    margin: 5px; }
-
-  .theme-selector .image-selection {
-    margin-right: 0;
-    border: 1px solid gray;
-    border-right: none;
-    border-radius: 5px 0 0 5px; }
-
-  .theme-selector .image-selection-button {
-    margin-left: 0;
-    border: 1px solid gray;
-    border-left: none;
-    border-radius: 0 5px 5px 0; }

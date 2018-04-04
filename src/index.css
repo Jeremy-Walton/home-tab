@@ -5,10 +5,14 @@
   src: url('./styles/fonts/Anton-Regular.ttf');
 }
 
+:root {
+  --blue: #18354a;
+}
+
 body {
   font-size: 0.8em;
-  background-color: #18354a;
-  font-family: 'Anton';
+  background-color: var(--blue);
+  font-family: 'Helvetica Neue';
 }
 
 .closing-text {
@@ -17,7 +21,7 @@ body {
   right: 0;
   padding: 5px;
   font-family: 'serif';
-  background-color: black;
+  background-color: var(--blue);
   color: white;
 }
 

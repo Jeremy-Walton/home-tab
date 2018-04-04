@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
+import { version } from '../package.json';
+
+import './App.css';
 
 import Link from './components/Link.js';
-import './App.css';
+import Header from './components/Header/Header.js';
 
 import FontAwesomeIcon from '@fortawesome/react-fontawesome'
 import faPlus from '@fortawesome/fontawesome-free-solid/faPlus'
-
-import { version } from '../package.json';
 
 class App extends Component {
   constructor() {
@@ -19,7 +20,7 @@ class App extends Component {
       links[key]['key'] = index;
     });
 
-    this.state = { links, backgroundUrl: data.backgroundUrl ? data.backgroundUrl : '', backgroundEditorOpen: false };
+    this.state = { links, backgroundUrl: data.backgroundUrl ? data.backgroundUrl : '' };
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -48,13 +49,8 @@ class App extends Component {
     this.setState({ links });
   }
 
-  toggleBackgroundEditor() {
-    const backgroundEditorOpen = !this.state.backgroundEditorOpen;
-    this.setState({ backgroundEditorOpen });
-  }
-
-  updatebackground() {
-    this.setState({ backgroundUrl: this.backgroundInput.value });
+  updateBackground(value) {
+    this.setState({ backgroundUrl: value });
   }
 
   renderLink(key) {
@@ -70,24 +66,23 @@ class App extends Component {
   }
 
   render() {
-    const { links, backgroundUrl, backgroundEditorOpen } = this.state;
+    const { links, backgroundUrl } = this.state;
 
     return (
-      <div style={{ background: `url('${backgroundUrl}')` }}>
-        <div className='theme-selector'>
-          <button className='theme-toggle' onClick={() => this.toggleBackgroundEditor()}>Edit Background</button>
-          <div className='themes' style={{ display: backgroundEditorOpen ? 'inline-block' : 'none' }}>
-            <input className='image-selection' placeholder='Set Background Image' type='text' defaultValue={backgroundUrl} ref={(input) => { this.backgroundInput = input; }} />
-            <button className='image-selection-button' onClick={() => this.updatebackground()}>Enter URL</button>
+      <div>
+        <Header
+          backgroundUrl={backgroundUrl}
+          updateBackground={value => this.updateBackground(value)}
+        />
+        <div style={{ background: `url('${backgroundUrl}')` }}>
+          <div className='link-container'>
+            {Object.keys(links).map(key => this.renderLink(key))}
+            <div className='link new-link' onClick={() => this.addLink()}>
+              <FontAwesomeIcon icon={faPlus} size='4x' />
+            </div>
           </div>
+          <div className='closing-text'>© 2018 Jeremy Walton. All Rights Reserved. <a href="https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=0CB4QFjAAahUKEwja-J-1uvXHAhVKjA0KHWocD4E&url=https%3A%2F%2Fchrome.google.com%2Fwebstore%2Fdetail%2Fnew-tab-redirect%2Ficpgjfneehieebagbmdbhnlpiopdcmna%3Fhl%3Den&usg=AFQjCNGD4wPwU__qhusrsJYNjSgIL6dp0g&sig2=0C5gcrLHvFXMtUcngGLM2g">Use this extention to redirect to this page when opening a new tab.</a> v{version}</div>
         </div>
-        <div className='link-container'>
-          {Object.keys(links).map(key => this.renderLink(key))}
-          <div className='link new-link' onClick={() => this.addLink()}>
-            <FontAwesomeIcon icon={faPlus} size='4x' />
-          </div>
-        </div>
-        <div className='closing-text'>© 2018 Jeremy Walton. All Rights Reserved. <a href="https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=0CB4QFjAAahUKEwja-J-1uvXHAhVKjA0KHWocD4E&url=https%3A%2F%2Fchrome.google.com%2Fwebstore%2Fdetail%2Fnew-tab-redirect%2Ficpgjfneehieebagbmdbhnlpiopdcmna%3Fhl%3Den&usg=AFQjCNGD4wPwU__qhusrsJYNjSgIL6dp0g&sig2=0C5gcrLHvFXMtUcngGLM2g">Use this extention to redirect to this page when opening a new tab.</a> v{version}</div>
       </div>
     );
   }
