@@ -4,28 +4,51 @@
 }
 
 .link-container {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   min-height: calc(100vh - 50px);
-  justify-content: space-evenly;
-  align-items: center;
-  align-content: center;
   background-size: cover;
+  grid-template-columns: repeat(auto-fit, 208px);
+  grid-template-rows: repeat(auto-fit, 132px);
+  grid-gap: 4px;
+  justify-content: center;
+  align-content: center;
 }
 
 .link {
   background-color: var(--offwhite);
-  position: relative;
-  margin: 5px;
-  width: 150px;
-  height: 120px;
-  transition: all ease-in-out 0.2s;
-  border-radius: 5px;
   box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+  width: 208px;
+  height: 132px;
+  position: relative;
 }
 
 .link:hover {
   box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+}
+
+.link a {
+  display: flex;
+  height: calc(100% - 15px);
+  justify-content: center;
+}
+
+.link-image {
+  height: 100%;
+}
+
+.link-footer {
+  position: absolute;
+  width: 100%;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: 1fr 20px;
+  align-items: center;
+  justify-items: center;
+  background-color: var(--offwhite);
+}
+
+.link-footer svg {
+  cursor: pointer;
 }
 
 .link.new-link {
@@ -33,27 +56,4 @@
   justify-content: center;
   align-items: center;
   cursor: pointer;
-}
-
-.link-footer {
-  background-color: white;
-  height: 30px;
-  border-radius: 0 0 5px 5px;
-  transition: all ease-in-out 0.2s;
-  display: grid;
-  grid-template-columns: 1fr 20px;
-  align-items: center;
-  justify-items: center;
-  cursor: pointer;
-}
-
-.link-image {
-  width: 90%;
-  height: 80%;
-  display: block;
-  margin: auto;
-}
-
-.delete {
-  float: right;
 }
