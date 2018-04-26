@@ -3,6 +3,11 @@
   --darkblue: #142b3f;
 }
 
+.background-image {
+  background-size: cover;
+  background-position: center;
+}
+
 .link-container {
   display: grid;
   min-height: calc(100vh - 50px);

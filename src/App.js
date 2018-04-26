@@ -74,7 +74,7 @@ class App extends Component {
           backgroundUrl={backgroundUrl}
           updateBackground={value => this.updateBackground(value)}
         />
-        <div style={{ background: `url('${backgroundUrl}')` }}>
+        <div class='background-image' style={{ 'background-image': `url('${backgroundUrl}')` }}>
           <div className='link-container'>
             {Object.keys(links).map(key => this.renderLink(key))}
             <div className='link new-link' onClick={() => this.addLink()}>
