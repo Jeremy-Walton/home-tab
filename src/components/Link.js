@@ -6,6 +6,8 @@ import EditIcon from '../assets/icons/baseline-edit-24px.js';
 
 import { DragSource, DropTarget, DropTargetMonitor } from 'react-dnd';
 
+import Color from '../models/Color.js';
+
 const modalStyles = {
   content: {
     top: 'initial',
@@ -61,13 +63,14 @@ class Link extends Component {
 
   render() {
     const { connectDropTarget, connectDragSource, isDragging, details: link } = this.props;
+    const color = new Color(link.color)
 
     return connectDropTarget(connectDragSource(
       <div style={{ opacity: isDragging ? 0 : 1 }} className='link'>
         {this.renderImage()}
-        <div className='link-footer'>
-          <div>{link.label}</div>
-          <div onClick={() => this.setModal(true)}>{EditIcon}</div>
+        <div className='link-footer' style={{ backgroundColor: color.toHex() }}>
+          <div style={{ color: color.contrast() }}>{link.label}</div>
+          <div onClick={() => this.setModal(true)}>{<EditIcon color={color.contrast()}/>}</div>
         </div>
         <Modal
           isOpen={this.state.modalIsOpen}
@@ -99,6 +102,10 @@ class Link extends Component {
             <div className='form-control'>
               <label htmlFor='isDisabled'>Disabled</label>
               <input type='checkbox' id='isDisabled' name='isDisabled' defaultChecked={link.isDisabled}/>
+            </div>
+            <div className='form-control'>
+              <label htmlFor='color'>Color</label>
+              <input type='text' id='color' name='color' placeholder='Footer Color Hex' defaultValue={link.color} />
             </div>
           </form>
           <button className='delete' onClick={() => this.removeLink(link)}>delete</button>
