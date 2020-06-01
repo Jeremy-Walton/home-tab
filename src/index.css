@@ -1,0 +1,36 @@
+@import './styles/normalize.css';
+
+@font-face {
+  font-family: Anton;
+  src: url('./styles/fonts/Anton-Regular.ttf');
+}
+
+:root {
+  --blue: #18354a;
+}
+
+body {
+  font-size: 0.8em;
+  background-color: var(--blue);
+  font-family: 'Helvetica Neue';
+}
+
+.closing-text {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  padding: 5px;
+  font-family: 'serif';
+  background-color: var(--blue);
+  color: white;
+}
+
+.closing-text a {
+  color: white;
+}
+
+.ReactModal__Overlay--after-open {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
