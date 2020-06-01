@@ -43,7 +43,15 @@ class App extends Component {
   addLink() {
     var timestamp = (new Date()).getTime();
     const links = this.state.links;
-    links.push({ key: timestamp, id: this.nextID(), label: 'New Tab Page', url: 'https://www.launchtabs.com/home-tab', image: 'https://i.imgur.com/W0t0xs8.jpg', isDisabled: false });
+    links.push({
+      key: timestamp,
+      id: this.nextID(),
+      label: 'New Tab Page',
+      url: 'https://www.launchtabs.com/home-tab',
+      image: 'https://i.imgur.com/W0t0xs8.jpg',
+      isDisabled: false,
+      color: '#d5dce2'
+    });
     this.setState({ links });
   }
 
