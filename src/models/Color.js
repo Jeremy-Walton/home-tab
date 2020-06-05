@@ -12,21 +12,16 @@ class Color {
   contrast() {
     const contrasted = this.toHex().slice(1)
 
-    const r = this.invertValue(contrasted.slice(0, 2))
-    const g = this.invertValue(contrasted.slice(2, 4))
-    const b = this.invertValue(contrasted.slice(4, 6))
-
-    return `#${r}${g}${b}`
+    var r = this.getIntegerValue(contrasted, 0, 2)
+    var g = this.getIntegerValue(contrasted, 2, 2)
+    var b = this.getIntegerValue(contrasted, 4, 2)
+    // https://en.wikipedia.org/wiki/YIQ
+    var yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000
+    return (yiq >= 128) ? '#000000' : '#FFFFFF';
   }
 
-  invertValue(value) {
-    return this.padZero((255 - parseInt(value, 16)).toString(16))
-  }
-
-  padZero(str, len) {
-    len = len || 2
-    var zeros = new Array(len).join('0')
-    return (zeros + str).slice(-len)
+  getIntegerValue(hexcolor, start, end) {
+    return parseInt(hexcolor.substr(start, end), 16)
   }
 
   convert3To6Hex(hexValue) {
