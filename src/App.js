@@ -8,8 +8,8 @@ import Header from './components/Header/Header.js';
 
 import AddIcon from './assets/icons/baseline-add-24px.js';
 
-import { DragDropContext } from 'react-dnd';
-import HTML5Backend from 'react-dnd-html5-backend';
+import { DndProvider } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 class App extends Component {
   constructor() {
@@ -121,7 +121,9 @@ class App extends Component {
           </div>
           <div className='link-container'>
             {this.renderWelcomeMessage()}
-            {links.map((link, i) => this.renderLink(link, i))}
+            <DndProvider backend={HTML5Backend}>
+              {links.map((link, i) => this.renderLink(link, i))}
+            </DndProvider>
           </div>
           <div className='closing-text'>© 2020 Jeremy Walton. All Rights Reserved. <a href="https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=0CB4QFjAAahUKEwja-J-1uvXHAhVKjA0KHWocD4E&url=https%3A%2F%2Fchrome.google.com%2Fwebstore%2Fdetail%2Fnew-tab-redirect%2Ficpgjfneehieebagbmdbhnlpiopdcmna%3Fhl%3Den&usg=AFQjCNGD4wPwU__qhusrsJYNjSgIL6dp0g&sig2=0C5gcrLHvFXMtUcngGLM2g">Use this extention to redirect to this page when opening a new tab.</a> v{version}</div>
         </div>
@@ -130,4 +132,4 @@ class App extends Component {
   }
 }
 
-export default DragDropContext(HTML5Backend)(App);
+export default App;
