@@ -16,9 +16,9 @@
   display: grid;
   min-height: calc(100vh - 64px);
   background-size: cover;
-  grid-template-columns: repeat(auto-fit, 208px);
-  grid-template-rows: repeat(auto-fit, 132px);
-  grid-gap: 4px;
+  grid-template-columns: repeat(auto-fit, 200px);
+  grid-template-rows: repeat(auto-fit, 130px);
+  grid-gap: 20px;
   justify-content: center;
   align-content: center;
   padding: 0 55px 0 55px;
@@ -26,22 +26,20 @@
 
 .link {
   background-color: var(--offwhite);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
-  width: 208px;
-  height: 132px;
+  width: 200px;
+  height: 130px;
   position: relative;
-  border-radius: 8px;
-  overflow: hidden;
+  border-radius: 25px;
+  box-shadow: 0px 0px 100px rgba(0, 0, 0, 0.48), 0px 0px 36.5016px rgba(0, 0, 0, 0.288811), 0px 0px 17.7209px rgba(0, 0, 0, 0.247121), 0px 0px 8.6871px rgba(0, 0, 0, 0.231941), 0px 0px 3.43489px rgba(0, 0, 0, 0.188277);
 }
 
 .link:hover {
-  box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+  box-shadow: 0px 0px 100px rgba(0, 0, 0, 0.99), 0px 0px 36.5016px rgba(0, 0, 0, 0.595673), 0px 0px 17.7209px rgba(0, 0, 0, 0.509688), 0px 0px 8.6871px rgba(0, 0, 0, 0.478378), 0px 0px 3.43489px rgba(0, 0, 0, 0.388321);
 }
 
 .link .image-wrapper {
   display: flex;
-  height: calc(100% - 15px);
-  justify-content: center;
+  height: calc(100% - 24px);
 }
 
 .disabled-link {
@@ -51,23 +49,35 @@
 
 .link-image {
   height: 100%;
-  max-width: 100%;
+  width: 100%;
+  object-fit: cover;
+
+  border-top-left-radius: 25px;
+  border-top-right-radius: 25px;
 }
 
 .link-footer {
-  position: absolute;
-  width: 100%;
-  bottom: 0;
-  display: grid;
-  grid-template-columns: 1fr 24px;
+  height: 24px;
+  display: flex;
+  justify-content: center;
   align-items: center;
-  justify-items: center;
   background-color: var(--offwhite);
+
+  border-bottom-left-radius: 25px;
+  border-bottom-right-radius: 25px;
 }
 
-.link-footer svg {
+.edit-link {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background-color: var(--offwhite);
+  border-radius: 100%;
+}
+
+.edit-link svg {
   cursor: pointer;
-  height: 15px;
+  height: 20px;
 }
 
 .new-link {
