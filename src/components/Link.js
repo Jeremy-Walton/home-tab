@@ -1,12 +1,16 @@
-import React, { Component } from 'react';
-import Modal from 'react-modal';
+// region Imports
+import PropTypes from 'prop-types'
+import React, { useState } from 'react'
 
-import CloseIcon from '../assets/icons/baseline-close-24px.js';
-import EditIcon from '../assets/icons/baseline-edit-24px.js';
+import Modal from 'react-modal'
 
-import { DragSource, DropTarget, DropTargetMonitor } from 'react-dnd';
+import CloseIcon from '../assets/icons/baseline-close-24px.js'
+import EditIcon from '../assets/icons/baseline-edit-24px.js'
 
-import Color from '../models/Color.js';
+import { DragSource, DropTarget } from 'react-dnd'
+
+import Color from '../models/Color.js'
+// endregion
 
 const modalStyles = {
   content: {
@@ -17,148 +21,152 @@ const modalStyles = {
     borderRadius: '8px',
     border: '1px solid #dadce0',
   }
-};
-Modal.setAppElement('#root');
+}
+Modal.setAppElement('#root')
 
-class Link extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { modalIsOpen: false, editActive: false };
-  }
+function Link({ index, updateLink, removeLink, linkDetails, connectDropTarget, connectDragSource, isDragging }) {
+  // region Initialization
+  const [modalIsOpen, setModalIsOpen] = useState(false)
+  const [editActive, setEditActive] = useState(false)
 
-  setModal(value) {
-    this.setState({ modalIsOpen: value });
-  }
+  const color = new Color(linkDetails.color)
+  // endregion
 
-  updateLink(event) {
-    let updateFields = {};
-    const elements = event.currentTarget.elements;
+  // region Helper function
+  function handleFormChanges(event) {
+    let updateFields = {}
+    const elements = event.currentTarget.elements
+
     for (var i = 0; i < elements.length; i++) {
       const element = elements[i]
       const newValue = element.name === 'isDisabled' ? element.checked : element.value
 
-      updateFields[element.name] = newValue;
+      updateFields[element.name] = newValue
     }
-    this.props.updateLink(this.props.index, updateFields);
+    updateLink(index, updateFields)
   }
 
-  removeLink(link) {
+  function handleDelete() {
     if (window.confirm('Are you sure you want to delete this Link?')) {
-      this.setModal(false);
-      this.props.removeLink(link.key);
+      setModalIsOpen(false)
+      removeLink(linkDetails.key)
     }
   }
 
-  renderImage() {
-    const { details: link } = this.props;
+  function renderImage() {
+    const image = <img className='link-image' src={linkDetails.image} alt='Unavailable' />
 
-    const image = <img className='link-image' src={link.image} alt='Unavailable' />;
-    if (link.isDisabled) {
-      return <div className='image-wrapper disabled-link'>{image}</div>;
+    if (linkDetails.isDisabled) {
+      return <div className='image-wrapper disabled-link'>{image}</div>
     } else {
-      return <a className='image-wrapper' href={link.url}>{image}</a>;
+      return <a className='image-wrapper' href={linkDetails.url}>{image}</a>
     }
   }
 
-  renderEditButton() {
-    if (!this.state.editActive) {
-      return null;
-    }
+  function renderEditButton() {
+    if (!editActive) { return null }
 
-    const color = new Color(this.props.details.color)
     return (
       <div
         className='edit-link'
         onClick={() => {
-          this.setModal(true);
-          this.setState({ editActive: false })
+          setModalIsOpen(true)
+          setEditActive(false)
         }}
       >
-        {<EditIcon color='black'/>}
+        <EditIcon color='black' />
       </div>
     )
   }
+  // endregion
 
-  render() {
-    const { connectDropTarget, connectDragSource, isDragging, details: link } = this.props;
-    const color = new Color(link.color)
-
-    return connectDropTarget(connectDragSource(
-      <div
-        style={{ opacity: isDragging ? 0 : 1 }}
-        className='link'
-        onMouseEnter={() => this.setState({ editActive: true })}
-        onMouseLeave={() => this.setState({ editActive: false })}
+  // region #render
+  return connectDropTarget(connectDragSource(
+    <div
+      style={{ opacity: isDragging ? 0 : 1 }}
+      className='link'
+      onMouseEnter={() => setEditActive(true)}
+      onMouseLeave={() => setEditActive(false)}
+    >
+      {renderImage()}
+      <div className='link-footer' style={{ backgroundColor: color.toHex(), color: color.contrast() }}>{linkDetails.label}</div>
+      {renderEditButton()}
+      <Modal
+        isOpen={modalIsOpen}
+        onRequestClose={() => setModalIsOpen(false)}
+        style={modalStyles}
+        contentLabel='Example Modal'
       >
-        {this.renderImage()}
-        <div className='link-footer' style={{ backgroundColor: color.toHex(), color: color.contrast() }}>{link.label}</div>
-        {this.renderEditButton()}
-        <Modal
-          isOpen={this.state.modalIsOpen}
-          onRequestClose={() => this.setModal(false)}
-          style={modalStyles}
-          contentLabel='Example Modal'
-        >
-          <div className='modal-title'>
-            <div>
-              <h2>{link.label || 'Enter Title'}</h2>
-            </div>
-            <div>
-              <div onClick={() => this.setModal(false)}>{CloseIcon}</div>
-            </div>
+        <div className='modal-title'>
+          <div>
+            <h2>{linkDetails.label || 'Enter Title'}</h2>
           </div>
-          <form onChange={event => this.updateLink(event)}>
-            <div className='form-control'>
-              <label htmlFor='title'>Title</label>
-              <input type='text' id='title' name='label' placeholder='Enter Title' defaultValue={link.label}/>
-            </div>
-            <div className='form-control'>
-              <label htmlFor='url'>Target Url</label>
-              <input type='text' id='url' name='url' placeholder='Enter Url' defaultValue={link.url}/>
-            </div>
-            <div className='form-control'>
-              <label htmlFor='image'>Image Url</label>
-              <input type='text' id='image' name='image' placeholder='Enter Image URL' defaultValue={link.image}/>
-            </div>
-            <div className='form-control'>
-              <label htmlFor='isDisabled'>Disabled</label>
-              <input type='checkbox' id='isDisabled' name='isDisabled' defaultChecked={link.isDisabled}/>
-            </div>
-            <div className='form-control'>
-              <label htmlFor='color'>Color</label>
-              <input type='text' id='color' name='color' placeholder='Footer Color Hex' defaultValue={link.color} />
-            </div>
-          </form>
-          <button className='delete' onClick={() => this.removeLink(link)}>delete</button>
-        </Modal>
-      </div>
-    ));
-  }
-};
+          <div>
+            <div onClick={() => setModalIsOpen(false)}>{CloseIcon}</div>
+          </div>
+        </div>
+        <form onChange={event => handleFormChanges(event)}>
+          <div className='form-control'>
+            <label htmlFor='title'>Title</label>
+            <input type='text' id='title' name='label' placeholder='Enter Title' defaultValue={linkDetails.label} />
+          </div>
+          <div className='form-control'>
+            <label htmlFor='url'>Target Url</label>
+            <input type='text' id='url' name='url' placeholder='Enter Url' defaultValue={linkDetails.url} />
+          </div>
+          <div className='form-control'>
+            <label htmlFor='image'>Image Url</label>
+            <input type='text' id='image' name='image' placeholder='Enter Image URL' defaultValue={linkDetails.image} />
+          </div>
+          <div className='form-control'>
+            <label htmlFor='isDisabled'>Disabled</label>
+            <input type='checkbox' id='isDisabled' name='isDisabled' defaultChecked={linkDetails.isDisabled} />
+          </div>
+          <div className='form-control'>
+            <label htmlFor='color'>Color</label>
+            <input type='text' id='color' name='color' placeholder='Footer Color Hex' defaultValue={linkDetails.color} />
+          </div>
+        </form>
+        <button className='delete' onClick={handleDelete}>delete</button>
+      </Modal>
+    </div>
+  ))
+  // endregion
+}
 
-const collect = (connect, monitor) => ({ connectDragSource: connect.dragSource(), isDragging: monitor.isDragging() });
-const collectDrop = (connect, monitor) => ({ connectDropTarget: connect.dropTarget() });
+Link.propTypes = {
+  index: PropTypes.number.isRequired,
+  updateLink: PropTypes.func.isRequired,
+  removeLink: PropTypes.func.isRequired,
+  linkDetails: PropTypes.object.isRequired,
+  connectDropTarget: PropTypes.func.isRequired,
+  connectDragSource: PropTypes.func.isRequired,
+  isDragging: PropTypes.bool.isRequired,
+}
+
+const collect = (connect, monitor) => ({ connectDragSource: connect.dragSource(), isDragging: monitor.isDragging() })
+const collectDrop = (connect, monitor) => ({ connectDropTarget: connect.dropTarget() })
 
 const linkTarget = {
-  hover(props: LinkProps, monitor: DropTargetMonitor, component) {
+  hover(props, monitor, component) {
     if (!component) { return null }
-    const dragIndex = monitor.getItem().index;
-    const hoverIndex = props.index;
+    const dragIndex = monitor.getItem().index
+    const hoverIndex = props.index
 
     if (dragIndex === hoverIndex) { return }
 
-    props.moveLink(dragIndex, hoverIndex);
-    monitor.getItem().index = hoverIndex;
+    props.moveLink(dragIndex, hoverIndex)
+    monitor.getItem().index = hoverIndex
   },
-};
+}
 
 const linkSource = {
-  beginDrag(props: LinkProps) {
-    return { key: props.key, index: props.index };
+  beginDrag(props) {
+    return { key: props.key, index: props.index }
   }
-};
+}
 
-const dropTargetHOC = DropTarget('link', linkTarget, collectDrop);
-const dragSourceHOC = DragSource('link', linkSource, collect);
+const dropTargetHOC = DropTarget('link', linkTarget, collectDrop)
+const dragSourceHOC = DragSource('link', linkSource, collect)
 
-export default dropTargetHOC(dragSourceHOC(Link));
+export default dropTargetHOC(dragSourceHOC(Link))
