@@ -23,8 +23,7 @@ Modal.setAppElement('#root');
 class Link extends Component {
   constructor(props) {
     super(props);
-
-    this.state = { modalIsOpen: false };
+    this.state = { modalIsOpen: false, editActive: false };
   }
 
   setModal(value) {
@@ -61,17 +60,39 @@ class Link extends Component {
     }
   }
 
+  renderEditButton() {
+    if (!this.state.editActive) {
+      return null;
+    }
+
+    const color = new Color(this.props.details.color)
+    return (
+      <div
+        className='edit-link'
+        onClick={() => {
+          this.setModal(true);
+          this.setState({ editActive: false })
+        }}
+      >
+        {<EditIcon color='black'/>}
+      </div>
+    )
+  }
+
   render() {
     const { connectDropTarget, connectDragSource, isDragging, details: link } = this.props;
     const color = new Color(link.color)
 
     return connectDropTarget(connectDragSource(
-      <div style={{ opacity: isDragging ? 0 : 1 }} className='link'>
+      <div
+        style={{ opacity: isDragging ? 0 : 1 }}
+        className='link'
+        onMouseEnter={() => this.setState({ editActive: true })}
+        onMouseLeave={() => this.setState({ editActive: false })}
+      >
         {this.renderImage()}
-        <div className='link-footer' style={{ backgroundColor: color.toHex() }}>
-          <div style={{ color: color.contrast() }}>{link.label}</div>
-          <div onClick={() => this.setModal(true)}>{<EditIcon color={color.contrast()}/>}</div>
-        </div>
+        <div className='link-footer' style={{ backgroundColor: color.toHex(), color: color.contrast() }}>{link.label}</div>
+        {this.renderEditButton()}
         <Modal
           isOpen={this.state.modalIsOpen}
           onRequestClose={() => this.setModal(false)}
