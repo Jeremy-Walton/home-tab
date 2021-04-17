@@ -1,7 +1,23 @@
 {
-  "main.css": "static/css/main.c3b8cd72.css",
-  "main.css.map": "static/css/main.c3b8cd72.css.map",
-  "main.js": "static/js/main.efe44b3a.js",
-  "main.js.map": "static/js/main.efe44b3a.js.map",
-  "static/media/Anton-Regular.ttf": "static/media/Anton-Regular.b13e6268.ttf"
+  "files": {
+    "main.css": "/home-tab/static/css/main.87b629b2.chunk.css",
+    "main.js": "/home-tab/static/js/main.beb85bda.chunk.js",
+    "main.js.map": "/home-tab/static/js/main.beb85bda.chunk.js.map",
+    "runtime-main.js": "/home-tab/static/js/runtime-main.99406c88.js",
+    "runtime-main.js.map": "/home-tab/static/js/runtime-main.99406c88.js.map",
+    "static/js/2.4d8b4fd7.chunk.js": "/home-tab/static/js/2.4d8b4fd7.chunk.js",
+    "static/js/2.4d8b4fd7.chunk.js.map": "/home-tab/static/js/2.4d8b4fd7.chunk.js.map",
+    "index.html": "/home-tab/index.html",
+    "precache-manifest.17352bdbdbc19fcc6a0a951d867b039c.js": "/home-tab/precache-manifest.17352bdbdbc19fcc6a0a951d867b039c.js",
+    "service-worker.js": "/home-tab/service-worker.js",
+    "static/css/main.87b629b2.chunk.css.map": "/home-tab/static/css/main.87b629b2.chunk.css.map",
+    "static/js/2.4d8b4fd7.chunk.js.LICENSE.txt": "/home-tab/static/js/2.4d8b4fd7.chunk.js.LICENSE.txt",
+    "static/media/index.css": "/home-tab/static/media/Anton-Regular.b13e6268.ttf"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.99406c88.js",
+    "static/js/2.4d8b4fd7.chunk.js",
+    "static/css/main.87b629b2.chunk.css",
+    "static/js/main.beb85bda.chunk.js"
+  ]
 }
