@@ -142,7 +142,14 @@ Each link consists of:
   as a downloadable JSON file.
 - Users can **import** a previously exported JSON file to restore/replace
   app data.
-- Users can **import** from a previous localstorage data format.
+- Users can **import** from the previous (pre-rewrite) localStorage data
+  format. That format stores a single flat list of links and one global
+  background under `localStorage.state` as
+  `{ links: [{ key, id, label, url, image, isDisabled, color }], backgroundUrl }`.
+  Importing it creates a single new dashboard (e.g. named "Imported") whose
+  background comes from `backgroundUrl`, with each link mapped as
+  `label→title`, `url→url`, `image→backgroundImage`, `color→backgroundColor`
+  (`isDisabled`/`key`/`id` are dropped — no equivalent in the new model).
 - This is the primary safety net against data loss, since v1 has no
   backend/sync.
 
