@@ -49,20 +49,24 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  // Bootstrap: on first-ever load, pull in the previous app's
-  // localStorage.state if present, otherwise create an empty Default
-  // dashboard. Guarded by a ref since this does multiple awaited writes
-  // and dependencies won't change again until they land.
+  // Bootstrap: pull in the previous app's localStorage.state whenever it's
+  // present (regardless of whether dashboards already exist -- it may show
+  // up after a Default dashboard was already created on an earlier visit),
+  // otherwise create an empty Default dashboard if none exist yet. Guarded
+  // by a ref since this does multiple awaited writes and the dependencies
+  // it cares about won't change again until they land.
   const bootstrapping = useRef(false)
   useEffect(() => {
     if (!ready || !db) return
-    if (dashboards.length > 0) return
     if (bootstrapping.current) return
+
+    const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY)
+    if (!legacyRaw && dashboards.length > 0) return
+
     bootstrapping.current = true
     const database = db
 
     async function bootstrap() {
-      const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY)
       if (legacyRaw) {
         try {
           const legacyData = JSON.parse(legacyRaw)
@@ -75,19 +79,24 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
             return
           }
         } catch {
-          // Malformed legacy data -- fall through to a normal first run.
+          // Malformed legacy data -- drop it below so we don't loop on it.
         }
+        localStorage.removeItem(LEGACY_STORAGE_KEY)
       }
 
-      const doc = await database.dashboards.insert({
-        id: generateId(),
-        name: 'Default',
-        createdAt: Date.now(),
-      })
-      setActiveDashboardId(doc.id)
+      if (dashboards.length === 0) {
+        const doc = await database.dashboards.insert({
+          id: generateId(),
+          name: 'Default',
+          createdAt: Date.now(),
+        })
+        setActiveDashboardId(doc.id)
+      }
     }
 
-    void bootstrap()
+    void bootstrap().finally(() => {
+      bootstrapping.current = false
+    })
   }, [ready, db, dashboards.length])
 
   // Keep the active dashboard valid.
