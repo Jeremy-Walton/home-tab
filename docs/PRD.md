@@ -142,14 +142,17 @@ Each link consists of:
   as a downloadable JSON file.
 - Users can **import** a previously exported JSON file to restore/replace
   app data.
-- Users can **import** from the previous (pre-rewrite) localStorage data
-  format. That format stores a single flat list of links and one global
-  background under `localStorage.state` as
-  `{ links: [{ key, id, label, url, image, isDisabled, color }], backgroundUrl }`.
-  Importing it creates a single new dashboard (e.g. named "Imported") whose
-  background comes from `backgroundUrl`, with each link mapped as
-  `label→title`, `url→url`, `image→backgroundImage`, `color→backgroundColor`
-  (`isDisabled`/`key`/`id` are dropped — no equivalent in the new model).
+- The previous (pre-rewrite) app stored its data under `localStorage.state`
+  as `{ links: [{ key, id, label, url, image, isDisabled, color }], backgroundUrl }`.
+  On first load, if that key is present in the browser, it is **imported
+  automatically** (no user action required) and then deleted from
+  localStorage so it isn't re-imported on a later visit. The same mapping
+  is also available via the manual **Import** action for a previously
+  exported legacy file. Either path creates a single new dashboard (named
+  "Imported") whose background comes from `backgroundUrl`, with each link
+  mapped as `label→title`, `url→url`, `image→backgroundImage`,
+  `color→backgroundColor` (`isDisabled`/`key`/`id` are dropped — no
+  equivalent in the new model).
 - This is the primary safety net against data loss, since v1 has no
   backend/sync.
 

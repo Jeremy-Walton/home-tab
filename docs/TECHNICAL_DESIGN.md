@@ -109,12 +109,19 @@ a full RxDB collection given it's a single value) and restored on load.
   active-dashboard id) to a single JSON file and trigger a download.
 - **Import (new format)**: parse the JSON, validate shape, and bulk
   upsert into the `dashboards`/`links` collections.
-- **Import (legacy format)**: detect the old shape
+- **Import (legacy format, manual)**: detect the old shape
   (`{ links: [...], backgroundUrl }`) and map it per the PRD's "Export /
   Import" section — one new dashboard named "Imported", `backgroundUrl`
   becomes its `backgroundImageUrl`, and each old link becomes a `links`
   document (`label→title`, `url→url`, `image→backgroundImageUrl`,
   `color→backgroundColor`; `isDisabled`/`key`/`id` dropped).
+- **Import (legacy format, automatic)**: the bootstrap effect that runs
+  when no dashboards exist yet (`AppStateContext.tsx`) checks
+  `localStorage.getItem('state')` first. If present and it matches the
+  legacy shape, it's mapped and inserted the same way as the manual path,
+  then the key is removed from localStorage so it can't be re-imported on
+  a later visit. Only if no legacy key is found does it fall back to
+  creating an empty "Default" dashboard.
 
 ## Testing Focus
 

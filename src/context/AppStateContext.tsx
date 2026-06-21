@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { getDatabase, type AppDatabase } from '../storage/db'
 import { generateId } from '../lib/id'
 import { normalizeUrl } from '../lib/url'
@@ -12,6 +12,7 @@ import type { Dashboard, ExportedState, Link } from '../types'
 import { AppStateContext, type AppStateValue } from './app-state-context'
 
 const ACTIVE_DASHBOARD_KEY = 'launch-tabs:activeDashboardId'
+const LEGACY_STORAGE_KEY = 'state'
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [db, setDb] = useState<AppDatabase | null>(null)
@@ -48,20 +49,45 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  // Bootstrap a default dashboard if none exist yet.
+  // Bootstrap: on first-ever load, pull in the previous app's
+  // localStorage.state if present, otherwise create an empty Default
+  // dashboard. Guarded by a ref since this does multiple awaited writes
+  // and dependencies won't change again until they land.
+  const bootstrapping = useRef(false)
   useEffect(() => {
     if (!ready || !db) return
     if (dashboards.length > 0) return
+    if (bootstrapping.current) return
+    bootstrapping.current = true
+    const database = db
 
-    void db.dashboards
-      .insert({
+    async function bootstrap() {
+      const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY)
+      if (legacyRaw) {
+        try {
+          const legacyData = JSON.parse(legacyRaw)
+          if (isLegacyState(legacyData)) {
+            const { dashboard, links: importedLinks } = mapLegacyState(legacyData)
+            await database.dashboards.insert(dashboard)
+            await database.links.bulkInsert(importedLinks)
+            localStorage.removeItem(LEGACY_STORAGE_KEY)
+            setActiveDashboardId(dashboard.id)
+            return
+          }
+        } catch {
+          // Malformed legacy data -- fall through to a normal first run.
+        }
+      }
+
+      const doc = await database.dashboards.insert({
         id: generateId(),
         name: 'Default',
         createdAt: Date.now(),
       })
-      .then((doc) => {
-        setActiveDashboardId(doc.id)
-      })
+      setActiveDashboardId(doc.id)
+    }
+
+    void bootstrap()
   }, [ready, db, dashboards.length])
 
   // Keep the active dashboard valid.
