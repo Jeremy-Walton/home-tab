@@ -29,14 +29,17 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     getDatabase().then((database) => {
       setDb(database)
 
+      // The first emission from a reactive query can arrive before the
+      // persisted IndexedDB data has actually loaded. Only flip `ready`
+      // once dashboards have emitted for real, so the bootstrap effect
+      // below never mistakes "not loaded yet" for "no dashboards exist".
       dashboardsSub = database.dashboards.find().$.subscribe((docs) => {
         setDashboards(docs.map((d) => d.toJSON()))
+        setReady(true)
       })
       linksSub = database.links.find().$.subscribe((docs) => {
         setLinks(docs.map((d) => d.toJSON()))
       })
-
-      setReady(true)
     })
 
     return () => {
