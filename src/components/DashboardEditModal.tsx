@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from './ui/dialog'
+import { Field, FieldGroup, FieldLabel } from './ui/field'
 import type { Dashboard } from '../types'
 
 export function DashboardEditModal({
@@ -39,19 +40,21 @@ export function DashboardEditModal({
           <DialogTitle>Edit dashboard</DialogTitle>
         </DialogHeader>
 
-        <label className="block text-xs text-muted-foreground">
-          Name
-          <Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1" />
-        </label>
+        <FieldGroup>
+          <Field>
+            <FieldLabel htmlFor="dashboard-name">Name</FieldLabel>
+            <Input id="dashboard-name" value={name} onChange={(e) => setName(e.target.value)} />
+          </Field>
 
-        <label className="block text-xs text-muted-foreground">
-          Background image URL
-          <Input
-            value={backgroundImageUrl}
-            onChange={(e) => setBackgroundImageUrl(e.target.value)}
-            className="mt-1"
-          />
-        </label>
+          <Field>
+            <FieldLabel htmlFor="dashboard-background">Background image URL</FieldLabel>
+            <Input
+              id="dashboard-background"
+              value={backgroundImageUrl}
+              onChange={(e) => setBackgroundImageUrl(e.target.value)}
+            />
+          </Field>
+        </FieldGroup>
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
