@@ -50,10 +50,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       // persisted IndexedDB data has actually loaded. Only flip `ready`
       // once dashboards have emitted for real, so the bootstrap effect
       // below never mistakes "not loaded yet" for "no dashboards exist".
-      dashboardsSub = database.dashboards.find().$.subscribe((docs) => {
-        setDashboards(docs.map((d) => d.toJSON()))
-        setReady(true)
-      })
+      dashboardsSub = database.dashboards
+        .find({ sort: [{ order: 'asc' }] })
+        .$.subscribe((docs) => {
+          setDashboards(docs.map((d) => d.toJSON()))
+          setReady(true)
+        })
       linksSub = database.links.find().$.subscribe((docs) => {
         const next = docs.map((d) => d.toJSON())
         // After reorderLinks/moveLinkToDashboard apply the new order
@@ -95,7 +97,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         try {
           const legacyData = JSON.parse(legacyRaw)
           if (isLegacyState(legacyData)) {
-            const { dashboard, links: importedLinks } = mapLegacyState(legacyData)
+            const nextOrder =
+              dashboards.length === 0 ? 0 : Math.max(...dashboards.map((d) => d.order)) + 1
+            const { dashboard, links: importedLinks } = mapLegacyState(legacyData, nextOrder)
             await database.dashboards.insert(dashboard)
             await database.links.bulkInsert(importedLinks)
             localStorage.removeItem(LEGACY_STORAGE_KEY)
@@ -112,6 +116,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         const doc = await database.dashboards.insert({
           id: generateId(),
           name: 'Default',
+          order: 0,
           createdAt: Date.now(),
         })
         setActiveDashboardId(doc.id)
@@ -121,7 +126,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     void bootstrap().finally(() => {
       bootstrapping.current = false
     })
-  }, [ready, db, dashboards.length])
+  }, [ready, db, dashboards])
 
   // Keep the active dashboard valid.
   useEffect(() => {
@@ -139,9 +144,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   async function addDashboard(name: string) {
     if (!db) return
+    const order = dashboards.length === 0 ? 0 : Math.max(...dashboards.map((d) => d.order)) + 1
     const doc = await db.dashboards.insert({
       id: generateId(),
       name,
+      order,
       createdAt: Date.now(),
     })
     setActiveDashboardId(doc.id)
@@ -247,7 +254,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     if (!db) return
 
     if (isLegacyState(data)) {
-      const { dashboard, links: importedLinks } = mapLegacyState(data)
+      const nextOrder =
+        dashboards.length === 0 ? 0 : Math.max(...dashboards.map((d) => d.order)) + 1
+      const { dashboard, links: importedLinks } = mapLegacyState(data, nextOrder)
       await db.dashboards.insert(dashboard)
       await db.links.bulkInsert(importedLinks)
       setActiveDashboardId(dashboard.id)

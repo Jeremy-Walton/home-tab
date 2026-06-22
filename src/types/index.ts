@@ -1,6 +1,7 @@
 export interface Dashboard {
   id: string
   name: string
+  order: number
   backgroundImageUrl?: string
   createdAt: number
 }

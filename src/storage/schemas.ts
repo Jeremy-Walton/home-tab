@@ -9,10 +9,11 @@ export const dashboardSchema: RxJsonSchema<Dashboard> = {
   properties: {
     id: { type: 'string', maxLength: 64 },
     name: { type: 'string' },
+    order: { type: 'number' },
     backgroundImageUrl: { type: 'string' },
     createdAt: { type: 'number' },
   },
-  required: ['id', 'name', 'createdAt'],
+  required: ['id', 'name', 'order', 'createdAt'],
 }
 
 export const linkSchema: RxJsonSchema<Link> = {

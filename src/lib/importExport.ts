@@ -8,7 +8,10 @@ export function isLegacyState(data: unknown): data is LegacyState {
   return 'links' in data || 'backgroundUrl' in data
 }
 
-export function mapLegacyState(legacy: LegacyState): {
+export function mapLegacyState(
+  legacy: LegacyState,
+  nextOrder = 0,
+): {
   dashboard: Dashboard
   links: Link[]
 } {
@@ -16,6 +19,7 @@ export function mapLegacyState(legacy: LegacyState): {
   const dashboard: Dashboard = {
     id: dashboardId,
     name: 'Imported',
+    order: nextOrder,
     backgroundImageUrl: legacy.backgroundUrl || undefined,
     createdAt: Date.now(),
   }

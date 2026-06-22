@@ -52,6 +52,7 @@ Two RxDB collections, replacing the single-blob `AppState` approach:
 |--------------|-------------------|-----------------------------------------|
 | `id`         | string (primary)  |                                          |
 | `name`       | string            | e.g. "Default"; fully renamable         |
+| `order`      | number            | determines tab position; new dashboards append to the end |
 | `backgroundImageUrl` | string (optional) | per-dashboard background       |
 | `createdAt`  | number            |                                          |
 
