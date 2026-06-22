@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu'
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
 
 export function ImportExportBar({ className }: { className?: string }) {
   const { exportState, importState } = useAppState()
@@ -34,11 +35,16 @@ export function ImportExportBar({ className }: { className?: string }) {
   return (
     <div className={cn(className)}>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon-sm" aria-label="Import / export">
-            <DotsThreeVerticalIcon weight="bold" />
-          </Button>
-        </DropdownMenuTrigger>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon-sm" aria-label="Import / export">
+                <DotsThreeVerticalIcon weight="bold" />
+              </Button>
+            </DropdownMenuTrigger>
+          </TooltipTrigger>
+          <TooltipContent>Import / export</TooltipContent>
+        </Tooltip>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onSelect={handleExport}>Export</DropdownMenuItem>
           <DropdownMenuItem onSelect={() => fileInputRef.current?.click()}>

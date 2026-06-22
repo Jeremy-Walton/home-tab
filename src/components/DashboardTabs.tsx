@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu'
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs'
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
 import type { Dashboard } from '../types'
 
 function DashboardTabItem({ dashboard }: { dashboard: Dashboard }) {
@@ -32,17 +33,22 @@ function DashboardTabItem({ dashboard }: { dashboard: Dashboard }) {
       </TabsTrigger>
 
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon-xs"
-            className="absolute right-0.5 top-1/2 -translate-y-1/2 opacity-0 transition-opacity before:absolute before:-inset-2 before:content-[''] group-hover:opacity-100"
-            aria-label="Dashboard options"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <DotsThreeVerticalIcon weight="bold" />
-          </Button>
-        </DropdownMenuTrigger>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                className="absolute right-0.5 top-1/2 -translate-y-1/2 opacity-0 transition-opacity before:absolute before:-inset-2 before:content-[''] group-hover:opacity-100"
+                aria-label="Dashboard options"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <DotsThreeVerticalIcon weight="bold" />
+              </Button>
+            </DropdownMenuTrigger>
+          </TooltipTrigger>
+          <TooltipContent>Dashboard options</TooltipContent>
+        </Tooltip>
         <DropdownMenuContent>
           <DropdownMenuItem onSelect={() => setEditing(true)}>Edit</DropdownMenuItem>
           <DropdownMenuItem
@@ -80,15 +86,20 @@ export function DashboardTabs() {
         {dashboards.map((dashboard) => (
           <DashboardTabItem key={dashboard.id} dashboard={dashboard} />
         ))}
-        <Button
-          variant="ghost"
-          size="icon-xs"
-          className="ml-1 rounded-full"
-          aria-label="Add dashboard"
-          onClick={() => void addDashboard('New dashboard')}
-        >
-          <PlusIcon />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              className="ml-1 rounded-full"
+              aria-label="Add dashboard"
+              onClick={() => void addDashboard('New dashboard')}
+            >
+              <PlusIcon />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Add dashboard</TooltipContent>
+        </Tooltip>
       </TabsList>
     </Tabs>
   )

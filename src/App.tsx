@@ -11,6 +11,7 @@ import { AppStateProvider } from './context/AppStateContext'
 import { useAppState } from './context/useAppState'
 import { DashboardGrid } from './components/DashboardGrid'
 import { Navbar } from './components/Navbar'
+import { TooltipProvider } from './components/ui/tooltip'
 import { parseDashboardDropId } from './lib/dashboardDropId'
 
 function Dashboard() {
@@ -96,7 +97,9 @@ function Dashboard() {
 function App() {
   return (
     <AppStateProvider>
-      <Dashboard />
+      <TooltipProvider>
+        <Dashboard />
+      </TooltipProvider>
     </AppStateProvider>
   )
 }

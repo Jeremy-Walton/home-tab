@@ -14,6 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu'
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
 import type { Link } from '../types'
 
 const animateLayoutChanges: AnimateLayoutChanges = (args) =>
@@ -77,17 +78,22 @@ export function LinkTile({ link }: { link: Link }) {
 
         <div className="absolute right-1 top-1 opacity-0 transition-opacity group-hover:opacity-100">
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="secondary"
-                size="icon-xs"
-                aria-label="Link options"
-                className="relative before:absolute before:-inset-2 before:content-['']"
-                onClick={(e) => e.preventDefault()}
-              >
-                <DotsThreeVerticalIcon weight="bold" />
-              </Button>
-            </DropdownMenuTrigger>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="secondary"
+                    size="icon-xs"
+                    aria-label="Link options"
+                    className="relative before:absolute before:-inset-2 before:content-['']"
+                    onClick={(e) => e.preventDefault()}
+                  >
+                    <DotsThreeVerticalIcon weight="bold" />
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent>Link options</TooltipContent>
+            </Tooltip>
             <DropdownMenuContent>
               <DropdownMenuItem onSelect={() => setEditing(true)}>Edit</DropdownMenuItem>
               <DropdownMenuItem variant="destructive" onSelect={() => setConfirmingDelete(true)}>
