@@ -63,7 +63,7 @@ export function LinkTile({ link }: { link: Link }) {
           draggable={false}
           className="absolute inset-0 flex items-end p-2"
         >
-          <Badge className="h-auto max-w-full truncate rounded bg-black/50 text-white">
+          <Badge className="h-auto max-w-full truncate rounded-lg bg-black/50 text-white">
             {link.title || 'Untitled'}
           </Badge>
         </a>

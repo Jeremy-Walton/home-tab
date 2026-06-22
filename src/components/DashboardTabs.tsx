@@ -67,7 +67,7 @@ export function DashboardTabs() {
             <Button
               variant="ghost"
               size="icon-xs"
-              className="ml-1 rounded-full"
+              className="relative ml-1 rounded-full before:absolute before:-inset-2 before:content-['']"
               aria-label="Add dashboard"
               onClick={() => void addDashboard('New dashboard')}
             >

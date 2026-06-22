@@ -38,7 +38,12 @@ export function ImportExportBar({ className }: { className?: string }) {
         <Tooltip>
           <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon-sm" aria-label="Import / export">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Import / export"
+                className="relative before:absolute before:-inset-1 before:content-['']"
+              >
                 <DotsThreeVerticalIcon weight="bold" />
               </Button>
             </DropdownMenuTrigger>
