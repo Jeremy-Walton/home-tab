@@ -4,6 +4,9 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
@@ -17,6 +20,10 @@ interface EntityOptionsMenuProps {
   onEdit: () => void
   onDelete: () => void
   deleteDisabled?: boolean
+  moveTo?: {
+    options: { id: string; name: string }[]
+    onSelect: (id: string) => void
+  }
 }
 
 export function EntityOptionsMenu({
@@ -27,6 +34,7 @@ export function EntityOptionsMenu({
   onEdit,
   onDelete,
   deleteDisabled,
+  moveTo,
 }: EntityOptionsMenuProps) {
   return (
     <DropdownMenu>
@@ -51,6 +59,18 @@ export function EntityOptionsMenu({
       </Tooltip>
       <DropdownMenuContent>
         <DropdownMenuItem onSelect={onEdit}>Edit</DropdownMenuItem>
+        {moveTo && moveTo.options.length > 0 && (
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>Move to…</DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              {moveTo.options.map((option) => (
+                <DropdownMenuItem key={option.id} onSelect={() => moveTo.onSelect(option.id)}>
+                  {option.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+        )}
         <DropdownMenuItem variant="destructive" disabled={deleteDisabled} onSelect={onDelete}>
           Delete
         </DropdownMenuItem>

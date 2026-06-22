@@ -13,7 +13,7 @@ const animateLayoutChanges: AnimateLayoutChanges = (args) =>
   args.wasDragging ? false : defaultAnimateLayoutChanges(args)
 
 export function LinkTile({ link }: { link: Link }) {
-  const { deleteLink } = useAppState()
+  const { dashboards, deleteLink, moveLinkToDashboard } = useAppState()
   const [imageFailed, setImageFailed] = useState(false)
   const [editing, setEditing] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
@@ -75,6 +75,12 @@ export function LinkTile({ link }: { link: Link }) {
             onTriggerClick={(e) => e.preventDefault()}
             onEdit={() => setEditing(true)}
             onDelete={() => setConfirmingDelete(true)}
+            moveTo={{
+              options: dashboards
+                .filter((d) => d.id !== link.dashboardId)
+                .map((d) => ({ id: d.id, name: d.name })),
+              onSelect: (dashboardId) => void moveLinkToDashboard(link.id, dashboardId),
+            }}
           />
         </div>
       </AspectRatio>
