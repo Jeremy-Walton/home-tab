@@ -178,6 +178,19 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   async function reorderLinks(dashboardId: string, orderedIds: string[]) {
     if (!db) return
+
+    // dnd-kit's drag preview reverts the instant you drop, before this
+    // persists. Apply the new order to local state immediately so the UI
+    // doesn't flash back to the pre-drag layout while the RxDB writes
+    // (and the round trip back through the reactive subscription) catch up.
+    setLinks((prev) =>
+      prev.map((link) => {
+        if (link.dashboardId !== dashboardId) return link
+        const newOrder = orderedIds.indexOf(link.id)
+        return newOrder === -1 ? link : { ...link, order: newOrder }
+      }),
+    )
+
     await Promise.all(
       orderedIds.map(async (id, index) => {
         const doc = await db.links.findOne(id).exec()

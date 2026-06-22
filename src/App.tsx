@@ -1,5 +1,12 @@
 import { useEffect, useRef } from 'react'
-import { DndContext, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
+import {
+  closestCenter,
+  DndContext,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
 import { AppStateProvider } from './context/AppStateContext'
 import { useAppState } from './context/useAppState'
 import { DashboardList } from './components/DashboardList'
@@ -65,6 +72,7 @@ function Dashboard() {
   return (
     <DndContext
       sensors={sensors}
+      collisionDetection={closestCenter}
       onDragStart={() => {
         dragOccurredRef.current = true
       }}

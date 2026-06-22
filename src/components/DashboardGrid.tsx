@@ -21,7 +21,7 @@ export function DashboardGrid({ links, backgroundImageUrl, onAddLink }: Dashboar
         <EmptyState onAddLink={onAddLink} />
       ) : (
         <SortableContext items={sorted.map((l) => l.id)} strategy={rectSortingStrategy}>
-          <div className="flex flex-wrap gap-4">
+          <div className="grid grid-cols-[repeat(auto-fill,10rem)] gap-4">
             {sorted.map((link) => (
               <LinkTile key={link.id} link={link} />
             ))}
