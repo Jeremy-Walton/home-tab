@@ -8,7 +8,10 @@ export interface AppStateValue {
   activeDashboardId: string | null
   setActiveDashboardId: (id: string) => void
   addDashboard: (name: string) => Promise<void>
-  renameDashboard: (id: string, name: string) => Promise<void>
+  updateDashboard: (
+    id: string,
+    fields: Partial<Pick<Dashboard, 'name' | 'backgroundImageUrl'>>,
+  ) => Promise<void>
   deleteDashboard: (id: string) => Promise<void>
   addLink: (dashboardId: string) => Promise<void>
   updateLink: (

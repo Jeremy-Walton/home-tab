@@ -148,10 +148,17 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setActiveDashboardId(doc.id)
   }
 
-  async function renameDashboard(id: string, name: string) {
+  async function updateDashboard(
+    id: string,
+    fields: Partial<Pick<Dashboard, 'name' | 'backgroundImageUrl'>>,
+  ) {
     if (!db) return
     const doc = await db.dashboards.findOne(id).exec()
-    await doc?.patch({ name })
+    const patch = { ...fields }
+    if (patch.backgroundImageUrl !== undefined) {
+      patch.backgroundImageUrl = normalizeUrl(patch.backgroundImageUrl)
+    }
+    await doc?.patch(patch)
   }
 
   async function deleteDashboard(id: string) {
@@ -268,7 +275,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       activeDashboardId,
       setActiveDashboardId,
       addDashboard,
-      renameDashboard,
+      updateDashboard,
       deleteDashboard,
       addLink,
       updateLink,
