@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { useAppState } from '../context/useAppState'
+import { Button } from './ui/button'
 
 export function ImportExportBar() {
   const { exportState, importState } = useAppState()
@@ -23,16 +24,13 @@ export function ImportExportBar() {
   }
 
   return (
-    <div className="flex gap-2 border-t border-gray-200 p-2 text-xs text-gray-600">
-      <button onClick={handleExport} className="rounded px-2 py-1 hover:bg-gray-100">
+    <div className="flex gap-2 border-t border-border p-2">
+      <Button variant="ghost" size="sm" onClick={handleExport}>
         Export
-      </button>
-      <button
-        onClick={() => fileInputRef.current?.click()}
-        className="rounded px-2 py-1 hover:bg-gray-100"
-      >
+      </Button>
+      <Button variant="ghost" size="sm" onClick={() => fileInputRef.current?.click()}>
         Import
-      </button>
+      </Button>
       <input
         ref={fileInputRef}
         type="file"

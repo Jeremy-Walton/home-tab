@@ -1,16 +1,25 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useDroppable } from '@dnd-kit/core'
+import { DotsThreeVerticalIcon, PlusIcon } from '@phosphor-icons/react'
 import { useAppState } from '../context/useAppState'
 import { dashboardDropId } from '../lib/dashboardDropId'
 import { ConfirmDialog } from './ConfirmDialog'
+import { Button } from './ui/button'
+import { Input } from './ui/input'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu'
 import type { Dashboard } from '../types'
 
 function DashboardListItem({ dashboard, isActive }: { dashboard: Dashboard; isActive: boolean }) {
   const { dashboards, setActiveDashboardId, renameDashboard, deleteDashboard } = useAppState()
-  const [menuOpen, setMenuOpen] = useState(false)
   const [renaming, setRenaming] = useState(false)
   const [name, setName] = useState(dashboard.name)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const pendingRenameRef = useRef(false)
 
   const { isOver, setNodeRef } = useDroppable({ id: dashboardDropId(dashboard.id) })
 
@@ -25,18 +34,18 @@ function DashboardListItem({ dashboard, isActive }: { dashboard: Dashboard; isAc
   return (
     <li
       ref={setNodeRef}
-      className={`group relative flex items-center justify-between rounded px-2 py-1 text-sm ${
-        isActive ? 'bg-blue-100 font-medium text-blue-900' : 'hover:bg-gray-100'
-      } ${isOver ? 'ring-2 ring-blue-400' : ''}`}
+      className={`group relative flex items-center justify-between rounded-2xl px-2 py-1 text-sm ${
+        isActive ? 'bg-accent font-medium text-accent-foreground' : 'hover:bg-accent/50'
+      } ${isOver ? 'ring-2 ring-ring' : ''}`}
     >
       {renaming ? (
-        <input
+        <Input
           autoFocus
           value={name}
           onChange={(e) => setName(e.target.value)}
           onBlur={commitRename}
           onKeyDown={(e) => e.key === 'Enter' && commitRename()}
-          className="w-full rounded border px-1 text-sm"
+          className="h-7"
         />
       ) : (
         <button
@@ -47,38 +56,44 @@ function DashboardListItem({ dashboard, isActive }: { dashboard: Dashboard; isAc
         </button>
       )}
 
-      <div className="relative">
-        <button
-          className="ml-1 hidden rounded px-1 text-gray-500 hover:bg-gray-200 group-hover:block"
-          onClick={() => setMenuOpen((v) => !v)}
-          aria-label="Dashboard options"
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            className="ml-1 hidden group-hover:flex"
+            aria-label="Dashboard options"
+          >
+            <DotsThreeVerticalIcon weight="bold" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          onCloseAutoFocus={(e) => {
+            // The dropdown item keeps DOM focus through its own close
+            // animation, which wins a focus race against the rename
+            // Input's autoFocus if we set `renaming` from onSelect directly.
+            // Waiting for the dropdown's own close-focus handling to finish
+            // (and suppressing its default refocus-the-trigger behavior)
+            // lets the Input's autoFocus land uncontested.
+            e.preventDefault()
+            if (pendingRenameRef.current) {
+              pendingRenameRef.current = false
+              setRenaming(true)
+            }
+          }}
         >
-          ⋮
-        </button>
-        {menuOpen && (
-          <div className="absolute right-0 z-10 mt-1 w-32 rounded border bg-white shadow-md">
-            <button
-              className="block w-full px-3 py-1.5 text-left text-sm hover:bg-gray-50"
-              onClick={() => {
-                setRenaming(true)
-                setMenuOpen(false)
-              }}
-            >
-              Rename
-            </button>
-            <button
-              disabled={dashboards.length <= 1}
-              className="block w-full px-3 py-1.5 text-left text-sm text-red-600 hover:bg-gray-50 disabled:text-gray-300"
-              onClick={() => {
-                setConfirmingDelete(true)
-                setMenuOpen(false)
-              }}
-            >
-              Delete
-            </button>
-          </div>
-        )}
-      </div>
+          <DropdownMenuItem onSelect={() => (pendingRenameRef.current = true)}>
+            Rename
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            variant="destructive"
+            disabled={dashboards.length <= 1}
+            onSelect={() => setConfirmingDelete(true)}
+          >
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       {confirmingDelete && (
         <ConfirmDialog
@@ -98,7 +113,7 @@ export function DashboardList() {
   const { dashboards, activeDashboardId, addDashboard } = useAppState()
 
   return (
-    <div className="w-48 shrink-0 border-r border-gray-200 p-2">
+    <div className="w-48 shrink-0 border-r border-border p-2">
       <ul className="space-y-0.5">
         {dashboards.map((dashboard) => (
           <DashboardListItem
@@ -108,12 +123,14 @@ export function DashboardList() {
           />
         ))}
       </ul>
-      <button
-        className="mt-2 w-full rounded px-2 py-1 text-left text-sm text-blue-600 hover:bg-blue-50"
+      <Button
+        variant="ghost"
+        size="sm"
+        className="mt-2 w-full justify-start text-primary"
         onClick={() => void addDashboard('New dashboard')}
       >
-        + Add dashboard
-      </button>
+        <PlusIcon /> Add dashboard
+      </Button>
     </div>
   )
 }

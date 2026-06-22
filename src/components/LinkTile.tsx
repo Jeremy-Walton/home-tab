@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { defaultAnimateLayoutChanges, useSortable, type AnimateLayoutChanges } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { PencilSimpleIcon, TrashIcon } from '@phosphor-icons/react'
 import { useAppState } from '../context/useAppState'
 import { ConfirmDialog } from './ConfirmDialog'
 import { LinkEditModal } from './LinkEditModal'
+import { Button } from './ui/button'
 import type { Link } from '../types'
 
 const animateLayoutChanges: AnimateLayoutChanges = (args) =>
@@ -65,24 +67,28 @@ export function LinkTile({ link }: { link: Link }) {
       </a>
 
       <div className="absolute right-1 top-1 hidden gap-1 group-hover:flex">
-        <button
+        <Button
+          variant="secondary"
+          size="icon-xs"
+          aria-label="Edit link"
           onClick={(e) => {
             e.preventDefault()
             setEditing(true)
           }}
-          className="rounded bg-white/90 px-1.5 py-0.5 text-xs hover:bg-white"
         >
-          Edit
-        </button>
-        <button
+          <PencilSimpleIcon />
+        </Button>
+        <Button
+          variant="destructive"
+          size="icon-xs"
+          aria-label="Delete link"
           onClick={(e) => {
             e.preventDefault()
             setConfirmingDelete(true)
           }}
-          className="rounded bg-white/90 px-1.5 py-0.5 text-xs text-red-600 hover:bg-white"
         >
-          Delete
-        </button>
+          <TrashIcon />
+        </Button>
       </div>
 
       {editing && <LinkEditModal link={link} onClose={() => setEditing(false)} />}

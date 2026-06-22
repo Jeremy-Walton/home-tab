@@ -27,7 +27,7 @@ export function DashboardGrid({ links, backgroundImageUrl, onAddLink }: Dashboar
             ))}
             <button
               onClick={onAddLink}
-              className="flex aspect-square w-40 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-3xl text-gray-400 hover:border-gray-400 hover:text-gray-500"
+              className="flex aspect-square w-40 items-center justify-center rounded-lg border-2 border-dashed border-border text-3xl text-muted-foreground hover:border-ring hover:text-foreground"
               aria-label="Add link"
             >
               +
