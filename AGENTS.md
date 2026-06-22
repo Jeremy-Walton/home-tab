@@ -11,9 +11,7 @@ Architecture and stack decisions: @docs/TECHNICAL_DESIGN.md
 
 ## Current State
 
-This branch (`2026-re-implement`) is a from-scratch rewrite, scaffolded per `docs/TECHNICAL_DESIGN.md`. The repository root also contains `old/`, the previous production implementation, kept for reference only.
-
-When working on the rewrite, ignore `old/` completely. Do not reference it or write code within it, except when intentionally porting/migrating legacy data shapes (see `src/lib/importExport.ts`).
+This project is scaffolded per `docs/TECHNICAL_DESIGN.md`.
 
 ## Commands
 
