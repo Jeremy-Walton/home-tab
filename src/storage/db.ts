@@ -3,6 +3,12 @@ import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie'
 import { dashboardSchema, linkSchema } from './schemas'
 import type { Dashboard, Link } from '../types'
 
+const originalConsoleWarn = console.warn
+console.warn = (...args: unknown[]) => {
+  if (typeof args[0] === 'string' && args[0].includes('RxDB Open Core')) return
+  originalConsoleWarn(...args)
+}
+
 export type AppCollections = {
   dashboards: RxCollection<Dashboard>
   links: RxCollection<Link>

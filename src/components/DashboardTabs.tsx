@@ -57,7 +57,7 @@ export function DashboardTabs() {
   const { dashboards, activeDashboardId, setActiveDashboardId, addDashboard } = useAppState()
 
   return (
-    <Tabs value={activeDashboardId ?? undefined} onValueChange={setActiveDashboardId}>
+    <Tabs value={activeDashboardId ?? ''} onValueChange={setActiveDashboardId}>
       <TabsList className="gap-1">
         {dashboards.map((dashboard) => (
           <DashboardTabItem key={dashboard.id} dashboard={dashboard} />
