@@ -154,6 +154,23 @@ Per the PRD's higher-risk areas, prioritize Vitest + RTL coverage on:
   emission* before flipping a `ready` flag, or first-load bootstrap logic
   (e.g. "create a default dashboard if none exist") can misfire on every
   reload by momentarily seeing an empty array. See `AppStateContext.tsx`.
+- **dnd-kit's sortable drag preview is purely visual and reverts the
+  instant you drop** — independent of whether your actual reorder has
+  persisted yet. `reorderLinks`/`moveLinkToDashboard` write to RxDB
+  asynchronously (`findOne` then `patch`, per item), so there used to be
+  a visible gap on drop: the preview snapped back to the pre-drag layout,
+  then once the RxDB writes resolved and the reactive subscription
+  caught up, tiles jumped to their real new positions — tiles briefly
+  flew to wrong spots (confirmed via a controlled Playwright before/after
+  screenshot comparison) before settling ~75ms later. Fixed by applying
+  the new order to local `links` state *immediately* in `reorderLinks`,
+  before awaiting the RxDB writes, so there's no gap between the preview
+  disappearing and the real layout taking over. Also switched the grid
+  container from `flex flex-wrap` to CSS Grid, since `rectSortingStrategy`
+  doesn't model flex-wrap reflow correctly for cross-row moves, and added
+  `collisionDetection={closestCenter}` (the standard choice for sortable
+  grids). Any future change to reorder/move logic should keep applying
+  local-state updates optimistically, before the async persistence call.
 
 ## Open Items
 
