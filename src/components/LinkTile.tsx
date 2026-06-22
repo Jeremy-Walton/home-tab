@@ -44,7 +44,6 @@ export function LinkTile({ link }: { link: Link }) {
   }
 
   const backgroundStyle = {
-    backgroundColor: '#e5e7eb',
     backgroundImage: showImage ? `url(${link.backgroundImageUrl})` : undefined,
     backgroundSize: 'cover',
     backgroundPosition: 'center',
@@ -55,7 +54,7 @@ export function LinkTile({ link }: { link: Link }) {
       <AspectRatio
         ratio={16 / 9}
         style={backgroundStyle}
-        className="flex flex-col items-center justify-end overflow-hidden rounded-lg shadow"
+        className="flex flex-col items-center justify-end overflow-hidden rounded-2xl bg-muted shadow-lg ring-1 ring-black/10 transition-shadow group-hover:shadow-xl dark:ring-white/10"
       >
         {showImage && (
           <img
@@ -71,18 +70,19 @@ export function LinkTile({ link }: { link: Link }) {
           draggable={false}
           className="absolute inset-0 flex items-end p-2"
         >
-          <Badge className="h-auto rounded bg-black/50 text-white">
+          <Badge className="h-auto max-w-full truncate rounded bg-black/50 text-white">
             {link.title || 'Untitled'}
           </Badge>
         </a>
 
-        <div className="absolute right-1 top-1 opacity-0 group-hover:opacity-100">
+        <div className="absolute right-1 top-1 opacity-0 transition-opacity group-hover:opacity-100">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="secondary"
                 size="icon-xs"
                 aria-label="Link options"
+                className="relative before:absolute before:-inset-2 before:content-['']"
                 onClick={(e) => e.preventDefault()}
               >
                 <DotsThreeVerticalIcon weight="bold" />

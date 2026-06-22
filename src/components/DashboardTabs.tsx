@@ -25,7 +25,7 @@ function DashboardTabItem({ dashboard }: { dashboard: Dashboard }) {
   return (
     <div
       ref={setNodeRef}
-      className={`group relative ${isOver ? 'rounded-full ring-2 ring-ring' : ''}`}
+      className={`group relative rounded-full transition-shadow ${isOver ? 'ring-2 ring-ring' : ''}`}
     >
       <TabsTrigger value={dashboard.id} className="max-w-40 pr-6">
         <span className="truncate">{dashboard.name}</span>
@@ -36,7 +36,7 @@ function DashboardTabItem({ dashboard }: { dashboard: Dashboard }) {
           <Button
             variant="ghost"
             size="icon-xs"
-            className="absolute right-0.5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100"
+            className="absolute right-0.5 top-1/2 -translate-y-1/2 opacity-0 transition-opacity before:absolute before:-inset-2 before:content-[''] group-hover:opacity-100"
             aria-label="Dashboard options"
             onClick={(e) => e.stopPropagation()}
           >

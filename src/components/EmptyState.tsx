@@ -7,7 +7,7 @@ export function EmptyState({ onAddLink }: { onAddLink: () => void }) {
     <div className="flex flex-1 items-center justify-center">
       <Card className="w-80 bg-card/90">
         <CardHeader>
-          <CardTitle>Welcome to Launch Tabs!</CardTitle>
+          <CardTitle className="text-balance">Welcome to Launch Tabs!</CardTitle>
           <CardDescription>Add your first link to get started.</CardDescription>
         </CardHeader>
         <CardFooter className="border-t">
