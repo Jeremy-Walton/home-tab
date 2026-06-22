@@ -4,6 +4,7 @@ import { DotsThreeVerticalIcon, PlusIcon } from '@phosphor-icons/react'
 import { useAppState } from '../context/useAppState'
 import { dashboardDropId } from '../lib/dashboardDropId'
 import { ConfirmDialog } from './ConfirmDialog'
+import { Button } from './ui/button'
 import { Input } from './ui/input'
 import {
   DropdownMenu,
@@ -11,18 +12,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu'
-import {
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuAction,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from './ui/sidebar'
+import { Tabs, TabsList, TabsTrigger } from './ui/tabs'
 import type { Dashboard } from '../types'
 
-function DashboardListItem({ dashboard, isActive }: { dashboard: Dashboard; isActive: boolean }) {
-  const { dashboards, setActiveDashboardId, renameDashboard, deleteDashboard } = useAppState()
+function DashboardTabItem({ dashboard }: { dashboard: Dashboard }) {
+  const { dashboards, renameDashboard, deleteDashboard } = useAppState()
   const [renaming, setRenaming] = useState(false)
   const [name, setName] = useState(dashboard.name)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
@@ -39,7 +33,10 @@ function DashboardListItem({ dashboard, isActive }: { dashboard: Dashboard; isAc
   }
 
   return (
-    <SidebarMenuItem ref={setNodeRef} className={isOver ? 'rounded-xl ring-2 ring-ring' : ''}>
+    <div
+      ref={setNodeRef}
+      className={`group relative ${isOver ? 'rounded-full ring-2 ring-ring' : ''}`}
+    >
       {renaming ? (
         <Input
           autoFocus
@@ -47,19 +44,25 @@ function DashboardListItem({ dashboard, isActive }: { dashboard: Dashboard; isAc
           onChange={(e) => setName(e.target.value)}
           onBlur={commitRename}
           onKeyDown={(e) => e.key === 'Enter' && commitRename()}
-          className="h-7"
+          className="h-7 w-28"
         />
       ) : (
-        <SidebarMenuButton isActive={isActive} onClick={() => setActiveDashboardId(dashboard.id)}>
+        <TabsTrigger value={dashboard.id} className="max-w-40 pr-6">
           <span className="truncate">{dashboard.name}</span>
-        </SidebarMenuButton>
+        </TabsTrigger>
       )}
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <SidebarMenuAction showOnHover aria-label="Dashboard options">
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            className="absolute right-0.5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100"
+            aria-label="Dashboard options"
+            onClick={(e) => e.stopPropagation()}
+          >
             <DotsThreeVerticalIcon weight="bold" />
-          </SidebarMenuAction>
+          </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
           onCloseAutoFocus={(e) => {
@@ -99,34 +102,29 @@ function DashboardListItem({ dashboard, isActive }: { dashboard: Dashboard; isAc
           onCancel={() => setConfirmingDelete(false)}
         />
       )}
-    </SidebarMenuItem>
+    </div>
   )
 }
 
-export function DashboardList() {
-  const { dashboards, activeDashboardId, addDashboard } = useAppState()
+export function DashboardTabs() {
+  const { dashboards, activeDashboardId, setActiveDashboardId, addDashboard } = useAppState()
 
   return (
-    <SidebarGroup>
-      <SidebarGroupContent>
-        <SidebarMenu>
-          {dashboards.map((dashboard) => (
-            <DashboardListItem
-              key={dashboard.id}
-              dashboard={dashboard}
-              isActive={dashboard.id === activeDashboardId}
-            />
-          ))}
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              className="text-primary"
-              onClick={() => void addDashboard('New dashboard')}
-            >
-              <PlusIcon /> Add dashboard
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
+    <Tabs value={activeDashboardId ?? undefined} onValueChange={setActiveDashboardId}>
+      <TabsList className="gap-1">
+        {dashboards.map((dashboard) => (
+          <DashboardTabItem key={dashboard.id} dashboard={dashboard} />
+        ))}
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          className="ml-1 rounded-full"
+          aria-label="Add dashboard"
+          onClick={() => void addDashboard('New dashboard')}
+        >
+          <PlusIcon />
+        </Button>
+      </TabsList>
+    </Tabs>
   )
 }

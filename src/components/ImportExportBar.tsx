@@ -1,8 +1,16 @@
 import { useRef } from 'react'
+import { DotsThreeVerticalIcon } from '@phosphor-icons/react'
 import { useAppState } from '../context/useAppState'
+import { cn } from '../lib/utils'
 import { Button } from './ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu'
 
-export function ImportExportBar() {
+export function ImportExportBar({ className }: { className?: string }) {
   const { exportState, importState } = useAppState()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -24,18 +32,20 @@ export function ImportExportBar() {
   }
 
   return (
-    <div className="flex gap-2">
-      <Button variant="ghost" size="sm" className="flex-1" onClick={handleExport}>
-        Export
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="flex-1"
-        onClick={() => fileInputRef.current?.click()}
-      >
-        Import
-      </Button>
+    <div className={cn(className)}>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon-sm" aria-label="Import / export">
+            <DotsThreeVerticalIcon weight="bold" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onSelect={handleExport}>Export</DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => fileInputRef.current?.click()}>
+            Import
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
       <input
         ref={fileInputRef}
         type="file"

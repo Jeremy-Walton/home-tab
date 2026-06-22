@@ -9,10 +9,8 @@ import {
 } from '@dnd-kit/core'
 import { AppStateProvider } from './context/AppStateContext'
 import { useAppState } from './context/useAppState'
-import { DashboardList } from './components/DashboardList'
 import { DashboardGrid } from './components/DashboardGrid'
-import { ImportExportBar } from './components/ImportExportBar'
-import { Sidebar, SidebarContent, SidebarFooter, SidebarInset, SidebarProvider } from './components/ui/sidebar'
+import { Navbar } from './components/Navbar'
 import { parseDashboardDropId } from './lib/dashboardDropId'
 
 function Dashboard() {
@@ -79,16 +77,9 @@ function Dashboard() {
       }}
       onDragEnd={handleDragEnd}
     >
-      <SidebarProvider className="h-screen min-h-0">
-        <Sidebar collapsible="none" className="border-r border-border">
-          <SidebarContent>
-            <DashboardList />
-          </SidebarContent>
-          <SidebarFooter>
-            <ImportExportBar />
-          </SidebarFooter>
-        </Sidebar>
-        <SidebarInset className="overflow-hidden">
+      <div className="flex h-screen flex-col">
+        <Navbar />
+        <div className="flex flex-1 overflow-hidden">
           {activeDashboard && (
             <DashboardGrid
               links={activeLinks}
@@ -96,8 +87,8 @@ function Dashboard() {
               onAddLink={() => void addLink(activeDashboard.id)}
             />
           )}
-        </SidebarInset>
-      </SidebarProvider>
+        </div>
+      </div>
     </DndContext>
   )
 }
