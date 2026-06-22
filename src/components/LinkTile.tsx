@@ -5,6 +5,7 @@ import { PencilSimpleIcon, TrashIcon } from '@phosphor-icons/react'
 import { useAppState } from '../context/useAppState'
 import { ConfirmDialog } from './ConfirmDialog'
 import { LinkEditModal } from './LinkEditModal'
+import { Badge } from './ui/badge'
 import { Button } from './ui/button'
 import type { Link } from '../types'
 
@@ -61,9 +62,9 @@ export function LinkTile({ link }: { link: Link }) {
         draggable={false}
         className="absolute inset-0 flex items-end p-2"
       >
-        <span className="rounded bg-black/50 px-2 py-0.5 text-xs font-medium text-white">
+        <Badge className="h-auto rounded bg-black/50 text-white">
           {link.title || 'Untitled'}
-        </span>
+        </Badge>
       </a>
 
       <div className="absolute right-1 top-1 hidden gap-1 group-hover:flex">
