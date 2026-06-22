@@ -15,10 +15,10 @@ This project is scaffolded per `docs/TECHNICAL_DESIGN.md`.
 
 ## Commands
 
-- `npm run dev` — start the Vite dev server
-- `npm run build` — typecheck (`tsc -b`) then production build
-- `npm run lint` — ESLint
-- `npm test` — Vitest (single run); `npm run test:watch` for watch mode
+- `yarn dev` — start the Vite dev server
+- `yarn build` — typecheck (`tsc -b`) then production build
+- `yarn lint` — ESLint
+- `yarn test` — Vitest (single run); `yarn test:watch` for watch mode
 
 Run typecheck, lint, and tests before considering any change done — none of them are caught by the others.
 
