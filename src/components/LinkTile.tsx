@@ -1,13 +1,19 @@
 import { useState } from 'react'
 import { defaultAnimateLayoutChanges, useSortable, type AnimateLayoutChanges } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { PencilSimpleIcon, TrashIcon } from '@phosphor-icons/react'
+import { DotsThreeVerticalIcon } from '@phosphor-icons/react'
 import { useAppState } from '../context/useAppState'
 import { ConfirmDialog } from './ConfirmDialog'
 import { LinkEditModal } from './LinkEditModal'
 import { AspectRatio } from './ui/aspect-ratio'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu'
 import type { Link } from '../types'
 
 const animateLayoutChanges: AnimateLayoutChanges = (args) =>
@@ -70,29 +76,25 @@ export function LinkTile({ link }: { link: Link }) {
           </Badge>
         </a>
 
-        <div className="absolute right-1 top-1 hidden gap-1 group-hover:flex">
-          <Button
-            variant="secondary"
-            size="icon-xs"
-            aria-label="Edit link"
-            onClick={(e) => {
-              e.preventDefault()
-              setEditing(true)
-            }}
-          >
-            <PencilSimpleIcon />
-          </Button>
-          <Button
-            variant="destructive"
-            size="icon-xs"
-            aria-label="Delete link"
-            onClick={(e) => {
-              e.preventDefault()
-              setConfirmingDelete(true)
-            }}
-          >
-            <TrashIcon />
-          </Button>
+        <div className="absolute right-1 top-1 opacity-0 group-hover:opacity-100">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="secondary"
+                size="icon-xs"
+                aria-label="Link options"
+                onClick={(e) => e.preventDefault()}
+              >
+                <DotsThreeVerticalIcon weight="bold" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onSelect={() => setEditing(true)}>Edit</DropdownMenuItem>
+              <DropdownMenuItem variant="destructive" onSelect={() => setConfirmingDelete(true)}>
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </AspectRatio>
 
