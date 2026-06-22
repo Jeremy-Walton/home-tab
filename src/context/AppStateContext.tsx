@@ -14,6 +14,23 @@ import { AppStateContext, type AppStateValue } from './app-state-context'
 const ACTIVE_DASHBOARD_KEY = 'launch-tabs:activeDashboardId'
 const LEGACY_STORAGE_KEY = 'state'
 
+function linksEqual(a: Link[], b: Link[]): boolean {
+  if (a.length !== b.length) return false
+  const byId = new Map(a.map((link) => [link.id, link]))
+  return b.every((link) => {
+    const prev = byId.get(link.id)
+    return (
+      prev !== undefined &&
+      prev.dashboardId === link.dashboardId &&
+      prev.order === link.order &&
+      prev.title === link.title &&
+      prev.url === link.url &&
+      prev.backgroundImageUrl === link.backgroundImageUrl &&
+      prev.backgroundColor === link.backgroundColor
+    )
+  })
+}
+
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [db, setDb] = useState<AppDatabase | null>(null)
   const [dashboards, setDashboards] = useState<Dashboard[]>([])
@@ -39,7 +56,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         setReady(true)
       })
       linksSub = database.links.find().$.subscribe((docs) => {
-        setLinks(docs.map((d) => d.toJSON()))
+        const next = docs.map((d) => d.toJSON())
+        // After reorderLinks/moveLinkToDashboard apply the new order
+        // optimistically, this subscription still fires once the write
+        // resolves -- with the same data but new array/object references.
+        // That redundant render, arriving while the layout-change animation
+        // from the optimistic update is still mid-flight, was causing
+        // dnd-kit to compute a bogus correction (a visible overshoot).
+        // Skip it when nothing actually changed.
+        setLinks((prev) => (linksEqual(prev, next) ? prev : next))
       })
     })
 
@@ -179,26 +204,24 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   async function reorderLinks(dashboardId: string, orderedIds: string[]) {
     if (!db) return
 
+    const reordered = links.map((link) => {
+      if (link.dashboardId !== dashboardId) return link
+      const newOrder = orderedIds.indexOf(link.id)
+      return newOrder === -1 ? link : { ...link, order: newOrder }
+    })
+
     // dnd-kit's drag preview reverts the instant you drop, before this
     // persists. Apply the new order to local state immediately so the UI
-    // doesn't flash back to the pre-drag layout while the RxDB writes
-    // (and the round trip back through the reactive subscription) catch up.
-    setLinks((prev) =>
-      prev.map((link) => {
-        if (link.dashboardId !== dashboardId) return link
-        const newOrder = orderedIds.indexOf(link.id)
-        return newOrder === -1 ? link : { ...link, order: newOrder }
-      }),
-    )
+    // doesn't flash back to the pre-drag layout while the RxDB write (and
+    // the round trip back through the reactive subscription) catches up.
+    setLinks(reordered)
 
-    await Promise.all(
-      orderedIds.map(async (id, index) => {
-        const doc = await db.links.findOne(id).exec()
-        if (doc && doc.dashboardId === dashboardId) {
-          await doc.patch({ order: index })
-        }
-      }),
-    )
+    // One bulk write, not N concurrent findOne+patch calls -- each patch()
+    // triggers its own reactive emission as soon as it resolves, so doing
+    // them one at a time caused the subscription to overwrite the
+    // optimistic update above with partially-reordered intermediate states,
+    // each one its own visible jump.
+    await db.links.bulkUpsert(reordered.filter((l) => l.dashboardId === dashboardId))
   }
 
   async function moveLinkToDashboard(linkId: string, targetDashboardId: string) {

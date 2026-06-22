@@ -1,10 +1,13 @@
 import { useState } from 'react'
-import { useSortable } from '@dnd-kit/sortable'
+import { defaultAnimateLayoutChanges, useSortable, type AnimateLayoutChanges } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useAppState } from '../context/useAppState'
 import { ConfirmDialog } from './ConfirmDialog'
 import { LinkEditModal } from './LinkEditModal'
 import type { Link } from '../types'
+
+const animateLayoutChanges: AnimateLayoutChanges = (args) =>
+  args.wasDragging ? false : defaultAnimateLayoutChanges(args)
 
 export function LinkTile({ link }: { link: Link }) {
   const { deleteLink } = useAppState()
@@ -14,6 +17,12 @@ export function LinkTile({ link }: { link: Link }) {
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: link.id,
+    // The settle-on-drop layout animation can compute a wildly wrong delta
+    // for long, multi-row reorders (a tile briefly flying off-screen before
+    // sliding back). Skip animating that specific transition -- snap
+    // instantly once a drag just ended -- while keeping the live
+    // drag-preview reorder animation (which works correctly) untouched.
+    animateLayoutChanges,
   })
 
   const showImage = link.backgroundImageUrl && !imageFailed
