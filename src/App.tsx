@@ -39,6 +39,17 @@ function Dashboard() {
           )}
         </div>
       </div>
+      <div className="pointer-events-none fixed bottom-2 right-3 text-xs text-white/70">
+        <span>© 2026 Jeremy Walton. All Rights Reserved.</span>{' '}
+        <a
+          href="https://chromewebstore.google.com/detail/new-tab-redirect/icpgjfneehieebagbmdbhnlpiopdcmna?hl=en"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="pointer-events-auto underline hover:text-white"
+        >
+          Use this extention to redirect to this page when opening a new tab.
+        </a>
+      </div>
     </DndContext>
   )
 }
