@@ -24,11 +24,16 @@ export function ImportExportBar() {
   }
 
   return (
-    <div className="flex gap-2 border-t border-border p-2">
-      <Button variant="ghost" size="sm" onClick={handleExport}>
+    <div className="flex gap-2">
+      <Button variant="ghost" size="sm" className="flex-1" onClick={handleExport}>
         Export
       </Button>
-      <Button variant="ghost" size="sm" onClick={() => fileInputRef.current?.click()}>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="flex-1"
+        onClick={() => fileInputRef.current?.click()}
+      >
         Import
       </Button>
       <input

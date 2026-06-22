@@ -12,6 +12,7 @@ import { useAppState } from './context/useAppState'
 import { DashboardList } from './components/DashboardList'
 import { DashboardGrid } from './components/DashboardGrid'
 import { ImportExportBar } from './components/ImportExportBar'
+import { Sidebar, SidebarContent, SidebarFooter, SidebarInset, SidebarProvider } from './components/ui/sidebar'
 import { parseDashboardDropId } from './lib/dashboardDropId'
 
 function Dashboard() {
@@ -78,12 +79,16 @@ function Dashboard() {
       }}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex h-screen flex-col">
-        <div className="flex flex-1 overflow-hidden">
-          <div className="flex flex-col">
+      <SidebarProvider className="h-screen min-h-0">
+        <Sidebar collapsible="none" className="border-r border-border">
+          <SidebarContent>
             <DashboardList />
+          </SidebarContent>
+          <SidebarFooter>
             <ImportExportBar />
-          </div>
+          </SidebarFooter>
+        </Sidebar>
+        <SidebarInset className="overflow-hidden">
           {activeDashboard && (
             <DashboardGrid
               links={activeLinks}
@@ -91,8 +96,8 @@ function Dashboard() {
               onAddLink={() => void addLink(activeDashboard.id)}
             />
           )}
-        </div>
-      </div>
+        </SidebarInset>
+      </SidebarProvider>
     </DndContext>
   )
 }

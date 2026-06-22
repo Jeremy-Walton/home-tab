@@ -4,7 +4,6 @@ import { DotsThreeVerticalIcon, PlusIcon } from '@phosphor-icons/react'
 import { useAppState } from '../context/useAppState'
 import { dashboardDropId } from '../lib/dashboardDropId'
 import { ConfirmDialog } from './ConfirmDialog'
-import { Button } from './ui/button'
 import { Input } from './ui/input'
 import {
   DropdownMenu,
@@ -12,6 +11,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu'
+import {
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuAction,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from './ui/sidebar'
 import type { Dashboard } from '../types'
 
 function DashboardListItem({ dashboard, isActive }: { dashboard: Dashboard; isActive: boolean }) {
@@ -32,12 +39,7 @@ function DashboardListItem({ dashboard, isActive }: { dashboard: Dashboard; isAc
   }
 
   return (
-    <li
-      ref={setNodeRef}
-      className={`group relative flex items-center justify-between rounded-2xl px-2 py-1 text-sm ${
-        isActive ? 'bg-accent font-medium text-accent-foreground' : 'hover:bg-accent/50'
-      } ${isOver ? 'ring-2 ring-ring' : ''}`}
-    >
+    <SidebarMenuItem ref={setNodeRef} className={isOver ? 'rounded-xl ring-2 ring-ring' : ''}>
       {renaming ? (
         <Input
           autoFocus
@@ -48,24 +50,16 @@ function DashboardListItem({ dashboard, isActive }: { dashboard: Dashboard; isAc
           className="h-7"
         />
       ) : (
-        <button
-          className="flex-1 truncate text-left"
-          onClick={() => setActiveDashboardId(dashboard.id)}
-        >
-          {dashboard.name}
-        </button>
+        <SidebarMenuButton isActive={isActive} onClick={() => setActiveDashboardId(dashboard.id)}>
+          <span className="truncate">{dashboard.name}</span>
+        </SidebarMenuButton>
       )}
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon-xs"
-            className="ml-1 hidden group-hover:flex"
-            aria-label="Dashboard options"
-          >
+          <SidebarMenuAction showOnHover aria-label="Dashboard options">
             <DotsThreeVerticalIcon weight="bold" />
-          </Button>
+          </SidebarMenuAction>
         </DropdownMenuTrigger>
         <DropdownMenuContent
           onCloseAutoFocus={(e) => {
@@ -105,7 +99,7 @@ function DashboardListItem({ dashboard, isActive }: { dashboard: Dashboard; isAc
           onCancel={() => setConfirmingDelete(false)}
         />
       )}
-    </li>
+    </SidebarMenuItem>
   )
 }
 
@@ -113,24 +107,26 @@ export function DashboardList() {
   const { dashboards, activeDashboardId, addDashboard } = useAppState()
 
   return (
-    <div className="w-48 shrink-0 border-r border-border p-2">
-      <ul className="space-y-0.5">
-        {dashboards.map((dashboard) => (
-          <DashboardListItem
-            key={dashboard.id}
-            dashboard={dashboard}
-            isActive={dashboard.id === activeDashboardId}
-          />
-        ))}
-      </ul>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="mt-2 w-full justify-start text-primary"
-        onClick={() => void addDashboard('New dashboard')}
-      >
-        <PlusIcon /> Add dashboard
-      </Button>
-    </div>
+    <SidebarGroup>
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {dashboards.map((dashboard) => (
+            <DashboardListItem
+              key={dashboard.id}
+              dashboard={dashboard}
+              isActive={dashboard.id === activeDashboardId}
+            />
+          ))}
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              className="text-primary"
+              onClick={() => void addDashboard('New dashboard')}
+            >
+              <PlusIcon /> Add dashboard
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
   )
 }
