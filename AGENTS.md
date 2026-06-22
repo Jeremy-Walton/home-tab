@@ -4,10 +4,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Launch Tabs (a.k.a. Home Tab) — a browser new-tab dashboard for quickly navigating to favorite websites. State (links, background image) persists to `localStorage`; there is no backend.
+Launch Tabs (a.k.a. Home Tab) — a browser new-tab dashboard for quickly navigating to favorite websites.
+
+Product requirements: @docs/PRD.md
+Architecture and stack decisions: @docs/TECHNICAL_DESIGN.md
 
 ## Current State
 
-This branch (`2026-re-implement`) is a from-scratch rewrite in progress. The repository root currently contains only `README.md` and `old/`, which holds the previous production implementation for reference.
+This branch (`2026-re-implement`) is a from-scratch rewrite, scaffolded per `docs/TECHNICAL_DESIGN.md`. The repository root also contains `old/`, the previous production implementation, kept for reference only.
 
-When working on the rewrite, ignore the `old/` completely. Do not reference it or write code within it.
+When working on the rewrite, ignore `old/` completely. Do not reference it or write code within it, except when intentionally porting/migrating legacy data shapes (see `src/lib/importExport.ts`).
+
+## Commands
+
+- `npm run dev` — start the Vite dev server
+- `npm run build` — typecheck (`tsc -b`) then production build
+- `npm run lint` — ESLint
+- `npm test` — Vitest (single run); `npm run test:watch` for watch mode
+
+Run typecheck, lint, and tests before considering any change done — none of them are caught by the others.
+
+## Gotchas
+
+Known gotchas (dnd-kit/click interaction, RxDB ready-state timing, legacy import gating) are documented in `docs/TECHNICAL_DESIGN.md`'s "Known Gotchas" section — read it before touching drag-and-drop, the RxDB bootstrap effect, or legacy import in `AppStateContext.tsx`.
+
+UI changes in this repo should be verified in an actual browser (Playwright/`chromium-cli`), not just via typecheck/lint/tests. Every real bug found so far was invisible to all three and only showed up when actually clicking/dragging in a browser.

@@ -115,13 +115,16 @@ a full RxDB collection given it's a single value) and restored on load.
   becomes its `backgroundImageUrl`, and each old link becomes a `links`
   document (`label→title`, `url→url`, `image→backgroundImageUrl`,
   `color→backgroundColor`; `isDisabled`/`key`/`id` dropped).
-- **Import (legacy format, automatic)**: the bootstrap effect that runs
-  when no dashboards exist yet (`AppStateContext.tsx`) checks
-  `localStorage.getItem('state')` first. If present and it matches the
-  legacy shape, it's mapped and inserted the same way as the manual path,
-  then the key is removed from localStorage so it can't be re-imported on
-  a later visit. Only if no legacy key is found does it fall back to
-  creating an empty "Default" dashboard.
+- **Import (legacy format, automatic)**: the bootstrap effect in
+  `AppStateContext.tsx` checks `localStorage.getItem('state')` on every
+  load, *independent of how many dashboards already exist* — a user may
+  have opened the app once before (creating an empty "Default") and only
+  later end up with legacy data in `localStorage` (e.g. same browser
+  profile as the old app). If the key is present and matches the legacy
+  shape, it's mapped and inserted the same way as the manual path, then
+  the key is removed so it can't be re-imported later. An empty "Default"
+  dashboard is only created when no legacy key is found *and* no
+  dashboards exist yet.
 
 ## Testing Focus
 
@@ -131,6 +134,26 @@ Per the PRD's higher-risk areas, prioritize Vitest + RTL coverage on:
 - Import/export, including legacy-format mapping
 - Reorder and move-between-dashboards logic
 - URL normalization and broken-image fallback behavior
+
+## Known Gotchas
+
+- **A real drag-and-drop still fires a native `click` afterward, and
+  dnd-kit relocates DOM nodes during the drag.** A per-tile `onClick`
+  check against `isDragging` is not reliable: the click that follows a
+  drag can land on a different (freshly-mounted) DOM node than the one a
+  component-level handler was attached to, so the handler never fires
+  and the tile's `<a href>` navigates anyway. The fix (`App.tsx`) is a
+  single `window`-level capture-phase `click` listener that calls
+  `preventDefault()` when a ref (set in `DndContext`'s `onDragStart`) is
+  true. This was confirmed empirically with Playwright; typecheck, lint,
+  and unit tests all pass with the broken version, so any change to
+  drag/click interaction needs a real browser check, not just those.
+- **RxDB's reactive `find().$` can emit before persisted IndexedDB data
+  has actually loaded into the subscription.** Don't treat "the database
+  connected" as "the data is ready" — wait for the *first real query
+  emission* before flipping a `ready` flag, or first-load bootstrap logic
+  (e.g. "create a default dashboard if none exist") can misfire on every
+  reload by momentarily seeing an empty array. See `AppStateContext.tsx`.
 
 ## Open Items
 
