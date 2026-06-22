@@ -1,20 +1,12 @@
 import { useState } from 'react'
 import { defaultAnimateLayoutChanges, useSortable, type AnimateLayoutChanges } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { DotsThreeVerticalIcon } from '@phosphor-icons/react'
 import { useAppState } from '../context/useAppState'
 import { ConfirmDialog } from './ConfirmDialog'
+import { EntityOptionsMenu } from './EntityOptionsMenu'
 import { LinkEditModal } from './LinkEditModal'
 import { AspectRatio } from './ui/aspect-ratio'
 import { Badge } from './ui/badge'
-import { Button } from './ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
 import type { Link } from '../types'
 
 const animateLayoutChanges: AnimateLayoutChanges = (args) =>
@@ -77,30 +69,13 @@ export function LinkTile({ link }: { link: Link }) {
         </a>
 
         <div className="absolute right-1 top-1 opacity-0 transition-opacity group-hover:opacity-100">
-          <DropdownMenu>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="secondary"
-                    size="icon-xs"
-                    aria-label="Link options"
-                    className="relative before:absolute before:-inset-2 before:content-['']"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    <DotsThreeVerticalIcon weight="bold" />
-                  </Button>
-                </DropdownMenuTrigger>
-              </TooltipTrigger>
-              <TooltipContent>Link options</TooltipContent>
-            </Tooltip>
-            <DropdownMenuContent>
-              <DropdownMenuItem onSelect={() => setEditing(true)}>Edit</DropdownMenuItem>
-              <DropdownMenuItem variant="destructive" onSelect={() => setConfirmingDelete(true)}>
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <EntityOptionsMenu
+            label="Link options"
+            variant="secondary"
+            onTriggerClick={(e) => e.preventDefault()}
+            onEdit={() => setEditing(true)}
+            onDelete={() => setConfirmingDelete(true)}
+          />
         </div>
       </AspectRatio>
 

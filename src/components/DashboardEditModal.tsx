@@ -1,15 +1,8 @@
 import { useState } from 'react'
 import { useAppState } from '../context/useAppState'
-import { Button } from './ui/button'
+import { EditDialog } from './EditDialog'
 import { Input } from './ui/input'
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from './ui/dialog'
-import { Field, FieldGroup, FieldLabel } from './ui/field'
+import { Field, FieldLabel } from './ui/field'
 import type { Dashboard } from '../types'
 
 export function DashboardEditModal({
@@ -25,44 +18,25 @@ export function DashboardEditModal({
     dashboard.backgroundImageUrl ?? '',
   )
 
-  async function handleSave() {
-    await updateDashboard(dashboard.id, {
-      name,
-      backgroundImageUrl: backgroundImageUrl || undefined,
-    })
-    onClose()
-  }
-
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Edit dashboard</DialogTitle>
-        </DialogHeader>
+    <EditDialog
+      title="Edit dashboard"
+      onClose={onClose}
+      onSave={() => updateDashboard(dashboard.id, { name, backgroundImageUrl: backgroundImageUrl || undefined })}
+    >
+      <Field>
+        <FieldLabel htmlFor="dashboard-name">Name</FieldLabel>
+        <Input id="dashboard-name" value={name} onChange={(e) => setName(e.target.value)} />
+      </Field>
 
-        <FieldGroup>
-          <Field>
-            <FieldLabel htmlFor="dashboard-name">Name</FieldLabel>
-            <Input id="dashboard-name" value={name} onChange={(e) => setName(e.target.value)} />
-          </Field>
-
-          <Field>
-            <FieldLabel htmlFor="dashboard-background">Background image URL</FieldLabel>
-            <Input
-              id="dashboard-background"
-              value={backgroundImageUrl}
-              onChange={(e) => setBackgroundImageUrl(e.target.value)}
-            />
-          </Field>
-        </FieldGroup>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={() => void handleSave()}>Save</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      <Field>
+        <FieldLabel htmlFor="dashboard-background">Background image URL</FieldLabel>
+        <Input
+          id="dashboard-background"
+          value={backgroundImageUrl}
+          onChange={(e) => setBackgroundImageUrl(e.target.value)}
+        />
+      </Field>
+    </EditDialog>
   )
 }

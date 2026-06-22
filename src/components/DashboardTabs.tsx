@@ -1,17 +1,12 @@
 import { useState } from 'react'
 import { useDroppable } from '@dnd-kit/core'
-import { DotsThreeVerticalIcon, PlusIcon } from '@phosphor-icons/react'
+import { PlusIcon } from '@phosphor-icons/react'
 import { useAppState } from '../context/useAppState'
 import { dashboardDropId } from '../lib/dashboardDropId'
 import { ConfirmDialog } from './ConfirmDialog'
 import { DashboardEditModal } from './DashboardEditModal'
+import { EntityOptionsMenu } from './EntityOptionsMenu'
 import { Button } from './ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu'
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs'
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
 import type { Dashboard } from '../types'
@@ -32,34 +27,15 @@ function DashboardTabItem({ dashboard }: { dashboard: Dashboard }) {
         <span className="truncate">{dashboard.name}</span>
       </TabsTrigger>
 
-      <DropdownMenu>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                className="absolute right-0.5 top-1/2 -translate-y-1/2 opacity-0 transition-opacity before:absolute before:-inset-2 before:content-[''] group-hover:opacity-100"
-                aria-label="Dashboard options"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <DotsThreeVerticalIcon weight="bold" />
-              </Button>
-            </DropdownMenuTrigger>
-          </TooltipTrigger>
-          <TooltipContent>Dashboard options</TooltipContent>
-        </Tooltip>
-        <DropdownMenuContent>
-          <DropdownMenuItem onSelect={() => setEditing(true)}>Edit</DropdownMenuItem>
-          <DropdownMenuItem
-            variant="destructive"
-            disabled={dashboards.length <= 1}
-            onSelect={() => setConfirmingDelete(true)}
-          >
-            Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <EntityOptionsMenu
+        label="Dashboard options"
+        variant="ghost"
+        triggerClassName="absolute right-0.5 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100"
+        onTriggerClick={(e) => e.stopPropagation()}
+        onEdit={() => setEditing(true)}
+        onDelete={() => setConfirmingDelete(true)}
+        deleteDisabled={dashboards.length <= 1}
+      />
 
       {editing && <DashboardEditModal dashboard={dashboard} onClose={() => setEditing(false)} />}
 
