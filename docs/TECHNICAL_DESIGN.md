@@ -154,23 +154,41 @@ Per the PRD's higher-risk areas, prioritize Vitest + RTL coverage on:
   emission* before flipping a `ready` flag, or first-load bootstrap logic
   (e.g. "create a default dashboard if none exist") can misfire on every
   reload by momentarily seeing an empty array. See `AppStateContext.tsx`.
-- **dnd-kit's sortable drag preview is purely visual and reverts the
-  instant you drop** — independent of whether your actual reorder has
-  persisted yet. `reorderLinks`/`moveLinkToDashboard` write to RxDB
-  asynchronously (`findOne` then `patch`, per item), so there used to be
-  a visible gap on drop: the preview snapped back to the pre-drag layout,
-  then once the RxDB writes resolved and the reactive subscription
-  caught up, tiles jumped to their real new positions — tiles briefly
-  flew to wrong spots (confirmed via a controlled Playwright before/after
-  screenshot comparison) before settling ~75ms later. Fixed by applying
-  the new order to local `links` state *immediately* in `reorderLinks`,
-  before awaiting the RxDB writes, so there's no gap between the preview
-  disappearing and the real layout taking over. Also switched the grid
-  container from `flex flex-wrap` to CSS Grid, since `rectSortingStrategy`
-  doesn't model flex-wrap reflow correctly for cross-row moves, and added
-  `collisionDetection={closestCenter}` (the standard choice for sortable
-  grids). Any future change to reorder/move logic should keep applying
-  local-state updates optimistically, before the async persistence call.
+- **Tiles could jump to wrong positions (sometimes off-screen) right after
+  dropping a drag-reorder.** This took three separate fixes, found by
+  testing many drag distances/directions with Playwright and tracking
+  each tile's position by its visible identity (not DOM index, which
+  changes across a reorder) — a single screenshot comparison is not
+  enough to confirm this class of bug is fixed:
+  1. The grid container used `flex flex-wrap`, which `rectSortingStrategy`
+     doesn't model correctly for cross-row moves. Switched to CSS Grid,
+     and added `collisionDetection={closestCenter}` (standard for sortable
+     grids).
+  2. dnd-kit's drag preview reverts the instant you drop, before the
+     reorder is actually persisted. `reorderLinks` originally did N
+     concurrent `findOne`+`patch` calls; each one triggers its own RxDB
+     reactive emission as soon as it resolves, so the `links` subscription
+     kept overwriting the UI with partially-reordered intermediate states
+     — one visible jump per write. Fixed by computing the full new order
+     and applying it to local state *immediately* (before any persistence
+     call), then writing it as a *single* `bulkUpsert` instead of N
+     separate writes.
+  3. Even after that, the subscription's later, redundant-but-same-data
+     emission (new array/object references once the bulkUpsert resolved)
+     could land while dnd-kit's post-drop layout-change animation was
+     still mid-flight, causing it to compute a bogus correction — observed
+     a tile flying to `(1082, -147)`, off-screen above the viewport,
+     before sliding back. Fixed by (a) having the `links` subscription
+     skip `setLinks` entirely when the incoming data is equal to current
+     state (see `linksEqual`), and (b) passing `animateLayoutChanges` to
+     `useSortable` in `LinkTile.tsx` so the *settle-after-drop* transition
+     specifically (`wasDragging`) snaps instantly instead of animating —
+     the live drag-preview animation is untouched and still smooth.
+
+  Any future change to reorder/move logic should keep applying local-state
+  updates optimistically and as a single batched write, and should be
+  re-verified the same way (position-by-identity tracking across many
+  drag distances/directions, not just one screenshot diff).
 
 ## Open Items
 
