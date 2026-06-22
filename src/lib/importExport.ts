@@ -28,7 +28,6 @@ export function mapLegacyState(legacy: LegacyState): {
     title: link.label ?? '',
     url: normalizeUrl(link.url ?? ''),
     backgroundImageUrl: link.image || undefined,
-    backgroundColor: link.color || undefined,
   }))
 
   return { dashboard, links }

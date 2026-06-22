@@ -25,8 +25,7 @@ function linksEqual(a: Link[], b: Link[]): boolean {
       prev.order === link.order &&
       prev.title === link.title &&
       prev.url === link.url &&
-      prev.backgroundImageUrl === link.backgroundImageUrl &&
-      prev.backgroundColor === link.backgroundColor
+      prev.backgroundImageUrl === link.backgroundImageUrl
     )
   })
 }
@@ -188,7 +187,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   async function updateLink(
     id: string,
-    fields: Partial<Pick<Link, 'title' | 'url' | 'backgroundImageUrl' | 'backgroundColor'>>,
+    fields: Partial<Pick<Link, 'title' | 'url' | 'backgroundImageUrl'>>,
   ) {
     if (!db) return
     const doc = await db.links.findOne(id).exec()

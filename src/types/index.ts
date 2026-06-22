@@ -12,7 +12,6 @@ export interface Link {
   title: string
   url: string
   backgroundImageUrl?: string
-  backgroundColor?: string
 }
 
 export interface LegacyState {

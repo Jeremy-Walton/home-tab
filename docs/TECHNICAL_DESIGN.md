@@ -65,7 +65,6 @@ Two RxDB collections, replacing the single-blob `AppState` approach:
 | `title`           | string           |                                            |
 | `url`             | string           | scheme auto-prepended (`https://`) if missing |
 | `backgroundImageUrl` | string (optional) |                                       |
-| `backgroundColor` | string (optional) |                                          |
 
 ### App-level state (active dashboard)
 
@@ -97,9 +96,8 @@ a full RxDB collection given it's a single value) and restored on load.
 - **Deleting a link**: requires confirmation, then a single document
   delete.
 - **Broken image fallback**: handled at the component level via an
-  `onError` handler on the `<img>`/background element, falling back to
-  the link/dashboard's `backgroundColor` (or a default color) rather than
-  showing a broken-image icon.
+  `onError` handler on the `<img>`/background element, falling back to a
+  default background color rather than showing a broken-image icon.
 - **URL normalization**: a small utility run on save — if the string
   doesn't start with a recognized scheme, prepend `https://`.
 
@@ -113,8 +111,8 @@ a full RxDB collection given it's a single value) and restored on load.
   (`{ links: [...], backgroundUrl }`) and map it per the PRD's "Export /
   Import" section — one new dashboard named "Imported", `backgroundUrl`
   becomes its `backgroundImageUrl`, and each old link becomes a `links`
-  document (`label→title`, `url→url`, `image→backgroundImageUrl`,
-  `color→backgroundColor`; `isDisabled`/`key`/`id` dropped).
+  document (`label→title`, `url→url`, `image→backgroundImageUrl`;
+  `color`/`isDisabled`/`key`/`id` dropped).
 - **Import (legacy format, automatic)**: the bootstrap effect in
   `AppStateContext.tsx` checks `localStorage.getItem('state')` on every
   load, *independent of how many dashboards already exist* — a user may

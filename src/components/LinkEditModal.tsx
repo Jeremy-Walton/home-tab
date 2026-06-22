@@ -16,14 +16,12 @@ export function LinkEditModal({ link, onClose }: { link: Link; onClose: () => vo
   const [title, setTitle] = useState(link.title)
   const [url, setUrl] = useState(link.url)
   const [backgroundImageUrl, setBackgroundImageUrl] = useState(link.backgroundImageUrl ?? '')
-  const [backgroundColor, setBackgroundColor] = useState(link.backgroundColor ?? '#e5e7eb')
 
   async function handleSave() {
     await updateLink(link.id, {
       title,
       url,
       backgroundImageUrl: backgroundImageUrl || undefined,
-      backgroundColor: backgroundColor || undefined,
     })
     onClose()
   }
@@ -57,16 +55,6 @@ export function LinkEditModal({ link, onClose }: { link: Link; onClose: () => vo
             value={backgroundImageUrl}
             onChange={(e) => setBackgroundImageUrl(e.target.value)}
             className="mt-1"
-          />
-        </label>
-
-        <label className="block text-xs text-muted-foreground">
-          Background color
-          <input
-            type="color"
-            value={backgroundColor}
-            onChange={(e) => setBackgroundColor(e.target.value)}
-            className="mt-1 h-8 w-full rounded-md border border-input"
           />
         </label>
 

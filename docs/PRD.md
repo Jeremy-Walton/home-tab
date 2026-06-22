@@ -58,8 +58,6 @@ Each link consists of:
 - **Title** (text)
 - **Target URL**
 - **Background image URL** (optional)
-- **Background color** (optional — typically chosen to complement the
-  background image)
 
 #### Creating links
 
@@ -71,8 +69,8 @@ Each link consists of:
 
 - Edit controls (edit, move, delete) are revealed on hover over a tile,
   not always visible and not behind a separate "edit mode" toggle.
-- Editing a link lets the user change title, target URL, background image
-  URL, and background color.
+- Editing a link lets the user change title, target URL, and background
+  image URL.
 - Deleting a link requires a confirmation prompt.
 
 #### URL handling
@@ -80,9 +78,8 @@ Each link consists of:
 - If a target URL or background image URL is entered without a scheme,
   `https://` is auto-prepended.
 - If a background image fails to load (broken URL, 404, etc.), the tile
-  silently falls back to its plain background color (or a default
-  background if no color is set) — no broken-image icon or visible error
-  state.
+  silently falls back to a default background color — no broken-image
+  icon or visible error state.
 
 #### Ordering & moving links
 
@@ -97,15 +94,15 @@ Each link consists of:
 
 ### Backgrounds
 
-- **Per-link background**: an image URL and/or color, set per link, shown
-  behind that link's tile.
+- **Per-link background**: an image URL, set per link, shown behind that
+  link's tile.
 - **Per-dashboard background**: an image URL, set per dashboard, shown
   behind the entire grid for that dashboard. Pasted as a URL only (no file
   upload), to avoid bloating client-side storage with embedded image data.
 - There is no app-wide/global background — backgrounds are scoped to
   links and dashboards only.
 - Broken background image URLs (link or dashboard) fall back silently to
-  a plain color, per "URL handling" above.
+  a default background color, per "URL handling" above.
 
 ### Navigation behavior
 
@@ -150,9 +147,9 @@ Each link consists of:
   is also available via the manual **Import** action for a previously
   exported legacy file. Either path creates a single new dashboard (named
   "Imported") whose background comes from `backgroundUrl`, with each link
-  mapped as `label→title`, `url→url`, `image→backgroundImage`,
-  `color→backgroundColor` (`isDisabled`/`key`/`id` are dropped — no
-  equivalent in the new model).
+  mapped as `label→title`, `url→url`, `image→backgroundImage`
+  (`color`/`isDisabled`/`key`/`id` are dropped — no equivalent in the new
+  model).
 - This is the primary safety net against data loss, since v1 has no
   backend/sync.
 

@@ -44,7 +44,7 @@ export function LinkTile({ link }: { link: Link }) {
   }
 
   const backgroundStyle = {
-    backgroundColor: link.backgroundColor || '#e5e7eb',
+    backgroundColor: '#e5e7eb',
     backgroundImage: showImage ? `url(${link.backgroundImageUrl})` : undefined,
     backgroundSize: 'cover',
     backgroundPosition: 'center',

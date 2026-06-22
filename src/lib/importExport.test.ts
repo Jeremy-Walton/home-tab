@@ -52,7 +52,7 @@ describe('mapLegacyState', () => {
       title: 'GitHub',
       url: 'https://github.com',
       backgroundImageUrl: 'https://example.com/gh.png',
-      backgroundColor: '#fff',
     })
+    expect(links[0]).not.toHaveProperty('backgroundColor')
   })
 })

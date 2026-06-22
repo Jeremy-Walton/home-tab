@@ -16,7 +16,7 @@ export interface AppStateValue {
   addLink: (dashboardId: string) => Promise<void>
   updateLink: (
     id: string,
-    fields: Partial<Pick<Link, 'title' | 'url' | 'backgroundImageUrl' | 'backgroundColor'>>,
+    fields: Partial<Pick<Link, 'title' | 'url' | 'backgroundImageUrl'>>,
   ) => Promise<void>
   deleteLink: (id: string) => Promise<void>
   reorderLinks: (dashboardId: string, orderedIds: string[]) => Promise<void>

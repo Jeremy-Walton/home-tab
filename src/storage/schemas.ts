@@ -27,7 +27,6 @@ export const linkSchema: RxJsonSchema<Link> = {
     title: { type: 'string' },
     url: { type: 'string' },
     backgroundImageUrl: { type: 'string' },
-    backgroundColor: { type: 'string' },
   },
   required: ['id', 'dashboardId', 'order', 'title', 'url'],
   indexes: ['dashboardId'],
