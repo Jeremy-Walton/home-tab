@@ -39,24 +39,26 @@ export function EntityOptionsMenu({
   return (
     <DropdownMenu>
       <Tooltip>
-        <TooltipTrigger asChild>
-          <DropdownMenuTrigger
-            render={
-              <Button
-                variant={variant}
-                size="icon-xs"
-                aria-label={label}
-                className={cn(
-                  "relative before:absolute before:-inset-2 before:content-['']",
-                  triggerClassName,
-                )}
-                onClick={onTriggerClick}
-              >
-                <DotsThreeVerticalIcon weight="bold" />
-              </Button>
-            }
-          />
-        </TooltipTrigger>
+        <TooltipTrigger
+          render={
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant={variant}
+                  size="icon-xs"
+                  aria-label={label}
+                  className={cn(
+                    "relative before:absolute before:-inset-2 before:content-['']",
+                    triggerClassName,
+                  )}
+                  onClick={onTriggerClick}
+                >
+                  <DotsThreeVerticalIcon weight="bold" />
+                </Button>
+              }
+            />
+          }
+        />
         <TooltipContent>{label}</TooltipContent>
       </Tooltip>
       <DropdownMenuContent>

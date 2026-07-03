@@ -36,20 +36,22 @@ export function ImportExportBar({ className }: { className?: string }) {
     <div className={cn(className)}>
       <DropdownMenu>
         <Tooltip>
-          <TooltipTrigger asChild>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label="Import / export"
-                  className="relative before:absolute before:-inset-1 before:content-['']"
-                >
-                  <DotsThreeVerticalIcon weight="bold" />
-                </Button>
-              }
-            />
-          </TooltipTrigger>
+          <TooltipTrigger
+            render={
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label="Import / export"
+                    className="relative before:absolute before:-inset-1 before:content-['']"
+                  >
+                    <DotsThreeVerticalIcon weight="bold" />
+                  </Button>
+                }
+              />
+            }
+          />
           <TooltipContent>Import / export</TooltipContent>
         </Tooltip>
         <DropdownMenuContent align="end">

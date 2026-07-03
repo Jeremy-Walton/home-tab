@@ -63,17 +63,19 @@ export function DashboardTabs() {
           <DashboardTabItem key={dashboard.id} dashboard={dashboard} />
         ))}
         <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon-xs"
-              className="relative ml-1 rounded-full before:absolute before:-inset-2 before:content-['']"
-              aria-label="Add dashboard"
-              onClick={() => void addDashboard('New dashboard')}
-            >
-              <PlusIcon />
-            </Button>
-          </TooltipTrigger>
+          <TooltipTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                className="relative ml-1 rounded-full before:absolute before:-inset-2 before:content-['']"
+                aria-label="Add dashboard"
+                onClick={() => void addDashboard('New dashboard')}
+              >
+                <PlusIcon />
+              </Button>
+            }
+          />
           <TooltipContent>Add dashboard</TooltipContent>
         </Tooltip>
       </TabsList>
