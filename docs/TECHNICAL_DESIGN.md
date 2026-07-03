@@ -189,6 +189,42 @@ Per the PRD's higher-risk areas, prioritize Vitest + RTL coverage on:
   re-verified the same way (position-by-identity tracking across many
   drag distances/directions, not just one screenshot diff).
 
+- **The `ui/` wrappers moved from Radix UI to Base UI (`@base-ui/react`);
+  `components.json` reads `base-luma`.** A few Base UI defaults differ from
+  Radix's in ways that compile fine but change behavior:
+  - `Tabs.List` defaults `activateOnFocus` to `false` (manual activation):
+    arrow-keying between dashboard tabs only moves focus, and a dashboard
+    only switches on an explicit `Enter`/`Space`. Radix switched
+    immediately on arrow-key focus. Not patched — this is Base UI's
+    idiomatic default, matching the shadcn base registry.
+  - `Separator` has no `decorative` prop and is always exposed to
+    assistive tech as `role="separator"`; Radix's wrapper defaulted
+    `decorative={true}` (hidden from the accessibility tree). No current
+    consumer relies on the decorative default, but a future purely-visual
+    separator will pick up an extra a11y-tree node.
+  - `AlertDialogAction` renders a plain `Button` and does **not**
+    auto-close the dialog the way Radix's `Action` part did (`Dialog.Close`
+    still does, this is specific to alert-dialog). Both current call sites
+    (`DashboardTabs.tsx`, `LinkTile.tsx`) unmount the dialog themselves in
+    `onConfirm`, so this is invisible today — any new `AlertDialogAction`
+    consumer must close the dialog itself.
+  - `AspectRatio`'s registry-provided base variant sets the sizing
+    `style={{"--ratio": ratio}}` and spreads `{...props}` *after* it, so a
+    consumer-supplied `style` prop (e.g. `LinkTile.tsx`'s background image
+    styling) silently clobbers `--ratio` instead of merging with it. Our
+    `aspect-ratio.tsx` destructures `style` and merges it explicitly
+    (`{...style, "--ratio": ratio}`) — if this file is ever regenerated
+    from the registry (`shadcn add aspect-ratio --overwrite`), reapply
+    that merge or the aspect-ratio box will silently collapse whenever a
+    consumer passes its own `style`.
+  - Stacking multiple triggers on one element (e.g. a tooltip over a
+    dropdown-menu trigger over a button) no longer uses nested `asChild`;
+    it's nested `render`: `<TooltipTrigger render={<DropdownMenuTrigger
+    render={<Button/>} />} />` (see `EntityOptionsMenu.tsx`,
+    `ImportExportBar.tsx`). Each Base UI trigger forwards props/ref it
+    doesn't recognize straight through to its own `render` target, so this
+    composes the same way nested Radix `Slot`s used to.
+
 ## Open Items
 
 - Exact RxDB schema versioning/migration strategy as the data model
