@@ -30,7 +30,8 @@ function DashboardTabItem({ dashboard }: { dashboard: Dashboard }) {
       <EntityOptionsMenu
         label="Dashboard options"
         variant="ghost"
-        triggerClassName="absolute right-0.5 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100"
+        triggerClassName="absolute right-0.5 top-1/2 -translate-y-1/2"
+        revealOnHover
         onTriggerClick={(e) => e.stopPropagation()}
         onEdit={() => setEditing(true)}
         onDelete={() => setConfirmingDelete(true)}
@@ -63,17 +64,19 @@ export function DashboardTabs() {
           <DashboardTabItem key={dashboard.id} dashboard={dashboard} />
         ))}
         <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon-xs"
-              className="relative ml-1 rounded-full before:absolute before:-inset-2 before:content-['']"
-              aria-label="Add dashboard"
-              onClick={() => void addDashboard('New dashboard')}
-            >
-              <PlusIcon />
-            </Button>
-          </TooltipTrigger>
+          <TooltipTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                className="ml-1 rounded-full"
+                aria-label="Add dashboard"
+                onClick={() => void addDashboard('New dashboard')}
+              >
+                <PlusIcon />
+              </Button>
+            }
+          />
           <TooltipContent>Add dashboard</TooltipContent>
         </Tooltip>
       </TabsList>

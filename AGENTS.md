@@ -8,10 +8,15 @@ Launch Tabs (a.k.a. Home Tab) — a browser new-tab dashboard for quickly naviga
 
 Product requirements: @docs/PRD.md
 Architecture and stack decisions: @docs/TECHNICAL_DESIGN.md
+Export/import wire formats: @docs/DATA_FORMATS.md
 
 ## Current State
 
-This project is scaffolded per `docs/TECHNICAL_DESIGN.md`.
+Fully implemented per `docs/PRD.md` and `docs/TECHNICAL_DESIGN.md`: all
+core features (dashboards, links, drag-drop reorder/move, backgrounds,
+export/import + legacy migration) are built. See `docs/TECHNICAL_DESIGN.md`'s
+"Open Items" for known gaps (test coverage, hosting/CI branch mismatch,
+no custom domain yet).
 
 ## Commands
 
