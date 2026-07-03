@@ -40,38 +40,40 @@ export function EntityOptionsMenu({
     <DropdownMenu>
       <Tooltip>
         <TooltipTrigger asChild>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant={variant}
-              size="icon-xs"
-              aria-label={label}
-              className={cn(
-                "relative before:absolute before:-inset-2 before:content-['']",
-                triggerClassName,
-              )}
-              onClick={onTriggerClick}
-            >
-              <DotsThreeVerticalIcon weight="bold" />
-            </Button>
-          </DropdownMenuTrigger>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant={variant}
+                size="icon-xs"
+                aria-label={label}
+                className={cn(
+                  "relative before:absolute before:-inset-2 before:content-['']",
+                  triggerClassName,
+                )}
+                onClick={onTriggerClick}
+              >
+                <DotsThreeVerticalIcon weight="bold" />
+              </Button>
+            }
+          />
         </TooltipTrigger>
         <TooltipContent>{label}</TooltipContent>
       </Tooltip>
       <DropdownMenuContent>
-        <DropdownMenuItem onSelect={onEdit}>Edit</DropdownMenuItem>
+        <DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
         {moveTo && moveTo.options.length > 0 && (
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>Move to…</DropdownMenuSubTrigger>
             <DropdownMenuSubContent>
               {moveTo.options.map((option) => (
-                <DropdownMenuItem key={option.id} onSelect={() => moveTo.onSelect(option.id)}>
+                <DropdownMenuItem key={option.id} onClick={() => moveTo.onSelect(option.id)}>
                   {option.name}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuSubContent>
           </DropdownMenuSub>
         )}
-        <DropdownMenuItem variant="destructive" disabled={deleteDisabled} onSelect={onDelete}>
+        <DropdownMenuItem variant="destructive" disabled={deleteDisabled} onClick={onDelete}>
           Delete
         </DropdownMenuItem>
       </DropdownMenuContent>

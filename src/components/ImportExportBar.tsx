@@ -37,22 +37,24 @@ export function ImportExportBar({ className }: { className?: string }) {
       <DropdownMenu>
         <Tooltip>
           <TooltipTrigger asChild>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label="Import / export"
-                className="relative before:absolute before:-inset-1 before:content-['']"
-              >
-                <DotsThreeVerticalIcon weight="bold" />
-              </Button>
-            </DropdownMenuTrigger>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Import / export"
+                  className="relative before:absolute before:-inset-1 before:content-['']"
+                >
+                  <DotsThreeVerticalIcon weight="bold" />
+                </Button>
+              }
+            />
           </TooltipTrigger>
           <TooltipContent>Import / export</TooltipContent>
         </Tooltip>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={handleExport}>Export</DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => fileInputRef.current?.click()}>
+          <DropdownMenuItem onClick={handleExport}>Export</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
             Import
           </DropdownMenuItem>
         </DropdownMenuContent>
