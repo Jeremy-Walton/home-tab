@@ -36,10 +36,7 @@ the PRD.
   - `ci.yml` — runs `yarn lint`, `yarn tsc -b`, `yarn test` on push to
     `main` and on every pull request.
   - `deploy.yml` — runs `yarn build` → deploys `dist/` to GitHub Pages on
-    push to `master`.
-  - Note: `ci.yml` watches `main` while `deploy.yml` watches `master`,
-    and `master` is this repo's actual default/primary branch — see
-    "Open Items."
+    push to `main`.
 
 ## Why RxDB
 
@@ -331,9 +328,6 @@ effect, cascade-delete, then broken-image fallback.
 - No custom domain is configured for GitHub Pages yet (deployed at the
   `/home-tab/` project-pages subpath); decide whether/when to add one, and
   update `vite.config.ts`'s `base` accordingly if so.
-- `ci.yml` triggers on push to `main`; `deploy.yml` triggers on push to
-  `master`, which is this repo's actual primary branch. Confirm this is
-  intentional (e.g. a `main` branch is planned) or align the two.
 - No client-side validation beyond URL scheme normalization (see PRD "Open
   Items") — decide whether that's ever needed.
 - No automated coverage for RxDB/drag-and-drop/reorder logic (see "Testing
