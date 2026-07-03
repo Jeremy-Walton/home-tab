@@ -63,15 +63,14 @@ export function LinkTile({ link }: { link: Link }) {
           draggable={false}
           className="absolute inset-0 flex items-end p-2"
         >
-          <Badge className="h-auto max-w-full truncate rounded-lg bg-black/50 text-white">
-            {link.title || 'Untitled'}
-          </Badge>
+          <Badge variant="overlay">{link.title || 'Untitled'}</Badge>
         </a>
 
-        <div className="absolute right-1 top-1 opacity-0 transition-opacity group-hover:opacity-100">
+        <div className="absolute right-1 top-1">
           <EntityOptionsMenu
             label="Link options"
             variant="secondary"
+            revealOnHover
             onTriggerClick={(e) => e.preventDefault()}
             onEdit={() => setEditing(true)}
             onDelete={() => setConfirmingDelete(true)}

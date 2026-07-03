@@ -126,16 +126,26 @@ than an RxDB collection, since it's a single value with no query needs.
   `App.tsx` (root: `DndContext` + layout shell), `Navbar.tsx`,
   `DashboardTabs.tsx` (tab strip + per-tab options menu),
   `DashboardGrid.tsx` (grid/empty-state switch + sortable context),
-  `LinkTile.tsx`, `EmptyState.tsx`, `EntityOptionsMenu.tsx` (the shared
-  dropdown used by both dashboards and links), `ConfirmDialog.tsx` (shared
-  delete-confirmation), `EditDialog.tsx` (shared edit-modal shell),
-  `LinkEditModal.tsx`/`DashboardEditModal.tsx` (field sets on top of
-  `EditDialog`), `ImportExportBar.tsx`, `LogoIcon.tsx`/`Wordmark.tsx`
-  (branding).
+  `LinkTile.tsx`, `EmptyState.tsx`, `OptionsMenu.tsx` (the shared
+  three-dot/kebab trigger: a tooltip'd dropdown-menu button; callers pass
+  the menu items as children), `EntityOptionsMenu.tsx` (`OptionsMenu` +
+  the Edit/Move/Delete item set used by both dashboards and links),
+  `ConfirmDialog.tsx` (shared delete-confirmation), `EditDialog.tsx`
+  (shared edit-modal shell), `LinkEditModal.tsx`/`DashboardEditModal.tsx`
+  (field sets on top of `EditDialog`), `ImportExportBar.tsx`,
+  `LogoIcon.tsx`/`Wordmark.tsx` (branding).
 - `src/components/ui/` — shadcn-generated primitive wrappers (`button`,
   `dialog`, `alert-dialog`, `dropdown-menu`, `tabs`, `tooltip`, `badge`,
-  `aspect-ratio`, `label`, `separator`, `field`, `input`, `empty`); treat
-  these as vendored/generated code, not hand-authored app logic.
+  `aspect-ratio`, `label`, `separator`, `field`, `input`, `empty`). These
+  are owned project code, not off-limits vendor files. Two rules govern
+  what goes where: **stylistic changes belong here** — bake a recurring
+  look into the primitive itself (a CVA `variant`/`size`, or an adjusted
+  default class), even if it's only used in one place today (e.g. the
+  `overlay` badge variant, or the enlarged hit-area baked into the
+  `icon-xs`/`icon-sm` button sizes). **Composition belongs outside `ui/`**
+  — opinionated assemblies of these primitives (`EditDialog`,
+  `ConfirmDialog`, `OptionsMenu`, `EntityOptionsMenu`) live in
+  `src/components/`.
 
 ## Key Interaction Implementation Notes
 

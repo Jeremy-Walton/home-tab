@@ -1,15 +1,8 @@
 import { useRef } from 'react'
-import { DotsThreeVerticalIcon } from '@phosphor-icons/react'
 import { useAppState } from '../context/useAppState'
 import { cn } from '../lib/utils'
-import { Button } from './ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
+import { OptionsMenu } from './OptionsMenu'
+import { DropdownMenuItem } from './ui/dropdown-menu'
 
 export function ImportExportBar({ className }: { className?: string }) {
   const { exportState, importState } = useAppState()
@@ -34,33 +27,12 @@ export function ImportExportBar({ className }: { className?: string }) {
 
   return (
     <div className={cn(className)}>
-      <DropdownMenu>
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <DropdownMenuTrigger
-                render={
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label="Import / export"
-                    className="relative before:absolute before:-inset-1 before:content-['']"
-                  >
-                    <DotsThreeVerticalIcon weight="bold" />
-                  </Button>
-                }
-              />
-            }
-          />
-          <TooltipContent>Import / export</TooltipContent>
-        </Tooltip>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={handleExport}>Export</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
-            Import
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <OptionsMenu label="Import / export" variant="ghost" size="icon-sm" align="end">
+        <DropdownMenuItem onClick={handleExport}>Export</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+          Import
+        </DropdownMenuItem>
+      </OptionsMenu>
       <input
         ref={fileInputRef}
         type="file"
