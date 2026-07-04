@@ -9,7 +9,7 @@ STOP conditions, and update your row when done.
 
 | Plan | Title | Priority | Effort | Depends on | Status |
 |------|-------|----------|--------|------------|--------|
-| [001](001-fix-ci-triggers.md) | Make CI run on every push; gate deploys on lint + tests | P1 | S | — | TODO |
+| [001](001-fix-ci-triggers.md) | Gate GitHub Pages deploys on lint + tests | P1 | S | — | DONE (`advisor/001-fix-ci-triggers` @ `0ac3c5b`, not merged) |
 | [002](002-characterization-tests.md) | Characterization tests for the app-state layer (incl. background-clear investigation) | P1 | L | — | TODO |
 | [003](003-harden-import.md) | Validate imports, block unsafe URL schemes, surface import results | P1 | M | 002 | TODO |
 | [004](004-export-version-field.md) | Version the export format; document schema-migration path | P2 | S | 003 | TODO |
@@ -19,6 +19,17 @@ STOP conditions, and update your row when done.
 | [008](008-backend-sync-spike.md) | Spike: choose an RxDB replication path (decision memo only) | P3 | M | — | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale)
+
+## Revision log
+
+- **2026-07-03**: Plan 001 revised. It was originally written (at
+  `ec0d5e2`) to align CI onto `master`. Commit `fa96076` ("Point to main")
+  reversed that before execution — `deploy.yml` now points at `main`, a
+  real `main` branch exists with `origin/HEAD` pointing at it, and the
+  mismatch note was removed from `docs/TECHNICAL_DESIGN.md`. Plan 001 was
+  rewritten (still numbered 001) to drop the now-done branch-alignment work
+  and keep only the remaining real gap: `deploy.yml` doesn't run
+  lint/tests before building. Re-planned at commit `fa96076`.
 
 ## Dependency notes
 

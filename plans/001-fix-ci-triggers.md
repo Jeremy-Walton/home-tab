@@ -1,4 +1,4 @@
-# Plan 001: Make CI run on every push and gate deploys on lint + tests
+# Plan 001: Gate GitHub Pages deploys on lint + tests
 
 > **Executor instructions**: Follow this plan step by step. Run every
 > verification command and confirm the expected result before moving to the
@@ -7,7 +7,7 @@
 > in `plans/README.md` — unless a reviewer dispatched you and told you they
 > maintain the index.
 >
-> **Drift check (run first)**: `git diff --stat ec0d5e2..HEAD -- .github/workflows/ docs/TECHNICAL_DESIGN.md`
+> **Drift check (run first)**: `git diff --stat fa96076..HEAD -- .github/workflows/ docs/TECHNICAL_DESIGN.md`
 > If any in-scope file changed since this plan was written, compare the
 > "Current state" excerpts against the live code before proceeding; on a
 > mismatch, treat it as a STOP condition.
@@ -19,24 +19,31 @@
 - **Risk**: LOW
 - **Depends on**: none
 - **Category**: dx
-- **Planned at**: commit `ec0d5e2`, 2026-07-03
+- **Planned at**: commit `fa96076`, 2026-07-03
+- **Revision note**: this plan was originally written (at commit `ec0d5e2`)
+  to align CI onto `master`, on the assumption that `master` was this repo's
+  permanent primary branch. Commit `fa96076` ("Point to main") reversed that
+  — it repointed `deploy.yml` from `master` to `main`, a real `main` branch
+  now exists (`origin/HEAD` points at it), and the branch-mismatch note was
+  removed from `docs/TECHNICAL_DESIGN.md`. This revision drops the
+  branch-rename work (already done) and keeps only the still-real gap: the
+  deploy workflow doesn't run lint/tests before building.
 
 ## Why this matters
 
-The CI workflow (`.github/workflows/ci.yml`) triggers on pushes to a branch
-named `main`, but this repository's default and primary branch is `master`
-— `main` does not exist. So lint/typecheck/tests **never run on any push**;
-they only run on pull requests, and this repo's history shows direct pushes
-to `master` are the normal workflow. Meanwhile the deploy workflow publishes
-to GitHub Pages on every push to `master` running only `yarn build` (which
-includes `tsc -b` but not lint or tests). Net effect: broken code can deploy
-to production without any check ever failing. This was already flagged in
-`docs/TECHNICAL_DESIGN.md`'s "Open Items"; the maintainer has chosen to
-align everything to `master`.
+`.github/workflows/ci.yml` and `.github/workflows/deploy.yml` now agree on
+triggering off `main` (no more mismatch). But `deploy.yml` still runs only
+`yarn build` (which includes `tsc -b` but not lint or tests) before
+publishing to GitHub Pages, and it runs on every push to `main` — including
+direct pushes, not just merged/reviewed ones. So broken code can still
+deploy to production without lint or the test suite ever running against
+it. `ci.yml` already runs lint/typecheck/test on the same push, but the two
+workflows run independently — `deploy.yml` does not wait on `ci.yml`'s
+result.
 
 ## Current state
 
-- `.github/workflows/ci.yml` — lint/typecheck/test job. Trigger block (lines 1–6):
+- `.github/workflows/ci.yml` (unchanged, already correct — verify only):
 
   ```yaml
   name: CI
@@ -45,28 +52,70 @@ align everything to `master`.
     push:
       branches: [main]
     pull_request:
+
+  jobs:
+    test:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - run: corepack enable
+        - uses: actions/setup-node@v4
+          with:
+            node-version: 24
+            cache: yarn
+        - run: yarn install --immutable
+        - run: yarn lint
+        - run: yarn tsc -b
+        - run: yarn test
   ```
 
-- `.github/workflows/deploy.yml` — Pages deploy. Relevant steps (the job's tail):
+- `.github/workflows/deploy.yml` — full file as it stands today:
 
   ```yaml
-      - run: yarn install --immutable
-      - run: yarn build
-      - uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: dist
+  name: Deploy
+
+  on:
+    push:
+      branches: [main]
+
+  permissions:
+    contents: write
+
+  concurrency:
+    group: pages
+    cancel-in-progress: true
+
+  jobs:
+    build-and-deploy:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - run: corepack enable
+        - uses: actions/setup-node@v4
+          with:
+            node-version: 24
+            cache: yarn
+        - run: yarn install --immutable
+        - run: yarn build
+        - uses: peaceiris/actions-gh-pages@v4
+          with:
+            github_token: ${{ secrets.GITHUB_TOKEN }}
+            publish_dir: dist
   ```
 
-- `docs/TECHNICAL_DESIGN.md` documents the mismatch in two places that must
-  be updated once fixed:
-  - The "Stack" section, CI/CD bullet: "Note: `ci.yml` watches `main` while
-    `deploy.yml` watches `master`, and `master` is this repo's actual
-    default/primary branch — see 'Open Items.'"
-  - The "Open Items" list: "`ci.yml` triggers on push to `main`; `deploy.yml`
-    triggers on push to `master`, which is this repo's actual primary branch.
-    Confirm this is intentional (e.g. a `main` branch is planned) or align
-    the two."
+- `docs/TECHNICAL_DESIGN.md`, "Stack" section's CI/CD bullet (current text,
+  to be updated):
+
+  ```
+  - **CI/CD**: GitHub Actions
+    - `ci.yml` — runs `yarn lint`, `yarn tsc -b`, `yarn test` on push to
+      `main` and on every pull request.
+    - `deploy.yml` — runs `yarn build` → deploys `dist/` to GitHub Pages on
+      push to `main`.
+  ```
+
+  The old branch-mismatch note and the matching "Open Items" bullet are
+  already gone — no action needed there.
 
 ## Commands you will need
 
@@ -80,38 +129,34 @@ align everything to `master`.
 ## Scope
 
 **In scope** (the only files you should modify):
-- `.github/workflows/ci.yml`
 - `.github/workflows/deploy.yml`
-- `docs/TECHNICAL_DESIGN.md` (the two passages quoted above)
+- `docs/TECHNICAL_DESIGN.md` (the CI/CD bullet quoted above)
 
 **Out of scope** (do NOT touch, even though they look related):
-- Renaming the `master` branch to `main` — the decision is to align CI to
-  `master`, not to rename the branch.
+- `.github/workflows/ci.yml` — already correct (triggers on `main` +
+  `pull_request`, already runs lint/typecheck/test). Verify only, do not
+  edit.
+- Branch renames of any kind — `main` is already the repo's primary/default
+  branch (`origin/HEAD` points at it). No branch-naming work here.
 - `vite.config.ts` / Pages custom-domain configuration — separate Open Item,
   not part of this plan.
 - Node version, caching strategy, or the `peaceiris/actions-gh-pages` action
   version — no changes.
+- Merging `ci.yml` and `deploy.yml` into one workflow, or making deploy
+  `needs:` a CI job — out of scope for this plan (see Maintenance notes);
+  just add the two `run` steps in place.
 
 ## Git workflow
 
 - Branch: `advisor/001-fix-ci-triggers` (repo has no strict convention;
   recent branches are kebab-case like `move-to-base-ui`).
-- Commit style: short imperative subject, e.g. `Fix CI branch trigger and gate deploys`
-  (matches history: "Fix centering", "Update documentation").
+- Commit style: short imperative subject, e.g. `Gate Pages deploy on lint and tests`
+  (matches history: "Fix centering", "Point to main").
 - Do NOT push or open a PR unless the operator instructed it.
 
 ## Steps
 
-### Step 1: Point ci.yml at master
-
-In `.github/workflows/ci.yml`, change the push trigger from
-`branches: [main]` to `branches: [master]`. Keep the `pull_request` trigger
-unchanged.
-
-**Verify**: `grep -n "branches: \[master\]" .github/workflows/ci.yml` → one match (line ~5).
-`grep -n "main" .github/workflows/ci.yml` → no matches.
-
-### Step 2: Gate the deploy on lint and tests
+### Step 1: Gate the deploy on lint and tests
 
 In `.github/workflows/deploy.yml`, add two steps immediately after
 `- run: yarn install --immutable` and before `- run: yarn build`:
@@ -127,46 +172,47 @@ needed.) Match the existing two-space-per-level indentation exactly.
 **Verify**: `grep -n "yarn lint\|yarn test\|yarn build" .github/workflows/deploy.yml`
 → three matches, in the order lint, test, build.
 
-### Step 3: Update the design doc
+### Step 2: Update the design doc
 
-In `docs/TECHNICAL_DESIGN.md`:
+In `docs/TECHNICAL_DESIGN.md`, "Stack" section's CI/CD bullet, update the
+`deploy.yml` description to say it runs `yarn lint` and `yarn test` before
+`yarn build`, e.g.:
 
-1. In the "Stack" section's CI/CD bullet, update the `ci.yml` description to
-   say it runs on push to `master` and on every pull request, and replace the
-   "Note: `ci.yml` watches `main` …" sentence with a note that `deploy.yml`
-   also runs `yarn lint` and `yarn test` before building.
-2. In "Open Items", delete the bullet about the `main`/`master` trigger
-   mismatch (it is now resolved).
+```
+  - `deploy.yml` — runs `yarn lint`, `yarn test`, then `yarn build` →
+    deploys `dist/` to GitHub Pages on push to `main`.
+```
 
-**Verify**: `grep -n "watches \`main\`" docs/TECHNICAL_DESIGN.md` → no matches.
-`grep -c "main" .github/workflows/ci.yml` → 0.
+**Verify**: `grep -n "yarn lint.*yarn test.*yarn build\|yarn test.*yarn build" docs/TECHNICAL_DESIGN.md`
+→ at least one match in the CI/CD bullet.
 
-### Step 4: Confirm the workflows are valid YAML
+### Step 3: Confirm the workflow is valid YAML
 
 ```bash
-node -e "console.log(require('fs').readFileSync('.github/workflows/ci.yml','utf8').length)" \
-  && npx --yes yaml-lint .github/workflows/ci.yml .github/workflows/deploy.yml
+npx --yes yaml-lint .github/workflows/deploy.yml
 ```
 
 If `yaml-lint` is unavailable offline, fall back to a visual diff review —
-the changes are three lines total.
+the change is two lines.
 
 **Verify**: exit 0 / no YAML errors reported.
 
 ## Test plan
 
-No new unit tests — this changes CI configuration only. Full verification of
-the trigger fix requires a push to `master` and observing the Actions run;
-note that in your report as a follow-up for the operator.
+No new unit tests — this changes CI configuration only. Full verification
+requires a push to `main` and observing the Actions run; note that in your
+report as a follow-up for the operator.
 
 ## Done criteria
 
 Machine-checkable. ALL must hold:
 
-- [ ] `grep -n "branches: \[master\]" .github/workflows/ci.yml` → 1 match
-- [ ] `grep -n "main" .github/workflows/ci.yml` → 0 matches
-- [ ] `deploy.yml` runs `yarn lint` and `yarn test` before `yarn build`
-- [ ] `grep -n "watches \`main\`" docs/TECHNICAL_DESIGN.md` → 0 matches
+- [ ] `deploy.yml` runs `yarn lint` and `yarn test` before `yarn build` (in
+      that order)
+- [ ] `.github/workflows/ci.yml` is byte-identical to the excerpt above
+      (untouched)
+- [ ] `docs/TECHNICAL_DESIGN.md`'s CI/CD bullet mentions `deploy.yml`
+      running lint and test before build
 - [ ] `yarn lint && yarn tsc -b && yarn test` all exit 0 (nothing else broke)
 - [ ] No files outside the in-scope list are modified (`git status`)
 - [ ] `plans/README.md` status row updated
@@ -175,15 +221,16 @@ Machine-checkable. ALL must hold:
 
 Stop and report back (do not improvise) if:
 
-- The workflow files no longer match the excerpts above (someone already
-  fixed or restructured them).
-- A `main` branch now exists in the repo (`git branch -a` shows it) — the
-  "align to master" decision may be stale.
+- `deploy.yml` no longer matches the excerpt above (someone already changed
+  it).
+- `ci.yml`'s trigger is anything other than `branches: [main]` plus
+  `pull_request` — that would mean the branch situation changed again since
+  this revision.
 
 ## Maintenance notes
 
-- If the default branch is ever renamed to `main`, both workflow triggers
-  must change together — they are now the only two places that hardcode the
-  branch name.
+- `main` is now the only branch name hardcoded in these workflows. If it's
+  ever renamed again, update both `ci.yml` and `deploy.yml` together.
 - Deploys now take ~30s longer (lint + test). If that ever matters, convert
-  to a single workflow where a deploy job `needs:` the test job instead.
+  to a single workflow where a deploy job `needs:` the test job instead —
+  deliberately not done here to keep this plan's blast radius small.
