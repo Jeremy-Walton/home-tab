@@ -9,14 +9,14 @@ STOP conditions, and update your row when done.
 
 | Plan | Title | Priority | Effort | Depends on | Status |
 |------|-------|----------|--------|------------|--------|
-| [001](001-fix-ci-triggers.md) | Gate GitHub Pages deploys on lint + tests | P1 | S | — | DONE (`advisor/001-fix-ci-triggers` @ `0ac3c5b`, not merged) |
-| [002](002-characterization-tests.md) | Characterization tests for the app-state layer (incl. background-clear investigation) | P1 | L | — | TODO |
-| [003](003-harden-import.md) | Validate imports, block unsafe URL schemes, surface import results | P1 | M | 002 | TODO |
-| [004](004-export-version-field.md) | Version the export format; document schema-migration path | P2 | S | 003 | TODO |
-| [005](005-multitab-bootstrap-guard.md) | Guard first-load bootstrap against concurrent tabs | P2 | M | 002 | TODO |
-| [006](006-url-validation-ux.md) | URL validation with inline feedback in edit dialogs | P2 | S | 002, 003 | TODO |
-| [007](007-housekeeping.md) | Housekeeping: batch cascade delete, dep placement, typo, docs drift | P3 | S | 002 | TODO |
-| [008](008-backend-sync-spike.md) | Spike: choose an RxDB replication path (decision memo only) | P3 | M | — | TODO |
+| [001](001-fix-ci-triggers.md) | Gate GitHub Pages deploys on lint + tests | P1 | S | — | DONE (verified @ `8afaa67`: `deploy.yml` runs lint+test before build, docs updated, `yarn lint`/`tsc -b`/`test` all pass) |
+| [002](002-characterization-tests.md) | Characterization tests for the app-state layer (incl. background-clear investigation) | P1 | L | — | DONE (cherry-picked onto `execute-plan` @ `740f30d`; Step 5 contingency did not fire — clearing a background image already works correctly) |
+| [003](003-harden-import.md) | Validate imports, block unsafe URL schemes, surface import results | P1 | M | 002 | DONE (cherry-picked onto `execute-plan` @ `89e0b1a`) |
+| [004](004-export-version-field.md) | Version the export format; document schema-migration path | P2 | S | 003 | DONE (cherry-picked onto `execute-plan` @ `69ae13c`) |
+| [005](005-multitab-bootstrap-guard.md) | Guard first-load bootstrap against concurrent tabs | P2 | M | 002 | DONE (cherry-picked onto `execute-plan` @ `a14ba18`; manual two-tab browser verification passed, confirmed by operator) |
+| [006](006-url-validation-ux.md) | URL validation with inline feedback in edit dialogs | P2 | S | 002, 003 | DONE (cherry-picked onto `execute-plan` @ `823a01e`) |
+| [007](007-housekeeping.md) | Housekeeping: batch cascade delete, dep placement, typo, docs drift | P3 | S | 002 | DONE (cherry-picked onto `execute-plan` @ `7125fbf`) |
+| [008](008-backend-sync-spike.md) | Spike: choose an RxDB replication path (decision memo only) | P3 | M | — | REJECTED (operator doesn't need this — no backend/sync work planned) |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale)
 
@@ -30,6 +30,147 @@ Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJE
   rewritten (still numbered 001) to drop the now-done branch-alignment work
   and keep only the remaining real gap: `deploy.yml` doesn't run
   lint/tests before building. Re-planned at commit `fa96076`.
+- **2026-07-03 (reconcile)**: Verified plan 001's done criteria hold on
+  current HEAD (`8afaa67`) — the fix landed directly on `main`/`execute-plan`
+  (commit `1d56055`), superseding the unmerged `advisor/001-fix-ci-triggers`
+  branch. Ran drift checks for 002–008 against their `ec0d5e2` baseline:
+  the only change in any of their in-scope paths is `docs/TECHNICAL_DESIGN.md`'s
+  CI/CD bullet and a stale "Open Items" bullet (both already covered by
+  plan 001) — no source-code drift, no plan content invalidated. All of
+  002–008 remain accurate as written and are still executable in order.
+  `yarn lint`, `yarn tsc -b`, and `yarn test` (10/10) all pass on current
+  HEAD.
+
+- **2026-07-03 (execute 002)**: Dispatched an executor on plan 002 in an
+  isolated worktree; reviewed and approved. Added `src/test/testDb.ts` and
+  `src/context/AppStateContext.test.tsx` (13 new tests, 23 total), updated
+  `docs/TECHNICAL_DESIGN.md`'s "Testing Focus". Audit finding #6 is
+  resolved: clearing a dashboard/link background image via `updateDashboard`
+  does correctly remove the stored field under RxDB's memory storage — no
+  code change needed, `AppStateContext.tsx` is untouched. Verified
+  independently: `yarn lint`/`tsc -b`/`test` all pass, diff scope-clean
+  (3 files only), test assertions checked against the live implementation.
+  Cherry-picked (`d57ded2`, `78d329f`, `740f30d`) onto `execute-plan` at the
+  operator's request and the worktree removed. 003, 005, 006, 007 can now
+  build on this directly.
+
+- **2026-07-03 (execute 003)**: Dispatched an executor on plan 003 in an
+  isolated worktree (built on `execute-plan`'s tip, since the worktree was
+  initially provisioned stale and had no unique commits to preserve);
+  reviewed and approved. Added `isSafeHref` (scheme allowlist) with a
+  render-time guard in `LinkTile.tsx`, replaced the existence-only
+  `isExportedState` with strict structural validation, added
+  `sanitizeExportedState` (copies only known fields, normalizes URLs),
+  made `importState` check RxDB bulk-write `.error` results and return an
+  `ImportSummary`, and added a success/failure alert dialog in
+  `ImportExportBar.tsx`. `docs/DATA_FORMATS.md` updated. Verified
+  independently: `yarn lint`/`tsc -b` clean, `yarn test` 39/39 passing (3
+  files), diff scope-clean (10 in-scope files only), full diff read and
+  checked against the plan and existing conventions (`ConfirmDialog`
+  pattern). Cherry-picked (`a3d7926`, `ccd08f5`, `89e0b1a`) onto
+  `execute-plan` at the operator's request, worktree and both branches
+  (`advisor/003-harden-import`, `worktree-agent-ac690f56ccc59e898`)
+  removed. 004 and 006 can now build on this (`isExportedState`,
+  `isSafeHref`).
+
+- **2026-07-03 (execute 004)**: Dispatched an executor on plan 004 in an
+  isolated worktree (rebased onto `execute-plan`'s tip, same reason as
+  plan 003 — a stale worktree base); reviewed and approved. Added
+  `version?: number` to `ExportedState`, `CURRENT_EXPORT_VERSION = 1`
+  stamped by `serializeState`, `isExportedState` treats absence as version
+  0 and rejects unknown newer versions, `sanitizeExportedState` strips the
+  marker before it reaches `bulkUpsert`. Updated `docs/DATA_FORMATS.md`
+  (JSON example, field table, versioning note) and added a "Schema
+  versioning" subsection to `docs/TECHNICAL_DESIGN.md` distinguishing the
+  export-format version from the still-open RxDB collection-schema
+  migration strategy. Verified independently: `yarn lint`/`tsc -b` clean,
+  `yarn test` 44/44 passing (3 files), diff scope-clean (5 in-scope files
+  only). Cherry-picked (`69ae13c`) onto `execute-plan`, worktree and both
+  branches (`advisor/004-export-version-field`,
+  `worktree-agent-ae197f56e4771efca`) removed.
+
+- **2026-07-03 (execute 005)**: Dispatched an executor on plan 005 in an
+  isolated worktree (branched fresh from `execute-plan`'s tip); reviewed
+  and approved. Added `withBootstrapLock` (Web Locks mutex
+  `launch-tabs:bootstrap`, unlocked fallback where the API is unavailable)
+  and reworked the bootstrap effect so every decision inside `bootstrap()`
+  uses a fresh `database.dashboards.find().exec()` read taken *inside* the
+  lock, not the stale `dashboards` state snapshot — closing both the
+  duplicate-Default and duplicate-legacy-import races across concurrently
+  opened tabs. Added two concurrency tests using a local Web Locks jsdom
+  shim; all pre-existing bootstrap tests pass unmodified. The executor also
+  ran a sanity check (temporarily reverting the in-lock re-read while
+  keeping the lock) and confirmed the concurrency test fails without it,
+  proving the re-read — not just the lock — is the load-bearing part of the
+  fix. Verified independently: `yarn lint`/`tsc -b` clean, `yarn test`
+  46/46 passing across 3 separate runs (no flakiness), diff scope-clean (3
+  in-scope files only), full diff read against the plan's target shape.
+  Cherry-picked (`a14ba18`) onto `execute-plan`, worktree and both branches
+  (`advisor/005-multitab-bootstrap-guard`, `worktree-agent-a783d5f8ab66b3bf9`)
+  removed. **Manual two-tab browser verification (plan Step 5) has not been
+  done** — per this repo's `AGENTS.md`, bootstrap-timing behavior like this
+  should still get a real-browser check before being considered fully
+  closed; steps are in the plan file.
+
+- **2026-07-03 (execute 006)**: Dispatched an executor on plan 006 in an
+  isolated worktree (branched fresh from `execute-plan`'s tip); reviewed
+  and approved. Added an `onSave → false` veto contract to `EditDialog`
+  (returning `false` keeps the dialog open instead of closing); both
+  `LinkEditModal` and `DashboardEditModal` now validate the *normalized*
+  URL/background-image fields with `isSafeHref` on save, rendering
+  `FieldError` inline and blocking the save on failure (empty background
+  stays valid, per the PRD's clear-by-emptying contract). Added
+  `LinkEditModal.test.tsx` (3 cases, using `@testing-library/user-event`
+  against the real Base UI dialog — no jsdom/portal issues encountered).
+  `docs/PRD.md` updated. Verified independently: `yarn lint`/`tsc -b`
+  clean, `yarn test` 49/49 passing (4 files), diff scope-clean (5 in-scope
+  files only), full diff read and confirmed validation/persistence both
+  run `normalizeUrl` so they agree. Cherry-picked (`823a01e`) onto
+  `execute-plan`, worktree and both branches
+  (`advisor/006-url-validation-ux`, `worktree-agent-a85b331e0b7bb1b6d`)
+  removed.
+
+- **2026-07-03 (execute 007)**: Dispatched an executor on plan 007 in an
+  isolated worktree (branched fresh from `execute-plan`'s tip); reviewed
+  and approved. Four independent housekeeping fixes: (1) `deleteDashboard`
+  now cascade-deletes links via a single query-level `.remove()` instead of
+  N concurrent `.remove()` calls, matching the repo's documented
+  batched-write convention; (2) moved `shadcn`, `tailwindcss`,
+  `@tailwindcss/vite`, `tw-animate-css` from `dependencies` to
+  `devDependencies` (versions unchanged, `yarn.lock` diff was empty,
+  confirming no resolution change); (3) fixed the "extention" → "extension"
+  typo in the footer; (4) moved `App.tsx` out of the `src/components/`
+  bullet in `docs/TECHNICAL_DESIGN.md`'s project-structure listing into its
+  own line. Verified independently: `yarn build`/`lint`/`test` all clean,
+  49/49 tests passing, diff scope-clean (4 in-scope files, 4 commits).
+  Cherry-picked (`4ded300`, `1ada46b`, `6153066`, `7125fbf`) onto
+  `execute-plan`, worktree and both branches (`advisor/007-housekeeping`,
+  `worktree-agent-aa560dad76c07fa8a`) removed.
+
+- **2026-07-03 (reconcile)**: Verified all seven DONE plans (001–007) on
+  current HEAD (`7125fbf`): `yarn build`/`lint`/`tsc -b`/`test` all pass
+  (49/49 tests), and every plan's grep-checkable done-criterion still holds
+  (deploy.yml gating, `AppStateContext.test.tsx`'s 17 `it(` blocks,
+  `isSafeHref`/`sanitizeExportedState`, `CURRENT_EXPORT_VERSION`,
+  `withBootstrapLock`, `FieldError` in both edit modals, no
+  `Promise.all(linksToDelete`/no "extention"/deps out of `dependencies`).
+  Ran plan 008's drift check (`git diff --stat ec0d5e2..HEAD -- docs/
+  src/storage/`) — only docs changed (from plans 001–007), `src/storage/`
+  untouched and still RxDB-based, so plan 008 is undrifted and still
+  executable as written. No BLOCKED or stale IN-PROGRESS plans exist.
+  Only open item: plan 005's manual two-tab browser verification, still
+  pending (noted in its entry above).
+
+- **2026-07-03**: Plan 008 (backend sync spike) marked REJECTED at the
+  operator's request — no backend/sync work is planned, so the research
+  memo isn't needed. All eight original plans from the audit are now
+  closed out (seven DONE, one REJECTED).
+
+- **2026-07-03**: Operator ran plan 005's manual two-tab browser
+  verification (delete IndexedDB + localStorage, seed a legacy blob, open
+  two tabs concurrently) and confirmed it passed — exactly one "Imported"
+  dashboard appeared, no duplication. Plan 005's last open item is closed;
+  every plan in this backlog is now fully resolved.
 
 ## Dependency notes
 
