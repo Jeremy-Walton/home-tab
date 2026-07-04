@@ -1,6 +1,11 @@
 import { createContext } from 'react'
 import type { Dashboard, ExportedState, Link } from '../types'
 
+export interface ImportSummary {
+  dashboards: number
+  links: number
+}
+
 export interface AppStateValue {
   ready: boolean
   dashboards: Dashboard[]
@@ -22,7 +27,7 @@ export interface AppStateValue {
   reorderLinks: (dashboardId: string, orderedIds: string[]) => Promise<void>
   moveLinkToDashboard: (linkId: string, targetDashboardId: string) => Promise<void>
   exportState: () => ExportedState
-  importState: (data: unknown) => Promise<void>
+  importState: (data: unknown) => Promise<ImportSummary>
 }
 
 export const AppStateContext = createContext<AppStateValue | null>(null)

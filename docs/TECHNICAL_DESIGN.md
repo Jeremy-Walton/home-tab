@@ -35,8 +35,8 @@ the PRD.
 - **CI/CD**: GitHub Actions
   - `ci.yml` — runs `yarn lint`, `yarn tsc -b`, `yarn test` on push to
     `main` and on every pull request.
-  - `deploy.yml` — runs `yarn build` → deploys `dist/` to GitHub Pages on
-    push to `main`.
+  - `deploy.yml` — runs `yarn lint`, `yarn test`, then `yarn build` →
+    deploys `dist/` to GitHub Pages on push to `main`.
 
 ## Why RxDB
 
@@ -97,6 +97,23 @@ than an RxDB collection, since it's a single value with no query needs.
 - Maps cleanly onto a relational/document backend later if a replication
   plugin is introduced.
 
+### Schema versioning
+
+Two distinct version concepts, kept separate:
+
+- **RxDB collection schema version** (`src/storage/schemas.ts`): both
+  `dashboards` and `links` are currently `version: 0`. Any future change to
+  either schema (add/remove/retype a field) must bump that collection's
+  `version` and ship a `migrationStrategies` entry for the step (RxDB runs
+  migrations automatically against a user's existing IndexedDB data the
+  first time they open the app after the upgrade). No migration strategy
+  exists yet because no schema change has happened yet — define one before
+  the first schema change ships, not after.
+- **Export file format version** (`CURRENT_EXPORT_VERSION` in
+  `src/lib/importExport.ts`, currently `1`): versions the *exported JSON
+  file* shape, independent of the RxDB schemas above. See
+  `docs/DATA_FORMATS.md`'s "Versioning note" for the read/write contract.
+
 ## Project Structure
 
 - `src/types/index.ts` — `Dashboard`, `Link`, `LegacyState`,
@@ -119,9 +136,9 @@ than an RxDB collection, since it's a single value with no query needs.
   legacy-mapping, see `docs/DATA_FORMATS.md`), `dashboardDropId.ts` (encodes/
   decodes the synthetic droppable id used for the "drop a tile on a
   dashboard tab" gesture), `utils.ts` (the shadcn `cn()` class helper).
+- `src/App.tsx` — root component: `DndContext` + layout shell.
 - `src/components/` — one file per app-specific component:
-  `App.tsx` (root: `DndContext` + layout shell), `Navbar.tsx`,
-  `DashboardTabs.tsx` (tab strip + per-tab options menu),
+  `Navbar.tsx`, `DashboardTabs.tsx` (tab strip + per-tab options menu),
   `DashboardGrid.tsx` (grid/empty-state switch + sortable context),
   `LinkTile.tsx`, `EmptyState.tsx`, `OptionsMenu.tsx` (the shared
   three-dot/kebab trigger: a tooltip'd dropdown-menu button; callers pass
@@ -191,26 +208,38 @@ in `docs/DATA_FORMATS.md` — this is the implementation summary:
   the key is removed so it can't be re-imported later. If the key is
   present but doesn't parse/match, it's discarded rather than retried on
   every load. An empty "Default" dashboard is only created when no legacy
-  key is found *and* no dashboards exist yet.
+  key is found *and* no dashboards exist yet. Because this is a new-tab
+  app, several instances routinely load at once (e.g. session restore); the
+  actual bootstrap decision runs inside a cross-tab Web Locks mutex
+  (`launch-tabs:bootstrap`) and re-reads `localStorage` and the dashboards
+  collection *inside* the lock, so a losing tab sees the winner's write
+  (already-imported legacy data, or an already-created Default dashboard)
+  instead of duplicating it. Falls back to running unlocked where the Web
+  Locks API is unavailable (e.g. jsdom in tests).
 
 ## Testing Focus
 
-**Current actual coverage** (`yarn test`, 10 tests across 2 files) is pure
-unit tests only, no RxDB/DOM involved:
+**Current actual coverage** (`yarn test`, 23 tests across 3 files):
 
 - `lib/url.test.ts` — `normalizeUrl` scheme-prepending behavior.
 - `lib/importExport.test.ts` — legacy-shape detection and
   `mapLegacyState` field mapping.
+- `context/AppStateContext.test.tsx` — characterization tests for the
+  `AppStateProvider` against an in-memory RxDB database (`src/test/testDb.ts`,
+  RxDB's memory storage substituting for the real Dexie/IndexedDB adapter
+  since jsdom has no IndexedDB): the bootstrap effect (first-load Default
+  dashboard creation, automatic legacy-import with and without existing
+  dashboards, malformed-legacy discard), `reorderLinks` and
+  `moveLinkToDashboard` (asserting persisted, not just in-memory, state),
+  `deleteDashboard`'s cascade delete and its last-dashboard no-op,
+  `addLink`/`updateLink` ordering and URL normalization, and clearing a
+  dashboard's background image via `updateDashboard` (confirmed the field is
+  actually removed from the stored document, not left stale — see "Known
+  Gotchas" history for why this needed characterizing).
 
 **Not currently covered by the automated suite**, despite React Testing
 Library + jsdom being installed and configured (`src/test/setup.ts`):
 
-- RxDB schema/CRUD logic (dashboards, links, cascade delete on dashboard
-  removal).
-- Reorder and move-between-dashboards logic (`reorderLinks`,
-  `moveLinkToDashboard`).
-- The bootstrap/legacy-auto-import effect's interaction with RxDB's
-  reactive query timing (see "Known Gotchas").
 - Drag-and-drop / click-suppression interaction, and the three
   reorder-positioning bugs documented in "Known Gotchas" — these were only
   ever verified with ad hoc Playwright sessions during development, not a
@@ -221,9 +250,8 @@ Library + jsdom being installed and configured (`src/test/setup.ts`):
   `<img>` and asserts the fallback).
 
 If component-level automated coverage is added later, these are the
-highest-value targets, in roughly this priority order: reorder/move
-logic (highest regression risk historically), the bootstrap/legacy-import
-effect, cascade-delete, then broken-image fallback.
+remaining highest-value targets: drag-and-drop/click-suppression behavior
+(browser-only, per the gotcha above), then broken-image fallback.
 
 ## Known Gotchas
 
@@ -319,10 +347,10 @@ effect, cascade-delete, then broken-image fallback.
 
 ## Open Items
 
-- Exact RxDB schema versioning/migration strategy as the data model
-  evolves (RxDB supports schema migrations; define the first migration
-  path before shipping v1.1+ changes). The current export format also has
-  no explicit version field — see `docs/DATA_FORMATS.md`.
+- Concrete RxDB `migrationStrategies` for the first collection schema
+  change — see "Schema versioning" above; the export format side of this
+  is done (`CURRENT_EXPORT_VERSION`), what remains open is only the RxDB
+  collection-schema half.
 - Which RxDB replication plugin to adopt, deferred until a backend is
   chosen.
 - No custom domain is configured for GitHub Pages yet (deployed at the

@@ -29,6 +29,7 @@ export interface LegacyState {
 }
 
 export interface ExportedState {
+  version?: number
   dashboards: Dashboard[]
   links: Link[]
   activeDashboardId: string | null

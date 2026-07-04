@@ -1,12 +1,21 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { useAppState } from '../context/useAppState'
 import { cn } from '../lib/utils'
 import { OptionsMenu } from './OptionsMenu'
 import { DropdownMenuItem } from './ui/dropdown-menu'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogTitle,
+} from './ui/alert-dialog'
 
 export function ImportExportBar({ className }: { className?: string }) {
   const { exportState, importState } = useAppState()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [feedback, setFeedback] = useState<{ title: string; message: string } | null>(null)
 
   function handleExport() {
     const data = exportState()
@@ -20,9 +29,25 @@ export function ImportExportBar({ className }: { className?: string }) {
   }
 
   async function handleImportFile(file: File) {
-    const text = await file.text()
-    const data = JSON.parse(text)
-    await importState(data)
+    try {
+      const text = await file.text()
+      let data: unknown
+      try {
+        data = JSON.parse(text)
+      } catch {
+        throw new Error('That file is not valid JSON.')
+      }
+      const summary = await importState(data)
+      setFeedback({
+        title: 'Import complete',
+        message: `Imported ${summary.dashboards} dashboard(s) and ${summary.links} link(s).`,
+      })
+    } catch (error) {
+      setFeedback({
+        title: 'Import failed',
+        message: error instanceof Error ? error.message : 'Could not import that file.',
+      })
+    }
   }
 
   return (
@@ -44,6 +69,17 @@ export function ImportExportBar({ className }: { className?: string }) {
           e.target.value = ''
         }}
       />
+      {feedback && (
+        <AlertDialog open onOpenChange={(open) => !open && setFeedback(null)}>
+          <AlertDialogContent size="sm">
+            <AlertDialogTitle>{feedback.title}</AlertDialogTitle>
+            <AlertDialogDescription>{feedback.message}</AlertDialogDescription>
+            <AlertDialogFooter>
+              <AlertDialogAction onClick={() => setFeedback(null)}>OK</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   )
 }
