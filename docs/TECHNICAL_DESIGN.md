@@ -195,22 +195,27 @@ in `docs/DATA_FORMATS.md` — this is the implementation summary:
 
 ## Testing Focus
 
-**Current actual coverage** (`yarn test`, 10 tests across 2 files) is pure
-unit tests only, no RxDB/DOM involved:
+**Current actual coverage** (`yarn test`, 23 tests across 3 files):
 
 - `lib/url.test.ts` — `normalizeUrl` scheme-prepending behavior.
 - `lib/importExport.test.ts` — legacy-shape detection and
   `mapLegacyState` field mapping.
+- `context/AppStateContext.test.tsx` — characterization tests for the
+  `AppStateProvider` against an in-memory RxDB database (`src/test/testDb.ts`,
+  RxDB's memory storage substituting for the real Dexie/IndexedDB adapter
+  since jsdom has no IndexedDB): the bootstrap effect (first-load Default
+  dashboard creation, automatic legacy-import with and without existing
+  dashboards, malformed-legacy discard), `reorderLinks` and
+  `moveLinkToDashboard` (asserting persisted, not just in-memory, state),
+  `deleteDashboard`'s cascade delete and its last-dashboard no-op,
+  `addLink`/`updateLink` ordering and URL normalization, and clearing a
+  dashboard's background image via `updateDashboard` (confirmed the field is
+  actually removed from the stored document, not left stale — see "Known
+  Gotchas" history for why this needed characterizing).
 
 **Not currently covered by the automated suite**, despite React Testing
 Library + jsdom being installed and configured (`src/test/setup.ts`):
 
-- RxDB schema/CRUD logic (dashboards, links, cascade delete on dashboard
-  removal).
-- Reorder and move-between-dashboards logic (`reorderLinks`,
-  `moveLinkToDashboard`).
-- The bootstrap/legacy-auto-import effect's interaction with RxDB's
-  reactive query timing (see "Known Gotchas").
 - Drag-and-drop / click-suppression interaction, and the three
   reorder-positioning bugs documented in "Known Gotchas" — these were only
   ever verified with ad hoc Playwright sessions during development, not a
@@ -221,9 +226,8 @@ Library + jsdom being installed and configured (`src/test/setup.ts`):
   `<img>` and asserts the fallback).
 
 If component-level automated coverage is added later, these are the
-highest-value targets, in roughly this priority order: reorder/move
-logic (highest regression risk historically), the bootstrap/legacy-import
-effect, cascade-delete, then broken-image fallback.
+remaining highest-value targets: drag-and-drop/click-suppression behavior
+(browser-only, per the gotcha above), then broken-image fallback.
 
 ## Known Gotchas
 
