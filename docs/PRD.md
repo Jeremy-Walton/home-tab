@@ -175,6 +175,10 @@ Each link consists of:
   (e.g. `github.com`), `https://` is auto-prepended when it's saved. An
   empty background-image field stays empty (this is how a user clears a
   previously-set background image).
+- URL fields are validated on save: the normalized value must be a
+  parseable `http`/`https` URL. An invalid value shows an inline error and
+  blocks the save; Cancel/dismiss still discards freely. An empty
+  background-image field is always valid (see above).
 - Broken background images fall back silently — see "Shared UI Patterns."
 
 ### Ordering & moving links
@@ -265,6 +269,9 @@ Each link consists of:
 - Whether/when a real backend gets introduced, and what triggers that.
 - Browser support beyond Chrome (Firefox, Safari, Edge/Brave via
   Chromium compatibility).
-- Whether link/dashboard fields should get client-side validation beyond
-  URL scheme normalization (currently none is enforced — e.g. an empty
-  title or an unreachable URL both save without complaint).
+- URL validation is now enforced (see "URL handling"): link and
+  dashboard-background URL fields must be a parseable `http`/`https` URL
+  after normalization, or the save is blocked with an inline error.
+  Titles and dashboard names intentionally remain free-form/unvalidated
+  (e.g. an empty title is explicitly supported — it displays as
+  "Untitled").

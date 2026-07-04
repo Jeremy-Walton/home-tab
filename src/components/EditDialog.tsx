@@ -10,15 +10,15 @@ import { FieldGroup } from './ui/field'
 
 interface EditDialogProps {
   title: string
-  onSave: () => Promise<void> | void
+  onSave: () => Promise<boolean | void> | boolean | void
   onClose: () => void
   children: React.ReactNode
 }
 
 export function EditDialog({ title, onSave, onClose, children }: EditDialogProps) {
   async function handleSave() {
-    await onSave()
-    onClose()
+    const result = await onSave()
+    if (result !== false) onClose()
   }
 
   return (
