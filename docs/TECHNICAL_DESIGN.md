@@ -97,6 +97,23 @@ than an RxDB collection, since it's a single value with no query needs.
 - Maps cleanly onto a relational/document backend later if a replication
   plugin is introduced.
 
+### Schema versioning
+
+Two distinct version concepts, kept separate:
+
+- **RxDB collection schema version** (`src/storage/schemas.ts`): both
+  `dashboards` and `links` are currently `version: 0`. Any future change to
+  either schema (add/remove/retype a field) must bump that collection's
+  `version` and ship a `migrationStrategies` entry for the step (RxDB runs
+  migrations automatically against a user's existing IndexedDB data the
+  first time they open the app after the upgrade). No migration strategy
+  exists yet because no schema change has happened yet — define one before
+  the first schema change ships, not after.
+- **Export file format version** (`CURRENT_EXPORT_VERSION` in
+  `src/lib/importExport.ts`, currently `1`): versions the *exported JSON
+  file* shape, independent of the RxDB schemas above. See
+  `docs/DATA_FORMATS.md`'s "Versioning note" for the read/write contract.
+
 ## Project Structure
 
 - `src/types/index.ts` — `Dashboard`, `Link`, `LegacyState`,
@@ -323,10 +340,10 @@ remaining highest-value targets: drag-and-drop/click-suppression behavior
 
 ## Open Items
 
-- Exact RxDB schema versioning/migration strategy as the data model
-  evolves (RxDB supports schema migrations; define the first migration
-  path before shipping v1.1+ changes). The current export format also has
-  no explicit version field — see `docs/DATA_FORMATS.md`.
+- Concrete RxDB `migrationStrategies` for the first collection schema
+  change — see "Schema versioning" above; the export format side of this
+  is done (`CURRENT_EXPORT_VERSION`), what remains open is only the RxDB
+  collection-schema half.
 - Which RxDB replication plugin to adopt, deferred until a backend is
   chosen.
 - No custom domain is configured for GitHub Pages yet (deployed at the

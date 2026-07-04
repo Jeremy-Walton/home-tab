@@ -37,12 +37,20 @@ export function mapLegacyState(
   return { dashboard, links }
 }
 
+/**
+ * Version of the export file format written by `serializeState`. Bump this
+ * when the exported shape changes, and keep readers for all older versions
+ * (versions 0 and 1 are shape-identical — `version` was simply absent
+ * before this constant was introduced).
+ */
+export const CURRENT_EXPORT_VERSION = 1
+
 export function serializeState(
   dashboards: Dashboard[],
   links: Link[],
   activeDashboardId: string | null,
 ): ExportedState {
-  return { dashboards, links, activeDashboardId }
+  return { version: CURRENT_EXPORT_VERSION, dashboards, links, activeDashboardId }
 }
 
 function isDashboardRecord(value: unknown): value is Dashboard {
@@ -86,12 +94,20 @@ export function isExportedState(data: unknown): data is ExportedState {
   ) {
     return false
   }
+  // `version` absent means version 0, which is shape-identical to version 1
+  // (the version marker was introduced without changing the shape).
+  if (candidate.version !== undefined) {
+    if (typeof candidate.version !== 'number') return false
+    if (candidate.version > CURRENT_EXPORT_VERSION) return false
+  }
   return candidate.dashboards.every(isDashboardRecord) && candidate.links.every(isLinkRecord)
 }
 
 /**
  * Copies only the known fields (imported files may carry extras that would
- * otherwise be persisted verbatim) and normalizes every URL field.
+ * otherwise be persisted verbatim) and normalizes every URL field. The
+ * `version` marker is a file-format concern only — it never flows into the
+ * in-app state handed to `bulkUpsert`, so it's intentionally dropped here.
  */
 export function sanitizeExportedState(state: ExportedState): ExportedState {
   const dashboards: Dashboard[] = state.dashboards.map((d) => ({

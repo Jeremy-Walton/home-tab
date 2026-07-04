@@ -15,6 +15,7 @@ particular file extension required (the app names downloads
 
 ```json
 {
+  "version": 1,
   "dashboards": [
     {
       "id": "3c2b6e2a-2f0e-4b8b-9a7b-9d6a2b3c4d5e",
@@ -63,6 +64,7 @@ particular file extension required (the app names downloads
 
 | Field               | Type            | Required | Notes |
 |---------------------|-----------------|----------|-------|
+| `version`           | number          | no       | Format version. Optional on read — absent means version 0, which is shape-identical to version 1 (the marker was added without changing the shape). The app always writes `1` (see `CURRENT_EXPORT_VERSION` in `src/lib/importExport.ts`). |
 | `dashboards`        | array           | yes      | May be empty in a hand-crafted file, but the app itself never exports zero dashboards (it always has at least one). |
 | `links`             | array           | yes      | May be empty. |
 | `activeDashboardId` | string \| null  | yes      | Should match a `dashboards[].id` in the file. `null` is valid (no strong opinion on which dashboard becomes active after import). |
@@ -79,10 +81,14 @@ required fields) are rejected with an error before anything is written.
 
 ### Versioning note
 
-There is currently no explicit schema-version field in this format. A
-reimplementation that changes the shape should either keep it
-backward-readable or add an explicit version marker and handle its absence
-as "version 0" (this shape).
+The format carries an explicit `version` field, currently `1`. Absence of
+the field means version 0, which is shape-identical to version 1 — the
+marker was introduced without changing the shape. Readers must reject
+versions they don't understand; today that surfaces as `importState`'s
+generic "Unrecognized import file format." error rather than a
+version-specific message (a future format bump should improve this). A
+reimplementation that changes the shape again should bump the version and
+either keep readers for older versions or document the break.
 
 ## Legacy format (pre-rewrite app)
 

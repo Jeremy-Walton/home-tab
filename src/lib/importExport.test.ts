@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
+  CURRENT_EXPORT_VERSION,
   isExportedState,
   isLegacyState,
   mapLegacyState,
   sanitizeExportedState,
+  serializeState,
 } from './importExport'
 import type { ExportedState, LegacyState } from '../types'
 
@@ -18,9 +20,35 @@ describe('isLegacyState', () => {
   })
 })
 
+describe('serializeState', () => {
+  it('stamps the current export version', () => {
+    const state = serializeState([], [], null)
+    expect(state.version).toBe(CURRENT_EXPORT_VERSION)
+    expect(state.version).toBe(1)
+  })
+})
+
 describe('isExportedState', () => {
   it('recognizes the new exported shape', () => {
     expect(isExportedState({ dashboards: [], links: [], activeDashboardId: null })).toBe(true)
+  })
+
+  it('accepts a valid file with version 1', () => {
+    expect(
+      isExportedState({ version: 1, dashboards: [], links: [], activeDashboardId: null }),
+    ).toBe(true)
+  })
+
+  it('rejects a non-number version', () => {
+    expect(
+      isExportedState({ version: '1', dashboards: [], links: [], activeDashboardId: null }),
+    ).toBe(false)
+  })
+
+  it('rejects a version newer than the current export version', () => {
+    expect(
+      isExportedState({ version: 2, dashboards: [], links: [], activeDashboardId: null }),
+    ).toBe(false)
   })
 
   it('rejects the legacy shape', () => {
@@ -98,6 +126,16 @@ describe('sanitizeExportedState', () => {
       activeDashboardId: undefined,
     } as unknown as ExportedState
     expect(sanitizeExportedState(state).activeDashboardId).toBeNull()
+  })
+
+  it('strips the version field — it is a file-format concern, not app state', () => {
+    const state: ExportedState = {
+      version: 1,
+      dashboards: [],
+      links: [],
+      activeDashboardId: null,
+    }
+    expect(sanitizeExportedState(state)).not.toHaveProperty('version')
   })
 })
 
