@@ -192,8 +192,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     if (!db) return
     if (dashboards.length <= 1) return
 
-    const linksToDelete = await db.links.find({ selector: { dashboardId: id } }).exec()
-    await Promise.all(linksToDelete.map((l) => l.remove()))
+    await db.links.find({ selector: { dashboardId: id } }).remove()
 
     const doc = await db.dashboards.findOne(id).exec()
     await doc?.remove()
