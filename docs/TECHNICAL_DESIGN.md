@@ -35,8 +35,8 @@ the PRD.
 - **CI/CD**: GitHub Actions
   - `ci.yml` — runs `yarn lint`, `yarn tsc -b`, `yarn test` on push to
     `main` and on every pull request.
-  - `deploy.yml` — runs `yarn build` → deploys `dist/` to GitHub Pages on
-    push to `main`.
+  - `deploy.yml` — runs `yarn lint`, `yarn test`, then `yarn build` →
+    deploys `dist/` to GitHub Pages on push to `main`.
 
 ## Why RxDB
 
