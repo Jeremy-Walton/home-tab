@@ -244,6 +244,50 @@ describe('mutations', () => {
   })
 })
 
+describe('importState', () => {
+  it('persists dashboards and links from a valid file and resolves with a summary', async () => {
+    await testDb.dashboards.insert({ id: 'd0', name: 'Existing', order: 0, createdAt: 1 })
+
+    const { result } = await readyAppState()
+    await waitFor(() => expect(result.current.dashboards).toHaveLength(1))
+
+    const summary = await result.current.importState({
+      dashboards: [{ id: 'd1', name: 'Imported D', order: 1, createdAt: 2 }],
+      links: [
+        { id: 'l1', dashboardId: 'd1', order: 0, title: 'A', url: 'https://a.com' },
+      ],
+      activeDashboardId: 'd1',
+    })
+
+    expect(summary).toEqual({ dashboards: 1, links: 1 })
+
+    await waitFor(() => expect(result.current.dashboards).toHaveLength(2))
+    await waitFor(() => expect(result.current.links).toHaveLength(1))
+    expect(result.current.activeDashboardId).toBe('d1')
+
+    const persistedDashboard = await testDb.dashboards.findOne('d1').exec()
+    expect(persistedDashboard).not.toBeNull()
+    const persistedLink = await testDb.links.findOne('l1').exec()
+    expect(persistedLink).not.toBeNull()
+  })
+
+  it('rejects an unrecognized file and writes nothing', async () => {
+    await testDb.dashboards.insert({ id: 'd0', name: 'Existing', order: 0, createdAt: 1 })
+
+    const { result } = await readyAppState()
+    await waitFor(() => expect(result.current.dashboards).toHaveLength(1))
+
+    await expect(
+      result.current.importState({ dashboards: 'x', links: [] }),
+    ).rejects.toThrow('Unrecognized import file format.')
+
+    const dashboards = await testDb.dashboards.find().exec()
+    expect(dashboards).toHaveLength(1)
+    const links = await testDb.links.find().exec()
+    expect(links).toHaveLength(0)
+  })
+})
+
 describe('background clearing (audit finding #6)', () => {
   it('clearing a background image removes it from the stored document', async () => {
     await testDb.dashboards.insert({

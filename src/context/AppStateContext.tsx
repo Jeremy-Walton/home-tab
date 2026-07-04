@@ -6,10 +6,11 @@ import {
   isExportedState,
   isLegacyState,
   mapLegacyState,
+  sanitizeExportedState,
   serializeState,
 } from '../lib/importExport'
 import type { Dashboard, ExportedState, Link } from '../types'
-import { AppStateContext, type AppStateValue } from './app-state-context'
+import { AppStateContext, type AppStateValue, type ImportSummary } from './app-state-context'
 
 const ACTIVE_DASHBOARD_KEY = 'launch-tabs:activeDashboardId'
 const LEGACY_STORAGE_KEY = 'state'
@@ -250,26 +251,36 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     return serializeState(dashboards, links, activeDashboardId)
   }
 
-  async function importState(data: unknown) {
-    if (!db) return
+  async function importState(data: unknown): Promise<ImportSummary> {
+    if (!db) throw new Error('The database is not ready yet.')
 
     if (isLegacyState(data)) {
       const nextOrder =
         dashboards.length === 0 ? 0 : Math.max(...dashboards.map((d) => d.order)) + 1
       const { dashboard, links: importedLinks } = mapLegacyState(data, nextOrder)
       await db.dashboards.insert(dashboard)
-      await db.links.bulkInsert(importedLinks)
+      const linkResult = await db.links.bulkInsert(importedLinks)
+      if (linkResult.error.length > 0) {
+        throw new Error(
+          `Import finished with ${linkResult.error.length} item(s) that could not be written.`,
+        )
+      }
       setActiveDashboardId(dashboard.id)
-      return
+      return { dashboards: 1, links: importedLinks.length }
     }
 
     if (isExportedState(data)) {
-      await db.dashboards.bulkUpsert(data.dashboards)
-      await db.links.bulkUpsert(data.links)
-      if (data.activeDashboardId) {
-        setActiveDashboardId(data.activeDashboardId)
+      const clean = sanitizeExportedState(data)
+      const dashboardResult = await db.dashboards.bulkUpsert(clean.dashboards)
+      const linkResult = await db.links.bulkUpsert(clean.links)
+      const failed = dashboardResult.error.length + linkResult.error.length
+      if (failed > 0) {
+        throw new Error(`Import finished with ${failed} item(s) that could not be written.`)
       }
-      return
+      if (clean.activeDashboardId) {
+        setActiveDashboardId(clean.activeDashboardId)
+      }
+      return { dashboards: clean.dashboards.length, links: clean.links.length }
     }
 
     throw new Error('Unrecognized import file format.')
