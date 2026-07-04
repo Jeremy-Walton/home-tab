@@ -47,7 +47,7 @@ function Dashboard() {
           rel="noopener noreferrer"
           className="pointer-events-auto underline hover:text-white"
         >
-          Use this extention to redirect to this page when opening a new tab.
+          Use this extension to redirect to this page when opening a new tab.
         </a>
       </div>
     </DndContext>
