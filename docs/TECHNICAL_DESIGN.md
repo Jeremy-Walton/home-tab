@@ -136,9 +136,9 @@ Two distinct version concepts, kept separate:
   legacy-mapping, see `docs/DATA_FORMATS.md`), `dashboardDropId.ts` (encodes/
   decodes the synthetic droppable id used for the "drop a tile on a
   dashboard tab" gesture), `utils.ts` (the shadcn `cn()` class helper).
+- `src/App.tsx` — root component: `DndContext` + layout shell.
 - `src/components/` — one file per app-specific component:
-  `App.tsx` (root: `DndContext` + layout shell), `Navbar.tsx`,
-  `DashboardTabs.tsx` (tab strip + per-tab options menu),
+  `Navbar.tsx`, `DashboardTabs.tsx` (tab strip + per-tab options menu),
   `DashboardGrid.tsx` (grid/empty-state switch + sortable context),
   `LinkTile.tsx`, `EmptyState.tsx`, `OptionsMenu.tsx` (the shared
   three-dot/kebab trigger: a tooltip'd dropdown-menu button; callers pass
