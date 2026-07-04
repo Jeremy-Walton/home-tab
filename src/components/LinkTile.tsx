@@ -7,6 +7,7 @@ import { EntityOptionsMenu } from './EntityOptionsMenu'
 import { LinkEditModal } from './LinkEditModal'
 import { AspectRatio } from './ui/aspect-ratio'
 import { Badge } from './ui/badge'
+import { isSafeHref } from '../lib/url'
 import type { Link } from '../types'
 
 const animateLayoutChanges: AnimateLayoutChanges = (args) =>
@@ -59,7 +60,7 @@ export function LinkTile({ link }: { link: Link }) {
         )}
 
         <a
-          href={link.url}
+          href={isSafeHref(link.url) ? link.url : undefined}
           draggable={false}
           className="absolute inset-0 flex items-end p-2"
         >

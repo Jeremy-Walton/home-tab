@@ -56,7 +56,7 @@ particular file extension required (the app names downloads
 | `dashboardId`        | string  | yes      | Must match a `dashboards[].id` in the same file. |
 | `order`              | number  | yes      | Position within its dashboard, ascending. Only relative order within the same `dashboardId` matters. |
 | `title`              | string  | yes      | May be an empty string; the UI displays "Untitled" for an empty title, but the stored value stays empty. |
-| `url`                | string  | yes      | Expected to already include a scheme (`https://…`) — normalization happens at edit-save time, not at import/export time. |
+| `url`                | string  | yes      | Expected to already include a scheme (`https://…`). Import now also runs the same normalization on URL fields as edit-save time; only `http:`/`https:` URLs are rendered as clickable hrefs, so an unsafe scheme (e.g. `javascript:`) silently renders as non-clickable. |
 | `backgroundImageUrl` | string  | no       | Absolute URL. Omit the field when there is no background. |
 
 ### Top-level
@@ -74,7 +74,8 @@ already exists locally is overwritten with the imported version; anything
 with a new `id` is added. Existing local data whose `id`s are *not* present
 in the imported file is left untouched — import is additive/merging, not a
 full replace of local state. Re-importing the same file twice is safe
-(idempotent).
+(idempotent). Files that fail structural validation (wrong types, missing
+required fields) are rejected with an error before anything is written.
 
 ### Versioning note
 
