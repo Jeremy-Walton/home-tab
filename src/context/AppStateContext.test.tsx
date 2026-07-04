@@ -288,6 +288,79 @@ describe('importState', () => {
   })
 })
 
+describe('bootstrap under concurrent tabs', () => {
+  // Minimal Web Locks shim: serializes callbacks per lock name, which is the
+  // only property the bootstrap guard relies on.
+  function installLocksShim() {
+    let queue: Promise<unknown> = Promise.resolve()
+    Object.defineProperty(navigator, 'locks', {
+      configurable: true,
+      value: {
+        request: (_name: string, fn: () => Promise<unknown>) => {
+          const run = queue.then(fn)
+          queue = run.catch(() => undefined)
+          return run
+        },
+      },
+    })
+    return () => {
+      delete (navigator as { locks?: unknown }).locks
+    }
+  }
+
+  let removeShim: () => void
+
+  beforeEach(() => {
+    removeShim = installLocksShim()
+  })
+
+  afterEach(() => {
+    removeShim()
+  })
+
+  it('only one Default dashboard when two providers race', async () => {
+    const first = renderAppState()
+    const second = renderAppState()
+
+    await waitFor(() => expect(first.result.current.ready).toBe(true))
+    await waitFor(() => expect(second.result.current.ready).toBe(true))
+
+    await waitFor(() => expect(first.result.current.dashboards.length).toBeGreaterThan(0))
+    await waitFor(() => expect(second.result.current.dashboards.length).toBeGreaterThan(0))
+
+    const persisted = await testDb.dashboards.find().exec()
+    expect(persisted).toHaveLength(1)
+  })
+
+  it('legacy state is imported exactly once when two providers race', async () => {
+    localStorage.setItem(
+      'state',
+      JSON.stringify({
+        backgroundUrl: 'https://example.com/bg.jpg',
+        links: [{ label: 'GitHub', url: 'github.com', image: 'https://example.com/gh.png' }],
+      }),
+    )
+
+    const first = renderAppState()
+    const second = renderAppState()
+
+    await waitFor(() => expect(first.result.current.ready).toBe(true))
+    await waitFor(() => expect(second.result.current.ready).toBe(true))
+
+    await waitFor(() => expect(first.result.current.dashboards.length).toBeGreaterThan(0))
+    await waitFor(() => expect(second.result.current.dashboards.length).toBeGreaterThan(0))
+
+    const persistedDashboards = await testDb.dashboards.find().exec()
+    const imported = persistedDashboards.filter((d) => d.toJSON().name === 'Imported')
+    expect(imported).toHaveLength(1)
+
+    const persistedLinks = await testDb.links.find().exec()
+    expect(persistedLinks).toHaveLength(1)
+
+    expect(localStorage.getItem('state')).toBeNull()
+  })
+})
+
 describe('background clearing (audit finding #6)', () => {
   it('clearing a background image removes it from the stored document', async () => {
     await testDb.dashboards.insert({

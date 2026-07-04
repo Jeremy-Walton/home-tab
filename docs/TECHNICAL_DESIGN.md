@@ -208,7 +208,14 @@ in `docs/DATA_FORMATS.md` — this is the implementation summary:
   the key is removed so it can't be re-imported later. If the key is
   present but doesn't parse/match, it's discarded rather than retried on
   every load. An empty "Default" dashboard is only created when no legacy
-  key is found *and* no dashboards exist yet.
+  key is found *and* no dashboards exist yet. Because this is a new-tab
+  app, several instances routinely load at once (e.g. session restore); the
+  actual bootstrap decision runs inside a cross-tab Web Locks mutex
+  (`launch-tabs:bootstrap`) and re-reads `localStorage` and the dashboards
+  collection *inside* the lock, so a losing tab sees the winner's write
+  (already-imported legacy data, or an already-created Default dashboard)
+  instead of duplicating it. Falls back to running unlocked where the Web
+  Locks API is unavailable (e.g. jsdom in tests).
 
 ## Testing Focus
 

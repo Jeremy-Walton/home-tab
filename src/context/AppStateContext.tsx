@@ -15,6 +15,16 @@ import { AppStateContext, type AppStateValue, type ImportSummary } from './app-s
 const ACTIVE_DASHBOARD_KEY = 'launch-tabs:activeDashboardId'
 const LEGACY_STORAGE_KEY = 'state'
 
+// Serializes first-load bootstrap across tabs (a new-tab app is routinely
+// opened in several tabs at once). Falls back to running unlocked where the
+// Web Locks API is unavailable (jsdom in tests).
+function withBootstrapLock<T>(fn: () => Promise<T>): Promise<T> {
+  if (typeof navigator !== 'undefined' && 'locks' in navigator) {
+    return navigator.locks.request('launch-tabs:bootstrap', fn)
+  }
+  return fn()
+}
+
 function linksEqual(a: Link[], b: Link[]): boolean {
   if (a.length !== b.length) return false
   const byId = new Map(a.map((link) => [link.id, link]))
@@ -81,25 +91,35 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   // up after a Default dashboard was already created on an earlier visit),
   // otherwise create an empty Default dashboard if none exist yet. Guarded
   // by a ref since this does multiple awaited writes and the dependencies
-  // it cares about won't change again until they land.
+  // it cares about won't change again until they land. A new-tab app is
+  // routinely opened in several tabs at once, so the actual decision runs
+  // under a cross-tab Web Locks mutex and re-reads localStorage and the
+  // dashboards collection *inside* the lock -- another tab may have
+  // bootstrapped while this one was waiting for the lock.
   const bootstrapping = useRef(false)
   useEffect(() => {
     if (!ready || !db) return
     if (bootstrapping.current) return
 
-    const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY)
-    if (!legacyRaw && dashboards.length > 0) return
+    // Cheap pre-check on possibly-stale state; the authoritative re-check
+    // happens inside the cross-tab lock.
+    if (!localStorage.getItem(LEGACY_STORAGE_KEY) && dashboards.length > 0) return
 
     bootstrapping.current = true
     const database = db
 
     async function bootstrap() {
+      // Re-read everything now that we hold the lock -- another tab may
+      // have bootstrapped while we waited.
+      const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY)
+      const existing = await database.dashboards.find().exec()
+
       if (legacyRaw) {
         try {
           const legacyData = JSON.parse(legacyRaw)
           if (isLegacyState(legacyData)) {
             const nextOrder =
-              dashboards.length === 0 ? 0 : Math.max(...dashboards.map((d) => d.order)) + 1
+              existing.length === 0 ? 0 : Math.max(...existing.map((d) => d.order)) + 1
             const { dashboard, links: importedLinks } = mapLegacyState(legacyData, nextOrder)
             await database.dashboards.insert(dashboard)
             await database.links.bulkInsert(importedLinks)
@@ -113,7 +133,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem(LEGACY_STORAGE_KEY)
       }
 
-      if (dashboards.length === 0) {
+      if (existing.length === 0) {
         const doc = await database.dashboards.insert({
           id: generateId(),
           name: 'Default',
@@ -124,7 +144,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    void bootstrap().finally(() => {
+    void withBootstrapLock(bootstrap).finally(() => {
       bootstrapping.current = false
     })
   }, [ready, db, dashboards])
