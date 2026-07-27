@@ -2,17 +2,27 @@ import { useState } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { PlusIcon } from '@phosphor-icons/react'
 import { useAppState } from '../context/useAppState'
+import { useAltHeld } from '../hooks/useAltHeld'
 import { dashboardDropId } from '../lib/dashboardDropId'
-import { MAX_DASHBOARD_SHORTCUTS } from '../lib/keyboard'
+import { dashboardShortcutDigit, MAX_DASHBOARD_SHORTCUTS } from '../lib/keyboard'
 import { ConfirmDialog } from './ConfirmDialog'
 import { DashboardEditModal } from './DashboardEditModal'
 import { EntityOptionsMenu } from './EntityOptionsMenu'
+import { Badge } from './ui/badge'
 import { Button } from './ui/button'
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs'
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
 import type { Dashboard } from '../types'
 
-function DashboardTabItem({ dashboard, index }: { dashboard: Dashboard; index: number }) {
+function DashboardTabItem({
+  dashboard,
+  index,
+  showShortcut,
+}: {
+  dashboard: Dashboard
+  index: number
+  showShortcut: boolean
+}) {
   const { dashboards, deleteDashboard } = useAppState()
   const [editing, setEditing] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
@@ -27,10 +37,22 @@ function DashboardTabItem({ dashboard, index }: { dashboard: Dashboard; index: n
       <TabsTrigger
         value={dashboard.id}
         className="max-w-40 pr-6"
-        aria-keyshortcuts={index < MAX_DASHBOARD_SHORTCUTS ? `Alt+${index + 1}` : undefined}
+        aria-keyshortcuts={
+          index < MAX_DASHBOARD_SHORTCUTS ? `Alt+${dashboardShortcutDigit(index)}` : undefined
+        }
       >
         <span className="truncate">{dashboard.name}</span>
       </TabsTrigger>
+
+      {showShortcut && index < MAX_DASHBOARD_SHORTCUTS && (
+        <Badge
+          variant="shortcut"
+          aria-hidden
+          className="pointer-events-none absolute -left-1 -top-1"
+        >
+          {dashboardShortcutDigit(index)}
+        </Badge>
+      )}
 
       <EntityOptionsMenu
         label="Dashboard options"
@@ -61,12 +83,18 @@ function DashboardTabItem({ dashboard, index }: { dashboard: Dashboard; index: n
 
 export function DashboardTabs() {
   const { dashboards, activeDashboardId, setActiveDashboardId, addDashboard } = useAppState()
+  const altHeld = useAltHeld()
 
   return (
     <Tabs value={activeDashboardId ?? ''} onValueChange={setActiveDashboardId}>
       <TabsList className="gap-1">
         {dashboards.map((dashboard, index) => (
-          <DashboardTabItem key={dashboard.id} dashboard={dashboard} index={index} />
+          <DashboardTabItem
+            key={dashboard.id}
+            dashboard={dashboard}
+            index={index}
+            showShortcut={altHeld}
+          />
         ))}
         <Tooltip>
           <TooltipTrigger

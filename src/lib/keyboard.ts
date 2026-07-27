@@ -1,6 +1,12 @@
 import hotkeys from 'hotkeys-js'
 
-export const MAX_DASHBOARD_SHORTCUTS = 9
+export const MAX_DASHBOARD_SHORTCUTS = 10
+
+// Positions 1-9 use their own digit; the 10th position uses 0 (⌥0),
+// matching the alt+0 binding in useKeyboardShortcuts.ts.
+export function dashboardShortcutDigit(index: number): number {
+  return (index + 1) % 10
+}
 
 export function isMac(): boolean {
   const nav = navigator as Navigator & { userAgentData?: { platform?: string } }

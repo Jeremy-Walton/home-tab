@@ -36,7 +36,7 @@ Update this table at the end of each phase, before pausing.
 | 1 | hotkeys-js foundations + ⌥1–⌥9 dashboard switching | DONE |
 | 2 | ⌥← / ⌥→ / ⌥[ / ⌥] cycling with wrap | DONE |
 | 3 | ⌥N adds a link and opens its edit dialog (also for the `+` tile) | DONE |
-| 4 | Digit badges revealed while ⌥ is held | TODO |
+| 4 | Digit badges revealed while ⌥ is held | DONE |
 | 5 | `?` keyboard-shortcuts help overlay | TODO |
 | 6 | Docs (`PRD.md`, `TECHNICAL_DESIGN.md`) + final verification | TODO |
 
@@ -56,7 +56,7 @@ Settled with the maintainer during planning on 2026-07-27:
 |---|---|---|
 | **Library** | **[`hotkeys-js`](https://github.com/jaywcjlove/hotkeys-js)** (v4.0.4, MIT, zero deps, ~4 kB gzipped, bundles its own `.d.ts`) | Maintainer's explicit choice. All key *binding* goes through it; see "How hotkeys-js shapes this design" below. |
 | Modifier | **Alt / macOS Option (⌥)** | Not bare digits (edit dialogs have inputs); not Cmd/Ctrl (Chrome reserves those). hotkeys-js spells it `alt` or `option` — they're the same keyCode (18). |
-| Range | **⌥1 – ⌥9 → dashboard positions 1–9** | ⌥0 is unbound. A 10th+ dashboard simply has no shortcut. No "⌥9 = last" Chrome-ism. |
+| Range | **⌥1 – ⌥9, ⌥0 → dashboard positions 1–10** | Amended 2026-07-27 (mid-implementation, after Phase 4): ⌥0 now maps to the 10th dashboard. An 11th+ dashboard has no shortcut. No "⌥9 = last" Chrome-ism. |
 | Cycling | **⌥← / ⌥→ *and* ⌥[ / ⌥]**, both pairs | Wraps around at both ends. |
 | New link | **⌥N adds a link** to the active dashboard — *not* a new dashboard | The maintainer was explicit: "option+N for new shortcut, not for a new dashboard". "Shortcut" here means a link tile. |
 | After create | **The new link's edit dialog opens immediately**, for ⌥N *and* for the existing `+` tile / empty-state "Add link" button | Deliberate change to current `+` behavior so the two paths stay identical. Requires a `docs/PRD.md` update. |
@@ -64,7 +64,7 @@ Settled with the maintainer during planning on 2026-07-27:
 | Help | **`?` opens a shortcuts overlay** listing everything | |
 | Labels | Platform-aware: `⌥3` on macOS, `Alt+3` elsewhere | |
 
-Explicitly **not** in scope: user-remappable bindings, ⌥0, numpad digits,
+Explicitly **not** in scope: user-remappable bindings, numpad digits,
 a shortcut for creating a *dashboard*, a shortcut for deleting anything,
 `react-hotkeys-hook` or any other wrapper library.
 
@@ -508,16 +508,18 @@ while held → `false`; keydown targeting an `<input>` → stays `false`.
 **Verify**: `yarn test && yarn tsc -b && yarn lint`.
 
 **Operator browser check**:
-- Hold ⌥: digits appear on the first nine tabs; **nothing shifts position**
-  (watch the `+` button and the tab widths).
+- Hold ⌥: digits appear on the first ten tabs (1–9, then 0 on the 10th);
+  **nothing shifts position** (watch the `+` button and the tab widths).
 - Release ⌥: digits disappear.
 - Hold ⌥, switch to another app / another browser tab, come back: no
   stranded digits.
 - Hold ⌥ and right-click: no stranded digits.
-- With 10+ dashboards, the 10th onward show no digit.
+- With 11+ dashboards, the 11th onward show no digit.
 - Hovering a tab while ⌥ is held still reveals the ⋯ options button, and the
   badge doesn't overlap it.
 - ⌥1 still switches dashboards (i.e. the `'*'` binding didn't swallow it).
+- ⌥0 switches to the 10th dashboard (added 2026-07-27, after this phase was
+  originally completed — see "Decisions already made").
 
 **PAUSE — report and wait.**
 
@@ -640,7 +642,7 @@ and hand back a summary of what is uncommitted.
   Phase 3 is designed specifically to avoid changing these.
 - `src/storage/`, RxDB schemas, export/import — no data model change; a
   shortcut is derived from `order`, never stored.
-- Remappable/user-configurable bindings, ⌥0, numpad digits, a
+- Remappable/user-configurable bindings, numpad digits, a
   create-dashboard shortcut, `react-hotkeys-hook`.
 - Any dev-server or Playwright run (operator's job).
 
@@ -678,7 +680,12 @@ and hand back a summary of what is uncommitted.
 - hotkeys-js's global singleton state is the thing most likely to bite later:
   one `hotkeys.filter` for the whole app, one registry, and a `capture` flag
   latched by whichever binding registers first.
-- Deferred deliberately: ⌥0 / a 10th slot, numpad digits (hotkeys-js supports
+- ⌥0 → 10th dashboard was added mid-implementation (2026-07-27, after Phase 4);
+  `MAX_DASHBOARD_SHORTCUTS` is now 10 and `dashboardShortcutDigit()` in
+  `src/lib/keyboard.ts` maps tab index → displayed digit (0 for the 10th).
+  Phase 5's `SHORTCUTS` list and Phase 6 docs must describe 1–9 *and* 0, not
+  just 1–9.
+- Deferred deliberately: an 11th+ slot, numpad digits (hotkeys-js supports
   `num_1`…`num_9` if ever wanted), remappable bindings, and a discoverability
   affordance for `?` itself (nothing in the UI currently advertises the
   overlay — a small navbar button or a footer hint is the obvious follow-up

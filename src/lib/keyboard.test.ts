@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { isDialogOpen, isMac, shortcutLabel } from './keyboard'
+import { dashboardShortcutDigit, isDialogOpen, isMac, shortcutLabel } from './keyboard'
 
 describe('isMac', () => {
   afterEach(() => {
@@ -30,6 +30,17 @@ describe('shortcutLabel', () => {
   it('uses Alt+ on other platforms', () => {
     vi.stubGlobal('navigator', { platform: 'Win32', userAgent: '' })
     expect(shortcutLabel('3')).toBe('Alt+3')
+  })
+})
+
+describe('dashboardShortcutDigit', () => {
+  it('returns 1-9 for the first nine positions', () => {
+    expect(dashboardShortcutDigit(0)).toBe(1)
+    expect(dashboardShortcutDigit(8)).toBe(9)
+  })
+
+  it('returns 0 for the tenth position', () => {
+    expect(dashboardShortcutDigit(9)).toBe(0)
   })
 })
 

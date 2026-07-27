@@ -10,7 +10,7 @@ interface KeyboardShortcutsOptions {
   onAddLink?: () => void
 }
 
-const DASHBOARD_KEYS = 'alt+1,alt+2,alt+3,alt+4,alt+5,alt+6,alt+7,alt+8,alt+9'
+const DASHBOARD_KEYS = 'alt+1,alt+2,alt+3,alt+4,alt+5,alt+6,alt+7,alt+8,alt+9,alt+0'
 const PREV_KEYS = 'alt+left,alt+['
 const NEXT_KEYS = 'alt+right,alt+]'
 const ADD_LINK_KEY = 'alt+n'
@@ -23,7 +23,8 @@ export function useKeyboardShortcuts(options: KeyboardShortcutsOptions): void {
 
   useEffect(() => {
     function handleDashboardKey(event: KeyboardEvent, handler: HotkeysEvent) {
-      const position = Number(handler.shortcut.split('+')[1])
+      const digit = Number(handler.shortcut.split('+')[1])
+      const position = digit === 0 ? 10 : digit
       const target = optionsRef.current.dashboards[position - 1]
       if (!target) return
       event.preventDefault()

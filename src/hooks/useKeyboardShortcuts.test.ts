@@ -92,6 +92,36 @@ describe('useKeyboardShortcuts — dashboard switching', () => {
     expect(event).toBe(true)
   })
 
+  it('alt+0 switches to the 10th dashboard', () => {
+    const setActiveDashboardId = vi.fn()
+    renderHook(() =>
+      useKeyboardShortcuts({
+        dashboards: makeDashboards(10),
+        activeDashboardId: null,
+        setActiveDashboardId,
+      }),
+    )
+
+    fireEvent.keyDown(document, { key: '0', code: 'Digit0', keyCode: 48, altKey: true })
+
+    expect(setActiveDashboardId).toHaveBeenCalledWith('dash-10')
+  })
+
+  it('alt+0 does not fire with fewer than 10 dashboards', () => {
+    const setActiveDashboardId = vi.fn()
+    renderHook(() =>
+      useKeyboardShortcuts({
+        dashboards: makeDashboards(3),
+        activeDashboardId: null,
+        setActiveDashboardId,
+      }),
+    )
+
+    fireEvent.keyDown(document, { key: '0', code: 'Digit0', keyCode: 48, altKey: true })
+
+    expect(setActiveDashboardId).not.toHaveBeenCalled()
+  })
+
   it('does not fire when the event target is an input', () => {
     const input = document.createElement('input')
     document.body.appendChild(input)
