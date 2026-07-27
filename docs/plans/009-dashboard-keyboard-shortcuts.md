@@ -38,7 +38,7 @@ Update this table at the end of each phase, before pausing.
 | 3 | ⌥N adds a link and opens its edit dialog (also for the `+` tile) | DONE |
 | 4 | Digit badges revealed while ⌥ is held | DONE |
 | 5 | `?` keyboard-shortcuts help overlay | DONE |
-| 6 | Docs (`PRD.md`, `TECHNICAL_DESIGN.md`) + final verification | TODO |
+| 6 | Docs (`PRD.md`, `TECHNICAL_DESIGN.md`) + final verification | DONE |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason)
 
@@ -658,23 +658,24 @@ and hand back a summary of what is uncommitted.
 
 ## Done criteria
 
-- [ ] All six phases DONE in the Phase Status table, each with an operator
+- [x] All six phases DONE in the Phase Status table, each with an operator
       sign-off at its pause
-- [ ] `yarn test`, `yarn tsc -b`, `yarn lint` all exit 0
-- [ ] Every shortcut is registered through hotkeys-js with `{ capture: true }`;
+- [x] `yarn test`, `yarn tsc -b`, `yarn lint` all exit 0
+- [x] Every shortcut is registered through hotkeys-js with `{ capture: true }`;
       `grep -rn "addEventListener('keydown'" src/` returns nothing
-- [ ] ⌥1–⌥9 switch to displayed tab positions 1–9; higher positions no-op
-- [ ] ⌥←/⌥→/⌥[/⌥] cycle with wrap, without double-stepping when a tab has
+- [x] ⌥1–⌥9, ⌥0 switch to displayed tab positions 1–10 (amended
+      2026-07-27); an 11th+ position no-ops
+- [x] ⌥←/⌥→/⌥[/⌥] cycle with wrap, without double-stepping when a tab has
       focus
-- [ ] ⌥N adds a link and opens its edit dialog; `+` and the empty state do
+- [x] ⌥N adds a link and opens its edit dialog; `+` and the empty state do
       the same
-- [ ] Digit badges appear only while ⌥ is held, never reflow the tab strip,
+- [x] Digit badges appear only while ⌥ is held, never reflow the tab strip,
       and never strand after a window blur
-- [ ] `?` opens an accurate, platform-labeled shortcuts overlay
-- [ ] No shortcut fires while a text field is focused, a dialog is open, or a
+- [x] `?` opens an accurate, platform-labeled shortcuts overlay
+- [x] No shortcut fires while a text field is focused, a dialog is open, or a
       key is auto-repeating
-- [ ] `docs/PRD.md` and `docs/TECHNICAL_DESIGN.md` reflect the new behavior
-- [ ] `git status` shows no files outside the in-scope list
+- [x] `docs/PRD.md` and `docs/TECHNICAL_DESIGN.md` reflect the new behavior
+- [x] `git status` shows no files outside the in-scope list
 
 ## Maintenance notes
 

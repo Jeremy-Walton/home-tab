@@ -41,13 +41,15 @@ content area below it that changes with the active dashboard.
 - **Main content area**: fills the remaining height below the top bar and
   renders the active dashboard's **link grid** (or its empty state), with
   that dashboard's own background image behind it if it has one.
-- **Persistent footer overlay**: a small, fixed, non-interactive-background
-  strip anchored to the bottom-right corner of the viewport, shown above
-  everything regardless of which dashboard is active. It carries a
-  copyright notice and a link inviting the user to install the (separate,
-  third-party) browser extension that makes this app the browser's new-tab
-  page. It never blocks clicks to the content behind it except on the link
-  itself.
+- **Persistent footer overlays**: small, fixed, non-interactive-background
+  strips shown above everything regardless of which dashboard is active.
+  - Bottom-right: a copyright notice and a link inviting the user to
+    install the (separate, third-party) browser extension that makes this
+    app the browser's new-tab page. It never blocks clicks to the content
+    behind it except on the link itself.
+  - Bottom-left: a brief hint showing the `?` key and a short label
+    inviting the user to open the keyboard-shortcuts overlay (see
+    "Keyboard shortcuts").
 - There is no sidebar, no header below the top bar, and no page navigation
   of any kind — switching dashboards is a same-page state change, not a
   different URL/route.
@@ -80,7 +82,9 @@ recreating these consistently matters as much as the individual features:
 - **Tooltips on icon-only buttons.** Every button that has no visible text
   label (add-dashboard "+", the options "…" buttons, the import/export
   button) shows a short text tooltip identifying it after a brief hover (or
-  keyboard focus) delay.
+  keyboard focus) delay. Where a tooltip or hint references a keyboard
+  shortcut, the modifier key's label is platform-aware (**⌥** on macOS,
+  **Alt** elsewhere) — see "Keyboard shortcuts".
 - **Silent fallback for broken images.** Anywhere a user-supplied image URL
   is rendered as a background (a link tile or a dashboard), a broken/404
   URL is never shown as a broken-image icon or error — it just falls back
@@ -159,10 +163,12 @@ Each link consists of:
 
 ### Creating links
 
-- The "Add" tile (in a non-empty grid) or the empty-state's "Add link"
-  button creates a new link with placeholder values — Title "New link",
-  URL `https://example.com`, no background image — which the user then
-  edits via the tile's edit dialog.
+- The "Add" tile (in a non-empty grid), the empty-state's "Add link"
+  button, or the **⌥N** keyboard shortcut (see "Keyboard shortcuts") all
+  create a new link with placeholder values — Title "New link", URL
+  `https://example.com`, no background image — and immediately open its
+  edit dialog. Dismissing that dialog any way other than Save leaves the
+  placeholder link in place, unedited.
 
 ### Editing links
 
@@ -192,6 +198,32 @@ Each link consists of:
      in the top tab strip.
   Either way, the link is appended to the end of the target dashboard's
   order (not inserted at a specific position).
+
+## Keyboard shortcuts
+
+All shortcuts use the **Alt** modifier (labeled **⌥** on macOS, **Alt**
+elsewhere) held together with a digit, letter, or arrow/bracket key:
+
+- **⌥1 – ⌥9, ⌥0** switch directly to the dashboard at that position in the
+  *displayed* tab strip order (⌥0 is the 10th position). An 11th+ dashboard
+  simply has no shortcut.
+- **⌥← / ⌥→** and **⌥[ / ⌥]** step to the previous/next dashboard, wrapping
+  around at both ends.
+- **⌥N** adds a new link to the active dashboard (see "Creating links") —
+  not a new dashboard.
+- **?** opens a help overlay listing every shortcut above.
+- **Discovery.** Nothing is visible at rest. Holding **⌥** reveals a small
+  digit badge on each of the first ten dashboard tabs (1–9, then 0),
+  showing that tab's shortcut; the badges disappear the instant ⌥ is
+  released and never shift the tab strip's layout. A small, always-visible
+  hint in the bottom-left corner of the viewport shows the `?` key and a
+  short label inviting the user to open the shortcuts overlay (see
+  "Application Shell").
+- **Shortcuts never fire while the user is typing or a dialog is open.**
+  Focusing any text field (a Title, URL, or dashboard-name input) or having
+  any edit/confirm/shortcuts dialog open makes every shortcut above inert
+  — the key types or behaves exactly as if no shortcut existed.
+- Shortcuts are not user-remappable (see "Explicitly Out of Scope").
 
 ## Backgrounds
 
@@ -263,6 +295,7 @@ Each link consists of:
 - Mobile/touch support.
 - Backend sync (the storage layer must allow for it later, but it is not
   implemented now).
+- User-remappable keyboard shortcuts.
 
 ## Open Items for Future Consideration
 

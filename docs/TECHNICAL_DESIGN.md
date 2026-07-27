@@ -15,6 +15,12 @@ the PRD.
 - **Local data store / storage abstraction**: RxDB (IndexedDB-backed via
   the Dexie storage adapter)
 - **Drag-and-drop**: `@dnd-kit/core` + `@dnd-kit/sortable`
+- **Keyboard shortcuts**: [`hotkeys-js`](https://github.com/jaywcjlove/hotkeys-js)
+  (v4, MIT, zero dependencies) — chosen because it resolves key names to
+  legacy `keyCode` rather than `event.key` (sidesteps platform-specific
+  character remapping, e.g. macOS Option+digit), does exact chord matching
+  (so `alt+1` doesn't also fire on `alt+cmd+1`), and ships a default filter
+  that already ignores form-input targets.
 - **Styling**: Tailwind CSS v4
 - **UI component layer**: [shadcn/ui](https://ui.shadcn.com) (`base-luma`
   style/preset) generating thin wrappers in `src/components/ui/`, built on
@@ -131,27 +137,39 @@ Two distinct version concepts, kept separate:
   drag-vs-click suppression listener (see "Known Gotchas"), and
   `handleDragEnd`'s branch between "dropped on a dashboard tab" (move) vs.
   "dropped on another tile" (reorder).
+- `src/hooks/useKeyboardShortcuts.ts` — the single hook that registers every
+  `hotkeys-js` binding (dashboard switching, cycling, ⌥N, `?`); see "Keyboard
+  shortcuts" below.
+- `src/hooks/useAltHeld.ts` — tracks whether ⌥ is currently held, driving the
+  tab-strip digit badges in `DashboardTabs.tsx`.
 - `src/lib/` — `id.ts` (`generateId`, currently `crypto.randomUUID()`),
   `url.ts` (`normalizeUrl`), `importExport.ts` (format detection +
   legacy-mapping, see `docs/DATA_FORMATS.md`), `dashboardDropId.ts` (encodes/
   decodes the synthetic droppable id used for the "drop a tile on a
-  dashboard tab" gesture), `utils.ts` (the shadcn `cn()` class helper).
-- `src/App.tsx` — root component: `DndContext` + layout shell.
+  dashboard tab" gesture), `utils.ts` (the shadcn `cn()` class helper),
+  `keyboard.ts` (`isMac`, `isDialogOpen`, `shortcutLabel`,
+  `dashboardShortcutDigit`, and the module-scope `hotkeys.filter` override),
+  `shortcuts.ts` (`SHORTCUTS`, the human-readable list backing
+  `ShortcutsDialog`).
+- `src/App.tsx` — root component: `DndContext` + layout shell; owns
+  `useKeyboardShortcuts`, the just-created-link edit-dialog state, and the
+  `?`-triggered `ShortcutsDialog`.
 - `src/components/` — one file per app-specific component:
-  `Navbar.tsx`, `DashboardTabs.tsx` (tab strip + per-tab options menu),
-  `DashboardGrid.tsx` (grid/empty-state switch + sortable context),
-  `LinkTile.tsx`, `EmptyState.tsx`, `OptionsMenu.tsx` (the shared
-  three-dot/kebab trigger: a tooltip'd dropdown-menu button; callers pass
-  the menu items as children), `EntityOptionsMenu.tsx` (`OptionsMenu` +
+  `Navbar.tsx`, `DashboardTabs.tsx` (tab strip + per-tab options menu +
+  held-⌥ digit badges), `DashboardGrid.tsx` (grid/empty-state switch +
+  sortable context), `LinkTile.tsx`, `EmptyState.tsx`, `OptionsMenu.tsx` (the
+  shared three-dot/kebab trigger: a tooltip'd dropdown-menu button; callers
+  pass the menu items as children), `EntityOptionsMenu.tsx` (`OptionsMenu` +
   the Edit/Move/Delete item set used by both dashboards and links),
   `ConfirmDialog.tsx` (shared delete-confirmation), `EditDialog.tsx`
   (shared edit-modal shell), `LinkEditModal.tsx`/`DashboardEditModal.tsx`
-  (field sets on top of `EditDialog`), `ImportExportBar.tsx`,
+  (field sets on top of `EditDialog`), `ShortcutsDialog.tsx` (the `?`
+  overlay, rendering `SHORTCUTS`), `ImportExportBar.tsx`,
   `LogoIcon.tsx`/`Wordmark.tsx` (branding).
 - `src/components/ui/` — shadcn-generated primitive wrappers (`button`,
   `dialog`, `alert-dialog`, `dropdown-menu`, `tabs`, `tooltip`, `badge`,
-  `aspect-ratio`, `label`, `separator`, `field`, `input`, `empty`). These
-  are owned project code, not off-limits vendor files. Two rules govern
+  `aspect-ratio`, `label`, `separator`, `field`, `input`, `empty`, `kbd`).
+  These are owned project code, not off-limits vendor files. Two rules govern
   what goes where: **stylistic changes belong here** — bake a recurring
   look into the primitive itself (a CVA `variant`/`size`, or an adjusted
   default class), even if it's only used in one place today (e.g. the
@@ -181,6 +199,18 @@ Two distinct version concepts, kept separate:
   default background color rather than showing a broken-image icon.
 - **URL normalization**: a small utility run on save — if the string
   doesn't start with a recognized scheme, prepend `https://`.
+- **Keyboard shortcuts**: all bindings are registered by one hook,
+  `useKeyboardShortcuts.ts`, mounted once in `App.tsx`. Every binding passes
+  `{ capture: true }` — `hotkeys-js` latches its capture flag on the first
+  binding registered per element, so a mixed setting would silently break
+  capture for the others (see "Known Gotchas"). A module-scope
+  `hotkeys.filter` override in `keyboard.ts` wraps — not replaces — the
+  library default, adding "ignore auto-repeat" and "ignore while a dialog is
+  open" on top of the library's own "ignore form-input targets." Dashboard
+  digit shortcuts don't map onto `dashboards` by any stored field — they
+  reuse the fact that `AppStateContext`'s dashboards query is already sorted
+  by `order` (see "Data Model"), so array index *is* tab position; the same
+  fact drives the held-⌥ digit badges in `DashboardTabs.tsx`.
 
 ## Export / Import
 
@@ -219,11 +249,26 @@ in `docs/DATA_FORMATS.md` — this is the implementation summary:
 
 ## Testing Focus
 
-**Current actual coverage** (`yarn test`, 23 tests across 3 files):
+**Current actual coverage** (`yarn test`, 81 tests across 7 files):
 
 - `lib/url.test.ts` — `normalizeUrl` scheme-prepending behavior.
 - `lib/importExport.test.ts` — legacy-shape detection and
   `mapLegacyState` field mapping.
+- `lib/keyboard.test.ts` — `isMac`/`shortcutLabel` on both platforms (via
+  `vi.stubGlobal`), `isDialogOpen` with and without a `[role="dialog"]`
+  element present, `dashboardShortcutDigit`'s 1–9-then-0 mapping.
+- `hooks/useKeyboardShortcuts.test.ts` — `renderHook` + `fireEvent`, firing
+  `keyCode`/`altKey` directly (hotkeys-js reads `event.keyCode`, not
+  `event.key`): dashboard-switch digits including ⌥0 for the 10th position,
+  exact chord matching (⌥⌘ doesn't also trigger ⌥), cycling with wrap on
+  both arrow and bracket bindings, ⌥N, `shift+/`, and that all of the above
+  are suppressed by auto-repeat, an input/textarea target, or an open
+  dialog.
+- `hooks/useAltHeld.test.ts` — alt keydown/keyup toggle the held state,
+  `window` blur resets it, and an input target never sets it.
+- `components/LinkEditModal.test.tsx` — URL-field validation on save
+  (rejects invalid, accepts scheme-less, treats an empty background field
+  as valid).
 - `context/AppStateContext.test.tsx` — characterization tests for the
   `AppStateProvider` against an in-memory RxDB database (`src/test/testDb.ts`,
   RxDB's memory storage substituting for the real Dexie/IndexedDB adapter
@@ -232,10 +277,11 @@ in `docs/DATA_FORMATS.md` — this is the implementation summary:
   dashboards, malformed-legacy discard), `reorderLinks` and
   `moveLinkToDashboard` (asserting persisted, not just in-memory, state),
   `deleteDashboard`'s cascade delete and its last-dashboard no-op,
-  `addLink`/`updateLink` ordering and URL normalization, and clearing a
-  dashboard's background image via `updateDashboard` (confirmed the field is
-  actually removed from the stored document, not left stale — see "Known
-  Gotchas" history for why this needed characterizing).
+  `addLink`/`updateLink` ordering and URL normalization (including that
+  `addLink` returns the new document's id), and clearing a dashboard's
+  background image via `updateDashboard` (confirmed the field is actually
+  removed from the stored document, not left stale — see "Known Gotchas"
+  history for why this needed characterizing).
 
 **Not currently covered by the automated suite**, despite React Testing
 Library + jsdom being installed and configured (`src/test/setup.ts`):
@@ -248,6 +294,12 @@ Library + jsdom being installed and configured (`src/test/setup.ts`):
   typecheck/lint/unit tests.
 - Broken-image fallback behavior (no component/DOM test renders a broken
   `<img>` and asserts the fallback).
+- The held-⌥ digit badge's actual rendering (`DashboardTabs.tsx` +
+  `useAltHeld`) and the ⌥←/⌥→ vs. Base UI's `Tabs.List` roving-focus
+  interaction — `useAltHeld`'s state logic and `useKeyboardShortcuts`'s key
+  handling are both unit-tested in isolation, but whether the badge visually
+  avoids reflow and whether capture-phase `stopPropagation` actually beats
+  Base UI's own arrow-key handling in a real DOM are browser-verified only.
 
 If component-level automated coverage is added later, these are the
 remaining highest-value targets: drag-and-drop/click-suppression behavior
@@ -344,6 +396,30 @@ remaining highest-value targets: drag-and-drop/click-suppression behavior
     `ImportExportBar.tsx`). Each Base UI trigger forwards props/ref it
     doesn't recognize straight through to its own `render` target, so this
     composes the same way nested Radix `Slot`s used to.
+
+- **`hotkeys-js` latches its `capture` flag on the first binding registered
+  per element, not per binding.** `elementEventMap` short-circuits listener
+  registration for an element it's already seen, so a later
+  `hotkeys(..., {capture: true}, ...)` on the same `document` silently
+  inherits whatever the *first* binding on that element chose. Every binding
+  in this codebase passes `{ capture: true }` for exactly this reason —
+  capture is what lets `useKeyboardShortcuts`'s ⌥←/⌥→ handler
+  `stopPropagation()` before Base UI's `Tabs.List` roving-focus arrow-key
+  handler also reacts to it. A future binding added without `{ capture:
+  true }` wouldn't fail to compile — it would silently either win or lose
+  that race depending on registration order.
+- **`hotkeys-js` is a module-level singleton**: one `hotkeys.filter`, one
+  handler registry, one `_downKeys` array, shared by the whole page (and by
+  the whole test process). Every test file that binds a hotkey must
+  `hotkeys.unbind()` in `afterEach`, or its handlers leak into the next test
+  file's assertions.
+- **Holding Alt on Windows/Linux moves focus to the browser's menu bar and
+  swallows the `keyup`.** `hotkeys-js` only resets its internal pressed-keys
+  state on window *focus* (never *blur*, and it emits no event either way),
+  so it can't drive `useAltHeld`'s badge-visibility state on its own.
+  `useAltHeld` adds native `blur`/`visibilitychange`/`contextmenu` listeners
+  specifically to reset the held state in those cases — removing them would
+  strand the digit badges visible after the user alt-tabs away and back.
 
 ## Open Items
 
