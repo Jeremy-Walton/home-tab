@@ -311,3 +311,51 @@ describe('useKeyboardShortcuts — add link', () => {
     expect(onAddLink).not.toHaveBeenCalled()
   })
 })
+
+describe('useKeyboardShortcuts — show help', () => {
+  it('shift+/ calls onShowHelp', () => {
+    const setActiveDashboardId = vi.fn()
+    const onShowHelp = vi.fn()
+    renderHook(() =>
+      useKeyboardShortcuts({
+        dashboards: makeDashboards(3),
+        activeDashboardId: 'dash-1',
+        setActiveDashboardId,
+        onShowHelp,
+      }),
+    )
+
+    fireEvent.keyDown(document, {
+      key: '?',
+      code: 'Slash',
+      keyCode: 191,
+      shiftKey: true,
+    })
+
+    expect(onShowHelp).toHaveBeenCalledOnce()
+  })
+
+  it('does not call onShowHelp when the target is an input', () => {
+    const input = document.createElement('input')
+    document.body.appendChild(input)
+    const setActiveDashboardId = vi.fn()
+    const onShowHelp = vi.fn()
+    renderHook(() =>
+      useKeyboardShortcuts({
+        dashboards: makeDashboards(3),
+        activeDashboardId: 'dash-1',
+        setActiveDashboardId,
+        onShowHelp,
+      }),
+    )
+
+    fireEvent.keyDown(input, {
+      key: '?',
+      code: 'Slash',
+      keyCode: 191,
+      shiftKey: true,
+    })
+
+    expect(onShowHelp).not.toHaveBeenCalled()
+  })
+})

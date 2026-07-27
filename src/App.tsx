@@ -7,6 +7,8 @@ import { useLinkDragAndDrop } from './hooks/useLinkDragAndDrop'
 import { DashboardGrid } from './components/DashboardGrid'
 import { LinkEditModal } from './components/LinkEditModal'
 import { Navbar } from './components/Navbar'
+import { ShortcutsDialog } from './components/ShortcutsDialog'
+import { Kbd } from './components/ui/kbd'
 import { TooltipProvider } from './components/ui/tooltip'
 
 function Dashboard() {
@@ -18,6 +20,7 @@ function Dashboard() {
     activeLinks,
   )
   const [editingLinkId, setEditingLinkId] = useState<string | null>(null)
+  const [showShortcuts, setShowShortcuts] = useState(false)
 
   async function handleAddLink() {
     if (!activeDashboardId) return
@@ -30,6 +33,7 @@ function Dashboard() {
     activeDashboardId,
     setActiveDashboardId,
     onAddLink: () => void handleAddLink(),
+    onShowHelp: () => setShowShortcuts(true),
   })
 
   if (!ready) {
@@ -61,6 +65,11 @@ function Dashboard() {
       {editingLink && (
         <LinkEditModal link={editingLink} onClose={() => setEditingLinkId(null)} />
       )}
+      {showShortcuts && <ShortcutsDialog onClose={() => setShowShortcuts(false)} />}
+      <div className="pointer-events-none fixed bottom-2 left-3 flex items-center gap-1.5 text-xs text-white/70">
+        <Kbd className="border-white/20 bg-black/40 text-white">?</Kbd>
+        <span>for shortcuts</span>
+      </div>
       <div className="pointer-events-none fixed bottom-2 right-3 text-xs text-white/70">
         <span>© 2026 Jeremy Walton. All Rights Reserved.</span>{' '}
         <a

@@ -37,7 +37,7 @@ Update this table at the end of each phase, before pausing.
 | 2 | ⌥← / ⌥→ / ⌥[ / ⌥] cycling with wrap | DONE |
 | 3 | ⌥N adds a link and opens its edit dialog (also for the `+` tile) | DONE |
 | 4 | Digit badges revealed while ⌥ is held | DONE |
-| 5 | `?` keyboard-shortcuts help overlay | TODO |
+| 5 | `?` keyboard-shortcuts help overlay | DONE |
 | 6 | Docs (`PRD.md`, `TECHNICAL_DESIGN.md`) + final verification | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason)
@@ -544,10 +544,12 @@ final unmodified `?` → "Show this help".
 
 `{ onClose }`, mounted conditionally like the other modals in this codebase.
 Built on `src/components/ui/dialog.tsx` (`Dialog`, `DialogContent`,
-`DialogHeader`, `DialogTitle`), a two-column list from `SHORTCUTS`, keys
-rendered in a small inline `<kbd>`-style span (there is no `kbd` primitive;
-inline Tailwind is fine, or add one to `ui/` if it grows). Escape / outside
-click / the close button all dismiss.
+`DialogHeader`, `DialogTitle`), a two-column list from `SHORTCUTS`. Each
+row's `keys` is an array (`ShortcutDescription.keys: string[]`), one chip per
+alternative key combo, rendered as a `KbdGroup` of individual `Kbd` chips
+(both from `src/components/ui/kbd.tsx`, added by the maintainer mid-phase,
+2026-07-27 — supersedes the original plan of a single inline `<kbd>`-style
+span per row). Escape / outside click / the close button all dismiss.
 
 ### Step 5.3 — Trigger
 
@@ -635,6 +637,8 @@ and hand back a summary of what is uncommitted.
   `docs/PRD.md`, `docs/TECHNICAL_DESIGN.md`, this file
 - Possibly modify (Phase 4 only, if the badge earns a variant):
   `src/components/ui/badge.tsx`
+- `src/components/ui/kbd.tsx` — added by the maintainer outside this plan's
+  file list (2026-07-27); `ShortcutsDialog.tsx` consumes it as-is, unmodified.
 
 **Out of scope** (do NOT touch):
 - `src/hooks/useLinkDragAndDrop.ts`, `src/components/LinkTile.tsx`,
@@ -686,10 +690,14 @@ and hand back a summary of what is uncommitted.
   Phase 5's `SHORTCUTS` list and Phase 6 docs must describe 1–9 *and* 0, not
   just 1–9.
 - Deferred deliberately: an 11th+ slot, numpad digits (hotkeys-js supports
-  `num_1`…`num_9` if ever wanted), remappable bindings, and a discoverability
-  affordance for `?` itself (nothing in the UI currently advertises the
-  overlay — a small navbar button or a footer hint is the obvious follow-up
-  if it goes unnoticed).
+  `num_1`…`num_9` if ever wanted), remappable bindings.
+- A discoverability affordance for `?` was added mid-implementation
+  (2026-07-27, after Phase 5): a small non-interactive bottom-left footer
+  hint in `App.tsx` (`Kbd` showing `?` + "for shortcuts" text), styled like
+  the existing bottom-right copyright footer (`fixed`, `pointer-events-none`,
+  `text-white/70`) but with the `Kbd` chip given its own dark/white override
+  so it stays legible over an arbitrary dashboard background image, matching
+  `Badge`'s `overlay` variant treatment for the same reason.
 - If a future dashboard-reordering feature lands, shortcuts follow `order`
   automatically — no extra work, but re-check the badge indices.
 
