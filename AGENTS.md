@@ -10,6 +10,13 @@ Product requirements: @docs/PRD.md
 Architecture and stack decisions: @docs/TECHNICAL_DESIGN.md
 Export/import wire formats: @docs/DATA_FORMATS.md
 
+## Plans
+
+Implementation plans live in `docs/plans/`, one file per plan, named
+`NNN-kebab-slug.md` with a zero-padded sequence number (`009-…`). Numbers are
+never reused, including by rejected plans. A plan file is deleted in the commit
+that lands its work.
+
 ## Current State
 
 Fully implemented per `docs/PRD.md` and `docs/TECHNICAL_DESIGN.md`: all
