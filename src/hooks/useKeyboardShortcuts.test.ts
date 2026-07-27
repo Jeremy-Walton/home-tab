@@ -23,7 +23,11 @@ describe('useKeyboardShortcuts — dashboard switching', () => {
   it('alt+2 switches to the 2nd dashboard', () => {
     const setActiveDashboardId = vi.fn()
     renderHook(() =>
-      useKeyboardShortcuts({ dashboards: makeDashboards(3), setActiveDashboardId }),
+      useKeyboardShortcuts({
+        dashboards: makeDashboards(3),
+        activeDashboardId: null,
+        setActiveDashboardId,
+      }),
     )
 
     fireEvent.keyDown(document, { key: '2', code: 'Digit2', keyCode: 50, altKey: true })
@@ -34,7 +38,11 @@ describe('useKeyboardShortcuts — dashboard switching', () => {
   it('does not fire on a bare digit without alt', () => {
     const setActiveDashboardId = vi.fn()
     renderHook(() =>
-      useKeyboardShortcuts({ dashboards: makeDashboards(3), setActiveDashboardId }),
+      useKeyboardShortcuts({
+        dashboards: makeDashboards(3),
+        activeDashboardId: null,
+        setActiveDashboardId,
+      }),
     )
 
     fireEvent.keyDown(document, { key: '2', code: 'Digit2', keyCode: 50 })
@@ -45,7 +53,11 @@ describe('useKeyboardShortcuts — dashboard switching', () => {
   it('does not fire when alt+cmd are both held (exact chord match)', () => {
     const setActiveDashboardId = vi.fn()
     renderHook(() =>
-      useKeyboardShortcuts({ dashboards: makeDashboards(3), setActiveDashboardId }),
+      useKeyboardShortcuts({
+        dashboards: makeDashboards(3),
+        activeDashboardId: null,
+        setActiveDashboardId,
+      }),
     )
 
     fireEvent.keyDown(document, {
@@ -62,7 +74,11 @@ describe('useKeyboardShortcuts — dashboard switching', () => {
   it('does not fire past the last dashboard, and does not preventDefault', () => {
     const setActiveDashboardId = vi.fn()
     renderHook(() =>
-      useKeyboardShortcuts({ dashboards: makeDashboards(3), setActiveDashboardId }),
+      useKeyboardShortcuts({
+        dashboards: makeDashboards(3),
+        activeDashboardId: null,
+        setActiveDashboardId,
+      }),
     )
 
     const event = fireEvent.keyDown(document, {
@@ -81,7 +97,11 @@ describe('useKeyboardShortcuts — dashboard switching', () => {
     document.body.appendChild(input)
     const setActiveDashboardId = vi.fn()
     renderHook(() =>
-      useKeyboardShortcuts({ dashboards: makeDashboards(3), setActiveDashboardId }),
+      useKeyboardShortcuts({
+        dashboards: makeDashboards(3),
+        activeDashboardId: null,
+        setActiveDashboardId,
+      }),
     )
 
     fireEvent.keyDown(input, { key: '2', code: 'Digit2', keyCode: 50, altKey: true })
@@ -95,7 +115,11 @@ describe('useKeyboardShortcuts — dashboard switching', () => {
     document.body.appendChild(dialog)
     const setActiveDashboardId = vi.fn()
     renderHook(() =>
-      useKeyboardShortcuts({ dashboards: makeDashboards(3), setActiveDashboardId }),
+      useKeyboardShortcuts({
+        dashboards: makeDashboards(3),
+        activeDashboardId: null,
+        setActiveDashboardId,
+      }),
     )
 
     fireEvent.keyDown(document, { key: '1', code: 'Digit1', keyCode: 49, altKey: true })
@@ -106,7 +130,11 @@ describe('useKeyboardShortcuts — dashboard switching', () => {
   it('does not fire on an auto-repeated key', () => {
     const setActiveDashboardId = vi.fn()
     renderHook(() =>
-      useKeyboardShortcuts({ dashboards: makeDashboards(3), setActiveDashboardId }),
+      useKeyboardShortcuts({
+        dashboards: makeDashboards(3),
+        activeDashboardId: null,
+        setActiveDashboardId,
+      }),
     )
 
     fireEvent.keyDown(document, {
@@ -116,6 +144,83 @@ describe('useKeyboardShortcuts — dashboard switching', () => {
       altKey: true,
       repeat: true,
     })
+
+    expect(setActiveDashboardId).not.toHaveBeenCalled()
+  })
+})
+
+describe('useKeyboardShortcuts — cycling', () => {
+  it('alt+right from the last dashboard wraps to the first', () => {
+    const setActiveDashboardId = vi.fn()
+    renderHook(() =>
+      useKeyboardShortcuts({
+        dashboards: makeDashboards(3),
+        activeDashboardId: 'dash-3',
+        setActiveDashboardId,
+      }),
+    )
+
+    fireEvent.keyDown(document, { key: 'ArrowRight', code: 'ArrowRight', keyCode: 39, altKey: true })
+
+    expect(setActiveDashboardId).toHaveBeenCalledWith('dash-1')
+  })
+
+  it('alt+left from the first dashboard wraps to the last', () => {
+    const setActiveDashboardId = vi.fn()
+    renderHook(() =>
+      useKeyboardShortcuts({
+        dashboards: makeDashboards(3),
+        activeDashboardId: 'dash-1',
+        setActiveDashboardId,
+      }),
+    )
+
+    fireEvent.keyDown(document, { key: 'ArrowLeft', code: 'ArrowLeft', keyCode: 37, altKey: true })
+
+    expect(setActiveDashboardId).toHaveBeenCalledWith('dash-3')
+  })
+
+  it('alt+] behaves the same as alt+right', () => {
+    const setActiveDashboardId = vi.fn()
+    renderHook(() =>
+      useKeyboardShortcuts({
+        dashboards: makeDashboards(3),
+        activeDashboardId: 'dash-2',
+        setActiveDashboardId,
+      }),
+    )
+
+    fireEvent.keyDown(document, { key: ']', code: 'BracketRight', keyCode: 221, altKey: true })
+
+    expect(setActiveDashboardId).toHaveBeenCalledWith('dash-3')
+  })
+
+  it('alt+[ behaves the same as alt+left', () => {
+    const setActiveDashboardId = vi.fn()
+    renderHook(() =>
+      useKeyboardShortcuts({
+        dashboards: makeDashboards(3),
+        activeDashboardId: 'dash-2',
+        setActiveDashboardId,
+      }),
+    )
+
+    fireEvent.keyDown(document, { key: '[', code: 'BracketLeft', keyCode: 219, altKey: true })
+
+    expect(setActiveDashboardId).toHaveBeenCalledWith('dash-1')
+  })
+
+  it('is a no-op with a single dashboard', () => {
+    const setActiveDashboardId = vi.fn()
+    renderHook(() =>
+      useKeyboardShortcuts({
+        dashboards: makeDashboards(1),
+        activeDashboardId: 'dash-1',
+        setActiveDashboardId,
+      }),
+    )
+
+    fireEvent.keyDown(document, { key: 'ArrowRight', code: 'ArrowRight', keyCode: 39, altKey: true })
 
     expect(setActiveDashboardId).not.toHaveBeenCalled()
   })

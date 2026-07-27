@@ -16,7 +16,7 @@ function Dashboard() {
     activeLinks,
   )
 
-  useKeyboardShortcuts({ dashboards, setActiveDashboardId })
+  useKeyboardShortcuts({ dashboards, activeDashboardId, setActiveDashboardId })
 
   if (!ready) {
     return <div className="flex h-screen items-center justify-center text-gray-400">Loading…</div>
