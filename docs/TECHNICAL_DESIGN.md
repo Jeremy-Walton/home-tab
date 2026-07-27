@@ -437,3 +437,13 @@ remaining highest-value targets: drag-and-drop/click-suppression behavior
 - No automated coverage for RxDB/drag-and-drop/reorder logic (see "Testing
   Focus") — decide whether to invest in component/e2e tests for these or
   keep relying on manual browser verification.
+- `typescript` is held at `~6.0.2` (not the current TypeScript major, 7.x)
+  because `typescript-eslint` hard-throws on any TS `>=7` (confirmed by
+  reading its installed source — an unconditional version check, not just a
+  peer-dependency range) and has no released or canary version that lifts
+  that guard yet. Tracked upstream at
+  [typescript-eslint#10940](https://github.com/typescript-eslint/typescript-eslint/issues/10940).
+  Revisit the TypeScript upgrade once that ships — `yarn` itself is already
+  on a version (4.17.1+) whose bundled `typescript` compatibility patch
+  supports TS 7's restructured `lib/` layout, so nothing on the tooling side
+  should block it once typescript-eslint catches up.
