@@ -205,8 +205,9 @@ All shortcuts use the **Alt** modifier (labeled **⌥** on macOS, **Alt**
 elsewhere) held together with a digit, letter, or arrow/bracket key:
 
 - **⌥1 – ⌥9, ⌥0** switch directly to the dashboard at that position in the
-  *displayed* tab strip order (⌥0 is the 10th position). An 11th+ dashboard
-  simply has no shortcut.
+  *displayed* tab strip order (⌥0 is the 10th position). This range is
+  permanent — an 11th+ dashboard has no shortcut, by design, not as a gap to
+  fill later (no second-tier binding, no Chrome-style "reuse the last slot").
 - **⌥← / ⌥→** and **⌥[ / ⌥]** step to the previous/next dashboard, wrapping
   around at both ends.
 - **⌥N** adds a new link to the active dashboard (see "Creating links") —
@@ -308,3 +309,7 @@ elsewhere) held together with a digit, letter, or arrow/bracket key:
   Titles and dashboard names intentionally remain free-form/unvalidated
   (e.g. an empty title is explicitly supported — it displays as
   "Untitled").
+- A keyboard shortcut for creating a new *dashboard* (⌥N currently only
+  creates a link — see "Keyboard shortcuts"). **⌥⇧N (Alt+Shift+N) is
+  reserved** for this if/when it's implemented; no other binding should be
+  assigned to it in the meantime.
