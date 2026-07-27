@@ -199,17 +199,20 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   }
 
   async function addLink(dashboardId: string) {
-    if (!db) return
+    if (!db) return null
     const existing = links.filter((l) => l.dashboardId === dashboardId)
     const order = existing.length === 0 ? 0 : Math.max(...existing.map((l) => l.order)) + 1
+    const id = generateId()
 
     await db.links.insert({
-      id: generateId(),
+      id,
       dashboardId,
       order,
       title: 'New link',
       url: 'https://example.com',
     })
+
+    return id
   }
 
   async function updateLink(

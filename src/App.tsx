@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import { closestCenter, DndContext } from '@dnd-kit/core'
 import { AppStateProvider } from './context/AppStateContext'
 import { useAppState } from './context/useAppState'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useLinkDragAndDrop } from './hooks/useLinkDragAndDrop'
 import { DashboardGrid } from './components/DashboardGrid'
+import { LinkEditModal } from './components/LinkEditModal'
 import { Navbar } from './components/Navbar'
 import { TooltipProvider } from './components/ui/tooltip'
 
@@ -15,14 +17,27 @@ function Dashboard() {
     activeDashboardId,
     activeLinks,
   )
+  const [editingLinkId, setEditingLinkId] = useState<string | null>(null)
 
-  useKeyboardShortcuts({ dashboards, activeDashboardId, setActiveDashboardId })
+  async function handleAddLink() {
+    if (!activeDashboardId) return
+    const id = await addLink(activeDashboardId)
+    if (id) setEditingLinkId(id)
+  }
+
+  useKeyboardShortcuts({
+    dashboards,
+    activeDashboardId,
+    setActiveDashboardId,
+    onAddLink: () => void handleAddLink(),
+  })
 
   if (!ready) {
     return <div className="flex h-screen items-center justify-center text-gray-400">Loading…</div>
   }
 
   const activeDashboard = dashboards.find((d) => d.id === activeDashboardId)
+  const editingLink = links.find((l) => l.id === editingLinkId)
 
   return (
     <DndContext
@@ -38,11 +53,14 @@ function Dashboard() {
             <DashboardGrid
               links={activeLinks}
               backgroundImageUrl={activeDashboard.backgroundImageUrl}
-              onAddLink={() => void addLink(activeDashboard.id)}
+              onAddLink={() => void handleAddLink()}
             />
           )}
         </div>
       </div>
+      {editingLink && (
+        <LinkEditModal link={editingLink} onClose={() => setEditingLinkId(null)} />
+      )}
       <div className="pointer-events-none fixed bottom-2 right-3 text-xs text-white/70">
         <span>© 2026 Jeremy Walton. All Rights Reserved.</span>{' '}
         <a

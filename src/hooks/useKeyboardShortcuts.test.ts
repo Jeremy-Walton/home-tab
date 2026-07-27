@@ -225,3 +225,59 @@ describe('useKeyboardShortcuts — cycling', () => {
     expect(setActiveDashboardId).not.toHaveBeenCalled()
   })
 })
+
+describe('useKeyboardShortcuts — add link', () => {
+  it('alt+n calls onAddLink', () => {
+    const setActiveDashboardId = vi.fn()
+    const onAddLink = vi.fn()
+    renderHook(() =>
+      useKeyboardShortcuts({
+        dashboards: makeDashboards(3),
+        activeDashboardId: 'dash-1',
+        setActiveDashboardId,
+        onAddLink,
+      }),
+    )
+
+    fireEvent.keyDown(document, { key: 'n', code: 'KeyN', keyCode: 78, altKey: true })
+
+    expect(onAddLink).toHaveBeenCalledOnce()
+  })
+
+  it('plain n does not call onAddLink', () => {
+    const setActiveDashboardId = vi.fn()
+    const onAddLink = vi.fn()
+    renderHook(() =>
+      useKeyboardShortcuts({
+        dashboards: makeDashboards(3),
+        activeDashboardId: 'dash-1',
+        setActiveDashboardId,
+        onAddLink,
+      }),
+    )
+
+    fireEvent.keyDown(document, { key: 'n', code: 'KeyN', keyCode: 78 })
+
+    expect(onAddLink).not.toHaveBeenCalled()
+  })
+
+  it('alt+n with a dialog open does not call onAddLink', () => {
+    const dialog = document.createElement('div')
+    dialog.setAttribute('role', 'dialog')
+    document.body.appendChild(dialog)
+    const setActiveDashboardId = vi.fn()
+    const onAddLink = vi.fn()
+    renderHook(() =>
+      useKeyboardShortcuts({
+        dashboards: makeDashboards(3),
+        activeDashboardId: 'dash-1',
+        setActiveDashboardId,
+        onAddLink,
+      }),
+    )
+
+    fireEvent.keyDown(document, { key: 'n', code: 'KeyN', keyCode: 78, altKey: true })
+
+    expect(onAddLink).not.toHaveBeenCalled()
+  })
+})

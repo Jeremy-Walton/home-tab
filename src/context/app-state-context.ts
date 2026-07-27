@@ -18,7 +18,7 @@ export interface AppStateValue {
     fields: Partial<Pick<Dashboard, 'name' | 'backgroundImageUrl'>>,
   ) => Promise<void>
   deleteDashboard: (id: string) => Promise<void>
-  addLink: (dashboardId: string) => Promise<void>
+  addLink: (dashboardId: string) => Promise<string | null>
   updateLink: (
     id: string,
     fields: Partial<Pick<Link, 'title' | 'url' | 'backgroundImageUrl'>>,

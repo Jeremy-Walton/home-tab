@@ -117,11 +117,12 @@ describe('mutations', () => {
     const { result } = await readyAppState()
     await waitFor(() => expect(result.current.links).toHaveLength(2))
 
-    await result.current.addLink('d1')
+    const newId = await result.current.addLink('d1')
 
     await waitFor(() => expect(result.current.links).toHaveLength(3))
     const newLink = result.current.links.find((l) => l.order === 2)
     expect(newLink).toMatchObject({
+      id: newId,
       order: 2,
       title: 'New link',
       url: 'https://example.com',

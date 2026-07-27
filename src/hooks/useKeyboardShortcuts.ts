@@ -7,11 +7,13 @@ interface KeyboardShortcutsOptions {
   dashboards: Dashboard[]
   activeDashboardId: string | null
   setActiveDashboardId: (id: string) => void
+  onAddLink?: () => void
 }
 
 const DASHBOARD_KEYS = 'alt+1,alt+2,alt+3,alt+4,alt+5,alt+6,alt+7,alt+8,alt+9'
 const PREV_KEYS = 'alt+left,alt+['
 const NEXT_KEYS = 'alt+right,alt+]'
+const ADD_LINK_KEY = 'alt+n'
 
 export function useKeyboardShortcuts(options: KeyboardShortcutsOptions): void {
   const optionsRef = useRef(options)
@@ -43,13 +45,23 @@ export function useKeyboardShortcuts(options: KeyboardShortcutsOptions): void {
     const handlePrev = (event: KeyboardEvent) => cycle(event, -1)
     const handleNext = (event: KeyboardEvent) => cycle(event, 1)
 
+    function handleAddLink(event: KeyboardEvent) {
+      const { onAddLink } = optionsRef.current
+      if (!onAddLink) return
+      event.preventDefault()
+      event.stopPropagation()
+      onAddLink()
+    }
+
     hotkeys(DASHBOARD_KEYS, { capture: true }, handleDashboardKey)
     hotkeys(PREV_KEYS, { capture: true }, handlePrev)
     hotkeys(NEXT_KEYS, { capture: true }, handleNext)
+    hotkeys(ADD_LINK_KEY, { capture: true }, handleAddLink)
     return () => {
       hotkeys.unbind(DASHBOARD_KEYS, handleDashboardKey)
       hotkeys.unbind(PREV_KEYS, handlePrev)
       hotkeys.unbind(NEXT_KEYS, handleNext)
+      hotkeys.unbind(ADD_LINK_KEY, handleAddLink)
     }
   }, [])
 }
