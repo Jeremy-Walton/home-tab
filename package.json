@@ -21,6 +21,7 @@
     "@phosphor-icons/react": "^2.1.10",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "hotkeys-js": "^4.0.4",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "rxdb": "^17.3.0",

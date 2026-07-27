@@ -33,7 +33,7 @@ Update this table at the end of each phase, before pausing.
 
 | Phase | Title | Status |
 |-------|-------|--------|
-| 1 | hotkeys-js foundations + ⌥1–⌥9 dashboard switching | TODO |
+| 1 | hotkeys-js foundations + ⌥1–⌥9 dashboard switching | DONE |
 | 2 | ⌥← / ⌥→ / ⌥[ / ⌥] cycling with wrap | TODO |
 | 3 | ⌥N adds a link and opens its edit dialog (also for the `+` tile) | TODO |
 | 4 | Digit badges revealed while ⌥ is held | TODO |

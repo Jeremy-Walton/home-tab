@@ -3321,6 +3321,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"hotkeys-js@npm:^4.0.4":
+  version: 4.0.4
+  resolution: "hotkeys-js@npm:4.0.4"
+  checksum: 10c0/87b11b926a9c9450a0111d2dfacba46b149f2a274150c2e2b720326aa0f26686c29982e2f548910c5b1d68b6b954fb0841cd1dfa0b06b3c30d61fb3eeca12f8e
+  languageName: node
+  linkType: hard
+
 "html-encoding-sniffer@npm:^6.0.0":
   version: 6.0.0
   resolution: "html-encoding-sniffer@npm:6.0.0"
@@ -3870,6 +3877,7 @@ __metadata:
     eslint-plugin-react-hooks: "npm:^7.1.1"
     eslint-plugin-react-refresh: "npm:^0.5.2"
     globals: "npm:^17.6.0"
+    hotkeys-js: "npm:^4.0.4"
     jsdom: "npm:^29.1.1"
     react: "npm:^19.2.6"
     react-dom: "npm:^19.2.6"

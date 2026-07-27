@@ -1,18 +1,22 @@
 import { closestCenter, DndContext } from '@dnd-kit/core'
 import { AppStateProvider } from './context/AppStateContext'
 import { useAppState } from './context/useAppState'
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useLinkDragAndDrop } from './hooks/useLinkDragAndDrop'
 import { DashboardGrid } from './components/DashboardGrid'
 import { Navbar } from './components/Navbar'
 import { TooltipProvider } from './components/ui/tooltip'
 
 function Dashboard() {
-  const { ready, dashboards, links, activeDashboardId, addLink } = useAppState()
+  const { ready, dashboards, links, activeDashboardId, setActiveDashboardId, addLink } =
+    useAppState()
   const activeLinks = links.filter((l) => l.dashboardId === activeDashboardId)
   const { sensors, handleDragStart, handleDragEnd } = useLinkDragAndDrop(
     activeDashboardId,
     activeLinks,
   )
+
+  useKeyboardShortcuts({ dashboards, setActiveDashboardId })
 
   if (!ready) {
     return <div className="flex h-screen items-center justify-center text-gray-400">Loading…</div>
