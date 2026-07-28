@@ -49,6 +49,11 @@
     --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+@theme {
+    --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
 :root {
     --background: oklch(1 0 0);
     --foreground: oklch(0.148 0.004 228.8);
