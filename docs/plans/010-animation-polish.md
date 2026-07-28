@@ -14,7 +14,7 @@ and wait for approval before starting the next. Update this file's phase status
 | # | Phase | Severity | Status |
 |---|-------|----------|--------|
 | 1 | Motion tokens + popup easing/duration | MEDIUM | DONE (pending browser verify) |
-| 2 | Dialog exit animations actually play | HIGH | TODO |
+| 2 | Dialog exit animations actually play | HIGH | DONE (pending browser verify) |
 | 3 | `prefers-reduced-motion` support | MEDIUM | TODO |
 | 4 | Press feedback on link tiles and the add tile | MEDIUM | TODO |
 | 5 | `transition-all` + drop-target ring timing | LOW | TODO |

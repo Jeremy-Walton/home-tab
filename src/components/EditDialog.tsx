@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Button } from './ui/button'
 import {
   Dialog,
@@ -16,13 +17,25 @@ interface EditDialogProps {
 }
 
 export function EditDialog({ title, onSave, onClose, children }: EditDialogProps) {
+  // The dialog owns its open state so Base UI can run the closing animation;
+  // the parent only unmounts once that animation has finished.
+  const [open, setOpen] = useState(true)
+
   async function handleSave() {
     const result = await onSave()
-    if (result !== false) onClose()
+    if (result !== false) setOpen(false)
   }
 
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) setOpen(false)
+      }}
+      onOpenChangeComplete={(nextOpen) => {
+        if (!nextOpen) onClose()
+      }}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
@@ -31,7 +44,7 @@ export function EditDialog({ title, onSave, onClose, children }: EditDialogProps
         <FieldGroup>{children}</FieldGroup>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={() => setOpen(false)}>
             Cancel
           </Button>
           <Button onClick={() => void handleSave()}>Save</Button>

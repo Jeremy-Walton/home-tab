@@ -1,10 +1,21 @@
+import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog'
 import { Kbd, KbdGroup } from './ui/kbd'
 import { SHORTCUTS } from '../lib/shortcuts'
 
 export function ShortcutsDialog({ onClose }: { onClose: () => void }) {
+  const [open, setOpen] = useState(true)
+
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) setOpen(false)
+      }}
+      onOpenChangeComplete={(nextOpen) => {
+        if (!nextOpen) onClose()
+      }}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Keyboard shortcuts</DialogTitle>

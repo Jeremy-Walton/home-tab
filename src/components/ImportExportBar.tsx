@@ -12,6 +12,38 @@ import {
   AlertDialogTitle,
 } from './ui/alert-dialog'
 
+function FeedbackDialog({
+  title,
+  message,
+  onClose,
+}: {
+  title: string
+  message: string
+  onClose: () => void
+}) {
+  const [open, setOpen] = useState(true)
+
+  return (
+    <AlertDialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) setOpen(false)
+      }}
+      onOpenChangeComplete={(nextOpen) => {
+        if (!nextOpen) onClose()
+      }}
+    >
+      <AlertDialogContent size="sm">
+        <AlertDialogTitle>{title}</AlertDialogTitle>
+        <AlertDialogDescription>{message}</AlertDialogDescription>
+        <AlertDialogFooter>
+          <AlertDialogAction onClick={() => setOpen(false)}>OK</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}
+
 export function ImportExportBar({ className }: { className?: string }) {
   const { exportState, importState } = useAppState()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -70,15 +102,11 @@ export function ImportExportBar({ className }: { className?: string }) {
         }}
       />
       {feedback && (
-        <AlertDialog open onOpenChange={(open) => !open && setFeedback(null)}>
-          <AlertDialogContent size="sm">
-            <AlertDialogTitle>{feedback.title}</AlertDialogTitle>
-            <AlertDialogDescription>{feedback.message}</AlertDialogDescription>
-            <AlertDialogFooter>
-              <AlertDialogAction onClick={() => setFeedback(null)}>OK</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <FeedbackDialog
+          title={feedback.title}
+          message={feedback.message}
+          onClose={() => setFeedback(null)}
+        />
       )}
     </div>
   )
