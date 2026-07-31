@@ -15,12 +15,13 @@ and wait for approval before starting the next. Update this file's phase status
 |---|-------|----------|--------|
 | 1 | Motion tokens + popup easing/duration | MEDIUM | DONE (pending browser verify) |
 | 2 | Dialog exit animations actually play | HIGH | DONE (pending browser verify) |
-| 3 | `prefers-reduced-motion` support | MEDIUM | TODO |
+| 3 | `prefers-reduced-motion` support | MEDIUM | DONE (pending browser verify) |
 | 4 | Press feedback on link tiles and the add tile | MEDIUM | TODO |
 | 5 | `transition-all` + drop-target ring timing | LOW | TODO |
 | 6 | Fade link background images in on load | — (opportunity) | TODO |
 | 7 | Empty-state entrance | — (opportunity) | TODO |
 | 8 | View Transitions for delete reflow (fenced) | — (opportunity) | TODO |
+| 9 | Reduced-motion press feedback via `motion-safe:` | MEDIUM | TODO |
 
 ---
 
@@ -131,6 +132,7 @@ The load-bearing ones here:
 ## Scope
 
 - `src/index.css` (phases 1, 3, 8)
+- `src/components/ui/button.tsx` (phase 9)
 - `src/components/ui/dialog.tsx`, `ui/alert-dialog.tsx`, `ui/dropdown-menu.tsx`,
   `ui/tooltip.tsx` (phase 1)
 - `src/components/EditDialog.tsx`, `ConfirmDialog.tsx`, `ShortcutsDialog.tsx`,
@@ -614,7 +616,8 @@ composes its keyframes from custom properties, so zeroing those removes the
 movement while `fade-in-0` / `fade-out-0` still run.
 
 ```css
-/* src/index.css — appended at the end of the file */
+/* src/index.css — appended at the end of the file. Shipped version — see the
+   note below the block for why it differs from this plan's original draft. */
 @media (prefers-reduced-motion: reduce) {
   /* tw-animate-css composes `enter`/`exit` from these properties, so zeroing
      them strips the movement out of every popup animation while the opacity
@@ -633,12 +636,44 @@ movement while `fade-in-0` / `fade-out-0` still run.
     --tw-exit-scale: 1 !important;
     --tw-exit-translate-x: 0 !important;
     --tw-exit-translate-y: 0 !important;
-    /* Tailwind v4 press feedback uses the standalone `scale` property, not
-       `transform`; dnd-kit's drag transform is deliberately left alone. */
-    scale: 1 !important;
   }
+  /* Neutralizing the standalone `scale` press-feedback property under
+     reduced motion is deliberately not done here — see Phase 9. */
 }
 ```
+
+**Found during browser verification, descoped to Phase 9**: the original
+draft put `scale: 1 !important` inside the same `*, *::before, *::after`
+block as the custom-property resets. That broke `position: fixed` across
+the whole app under reduced motion — every dialog and the `⋯`
+import/export button rendered at the wrong position, low on the page. Root
+cause: `scale` (a real CSS property, unlike the `--tw-enter-*`/`--tw-exit-*`
+custom properties around it) triggers the CSS Transforms spec's
+containing-block rule for any value other than `none` — including `scale:
+1`, which is visually a no-op but not spec-`none`. Setting it on the
+universal selector made *every element in the document* a containing block
+for its `fixed`/`absolute` descendants.
+
+A second attempt scoped it to `*:active` instead (the only place a non-1
+scale is ever set in this codebase), reasoning that only actively-pressed
+elements would become containing blocks. That also broke — `:active`
+bubbles up through every ancestor of the clicked element in the real DOM
+(button → menu item → popup → portal wrapper → `body` → `html`), so any
+click anywhere briefly turned `<body>`/`<html>` into containing blocks too,
+which is worse: it manifested as the Edit menu item's click not registering
+(the open popup got repositioned mid-click) and the edit dialog's close
+animation visibly flickering (fixed position toggling between
+viewport-relative and body-relative across paint frames).
+
+Both attempts share a flawed strategy — cancelling `scale` after the fact
+via a broad selector, inside a plain CSS media query. Phase 9 fixes this
+properly with Tailwind's `motion-safe:` variant instead, which never
+generates the `scale` declaration for reduced-motion users in the first
+place. Phase 3 as shipped omits the scale reset entirely: under reduced
+motion, `Button`'s existing `active:scale-[0.96]` (and Phase 4's tile press
+feedback, once it lands) will still scale down slightly on press. That's a
+minor imperfection — reduced motion still holds for every popup
+enter/exit — not a functional break, and is resolved by Phase 9.
 
 ### Steps
 
@@ -1213,6 +1248,94 @@ motion skips it. **Fail**: any drag regression at all.
 depend on it.
 
 ### ⏸ PAUSE — report.
+
+---
+
+## Phase 9 — Reduced-motion press feedback via `motion-safe:`
+
+**Severity**: MEDIUM · **Category**: Accessibility
+
+### Problem
+
+Phase 3 does not neutralize press-feedback scale (`active:scale-*`) under
+reduced motion. Two attempts during Phase 3 tried to cancel it globally from
+`src/index.css` and both broke `position: fixed` app-wide — see Phase 3's
+"Found during browser verification" note for the full story. The root issue:
+the standalone `scale` CSS property is a containing-block trigger for any
+value other than `none` (same rule as `transform`), and `:active` bubbles up
+through every ancestor of a clicked element, so any selector broad enough to
+reach `:active` reliably also reaches `<body>`/`<html>`.
+
+As shipped, `Button` (`ui/button.tsx:7`, `active:scale-[0.96]`) and Phase 4's
+tile/add-tile press feedback (once landed) still scale down slightly on
+press even with reduced motion on.
+
+### Target
+
+Use Tailwind's built-in `motion-safe:` variant (wraps `@media
+(prefers-reduced-motion: no-preference)`) directly on each press-feedback
+utility, so the `scale` declaration is never generated for reduced-motion
+users in the first place — no global override, no containing-block risk.
+
+```tsx
+/* ui/button.tsx:7 — target */
+active:scale-[0.96]  →  motion-safe:active:scale-[0.96]
+```
+
+```tsx
+/* LinkTile.tsx, DashboardGrid.tsx — target (as landed in Phase 4) */
+active:scale-[0.98]  →  motion-safe:active:scale-[0.98]
+```
+
+### Steps
+
+1. `src/components/ui/button.tsx:7` — prefix `active:scale-[0.96]` with
+   `motion-safe:`.
+2. `src/components/LinkTile.tsx` and `src/components/DashboardGrid.tsx` —
+   prefix `active:scale-[0.98]` with `motion-safe:` (exact line depends on
+   Phase 4's landed code — grep for `active:scale-\[0.98\]`).
+3. Confirm `src/index.css`'s reduced-motion block still has no `scale`
+   declaration — Phase 3 already omits it; this phase should not need to
+   touch that file at all.
+
+### Boundaries
+
+- Do NOT reintroduce any global `scale` override in `src/index.css` — that
+  is the exact strategy that failed twice in Phase 3.
+- Do NOT change `active:scale-[0.96]`/`[0.98]`'s values or timing — only add
+  the `motion-safe:` prefix.
+
+### Verify (mechanical)
+
+- `yarn lint && yarn tsc -b && yarn test`.
+- `grep -rn "scale: 1 !important\|scale:1!important" src` — must return
+  nothing (confirms no global override crept back in).
+
+### Browser test
+
+Setup as above, with **Rendering → Emulate CSS `prefers-reduced-motion:
+reduce`** on.
+
+1. **Button press** — press and hold **Save**/**Cancel** in any dialog: no
+   scale-down, color/background feedback still present.
+2. **Tile press** — press and hold a link tile and the add tile: no
+   scale-down.
+3. **The regression this phase exists to avoid** — open a tile's **⋯ →
+   Edit**, click **Edit**, confirm it opens normally; make an edit, click
+   **Save**, confirm the dialog closes cleanly with no flicker or
+   repositioning. Repeat for **Delete** and **Cancel**. This is the exact
+   sequence that broke during Phase 3's first two attempts.
+4. **Turn the emulation off** — button and tile presses scale down again
+   normally.
+
+**Pass**: no scale-down anywhere under reduced motion, and every dialog
+open/close path from Phase 2 still works without flicker or misplacement.
+**Fail**: any dialog mispositioned, any click that silently does nothing, or
+any flicker during open/close.
+
+**Done when**: both checks hold and the grep returns nothing.
+
+### ⏸ PAUSE — report and wait for approval.
 
 ---
 

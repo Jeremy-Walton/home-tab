@@ -134,3 +134,32 @@
     @apply font-sans;
     }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  /* tw-animate-css composes `enter`/`exit` from these properties, so zeroing
+     them strips the movement out of every popup animation while the opacity
+     fades still run. They are registered with `inherits: false`, so they have
+     to be set on each element rather than inherited from a root rule. */
+  *,
+  *::before,
+  *::after {
+    --tw-enter-blur: 0 !important;
+    --tw-enter-rotate: 0 !important;
+    --tw-enter-scale: 1 !important;
+    --tw-enter-translate-x: 0 !important;
+    --tw-enter-translate-y: 0 !important;
+    --tw-exit-blur: 0 !important;
+    --tw-exit-rotate: 0 !important;
+    --tw-exit-scale: 1 !important;
+    --tw-exit-translate-x: 0 !important;
+    --tw-exit-translate-y: 0 !important;
+  }
+  /* Neutralizing the standalone `scale` press-feedback property under
+     reduced motion is deliberately not done here — see Phase 9. Both a
+     blanket `*` selector and a `*:active` selector broke `position: fixed`
+     app-wide (`scale`, even `scale: 1`, is a containing-block trigger, and
+     `:active` bubbles to every ancestor of a clicked element, including
+     `body`/`html`). Until Phase 9 lands, press feedback still scales down
+     slightly under reduced motion — a minor imperfection, not a functional
+     break. */
+}
