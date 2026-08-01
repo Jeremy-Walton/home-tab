@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { defaultAnimateLayoutChanges, useSortable, type AnimateLayoutChanges } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useAppState } from '../context/useAppState'
@@ -7,6 +7,7 @@ import { EntityOptionsMenu } from './EntityOptionsMenu'
 import { LinkEditModal } from './LinkEditModal'
 import { AspectRatio } from './ui/aspect-ratio'
 import { Badge } from './ui/badge'
+import { cn } from '../lib/utils'
 import { isSafeHref } from '../lib/url'
 import type { Link } from '../types'
 
@@ -18,6 +19,7 @@ export function LinkTile({ link }: { link: Link }) {
   const [imageFailed, setImageFailed] = useState(false)
   const [editing, setEditing] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [pressed, setPressed] = useState(false)
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: link.id,
@@ -28,6 +30,23 @@ export function LinkTile({ link }: { link: Link }) {
     // drag-preview reorder animation (which works correctly) untouched.
     animateLayoutChanges,
   })
+
+  // Pointer capture during a real drag can retarget pointerup away from this
+  // element, so its own onPointerUp/onPointerCancel handlers below aren't
+  // guaranteed to fire. A window-level listener still sees the event
+  // regardless of capture retargeting, matching the pattern already used in
+  // useLinkDragAndDrop.ts's suppressClickAfterDrag.
+  useEffect(() => {
+    function clearPressed() {
+      setPressed(false)
+    }
+    window.addEventListener('pointerup', clearPressed)
+    window.addEventListener('pointercancel', clearPressed)
+    return () => {
+      window.removeEventListener('pointerup', clearPressed)
+      window.removeEventListener('pointercancel', clearPressed)
+    }
+  }, [])
 
   const showImage = link.backgroundImageUrl && !imageFailed
 
@@ -48,7 +67,11 @@ export function LinkTile({ link }: { link: Link }) {
       <AspectRatio
         ratio={16 / 9}
         style={backgroundStyle}
-        className="flex flex-col items-center justify-end overflow-hidden rounded-2xl bg-muted shadow-lg ring-1 ring-black/10 transition-shadow group-hover:shadow-xl dark:ring-white/10"
+        onPointerDown={() => setPressed(true)}
+        className={cn(
+          'flex flex-col items-center justify-end overflow-hidden rounded-2xl bg-muted shadow-lg ring-1 ring-black/10 transition-[box-shadow,scale] duration-150 ease-out-strong group-hover:shadow-xl dark:ring-white/10',
+          pressed && 'scale-[0.98]',
+        )}
       >
         {showImage && (
           <img
@@ -67,7 +90,7 @@ export function LinkTile({ link }: { link: Link }) {
           <Badge variant="overlay">{link.title || 'Untitled'}</Badge>
         </a>
 
-        <div className="absolute right-1 top-1">
+        <div className="absolute right-1 top-1" onPointerDown={(e) => e.stopPropagation()}>
           <EntityOptionsMenu
             label="Link options"
             variant="secondary"

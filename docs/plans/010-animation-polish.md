@@ -16,7 +16,7 @@ and wait for approval before starting the next. Update this file's phase status
 | 1 | Motion tokens + popup easing/duration | MEDIUM | DONE (pending browser verify) |
 | 2 | Dialog exit animations actually play | HIGH | DONE (pending browser verify) |
 | 3 | `prefers-reduced-motion` support | MEDIUM | DONE (pending browser verify) |
-| 4 | Press feedback on link tiles and the add tile | MEDIUM | TODO |
+| 4 | Press feedback on link tiles and the add tile | MEDIUM | DONE (mild post-drop flicker still open, see Phase 4 notes) |
 | 5 | `transition-all` + drop-target ring timing | LOW | TODO |
 | 6 | Fade link background images in on load | — (opportunity) | TODO |
 | 7 | Empty-state entrance | — (opportunity) | TODO |
@@ -753,7 +753,7 @@ The scale goes on the **inner `AspectRatio`**, never the outer wrapper `div`,
 because the wrapper carries dnd-kit's inline `transform` (`LinkTile.tsx:34-38`).
 
 ```tsx
-/* src/components/LinkTile.tsx:51 — target */
+/* src/components/LinkTile.tsx:51 — original draft target, superseded below */
 className="flex flex-col items-center justify-end overflow-hidden rounded-2xl bg-muted shadow-lg ring-1 ring-black/10 transition-[box-shadow,scale] duration-150 ease-out-strong group-hover:shadow-xl active:scale-[0.98] dark:ring-white/10"
 ```
 
@@ -762,11 +762,78 @@ className="flex flex-col items-center justify-end overflow-hidden rounded-2xl bg
 className="flex aspect-video w-56 items-center justify-center rounded-2xl border-2 border-dashed border-border text-3xl text-muted-foreground transition-[color,border-color,scale] duration-150 ease-out-strong hover:border-ring hover:text-foreground active:scale-[0.98]"
 ```
 
+**Found during browser verification — two issues, both in `LinkTile.tsx`
+only, `DashboardGrid.tsx` unaffected. One is fixed (took three attempts);
+one is still open.**
+
+1. **Fixed, on the third attempt.** The options-menu button falsely
+   triggers the tile's press scale. `EntityOptionsMenu`'s "⋯" trigger renders
+   as a `<button>` nested inside the `AspectRatio` (`LinkTile.tsx:70-85`).
+   `:active` is not scoped to the pressed element — it bubbles to every
+   ancestor in the real DOM — so pressing "⋯" (to reach Edit/Move/Delete)
+   also matched the `AspectRatio`'s `:active` and scaled the whole tile.
+   - **Attempt 1**, a `:has()` negation (`active:not-has-[button:active]:scale-[0.98]`,
+     mirroring the `not-` variant prefix already used in
+     `dropdown-menu.tsx`): compiled correctly and the class was confirmed
+     present in the live DOM, but had **no visible effect** on the button
+     issue, and — worse — turned the still-open flicker below into a full
+     visible "tiles swap back to their old position, then snap to the new
+     one" regression on every single drop. `:has()` requires the browser to
+     continuously watch descendants for `:active` changes to know whether
+     the ancestor rule still applies; that extra live recompute cost is the
+     likely source of the added timing jank landing badly inside dnd-kit's
+     already-fragile post-drop settle window. Reverted; confirmed reverting
+     it alone restored the original mild-flicker-only baseline.
+   - **Attempt 2** (bundled with attempt 1 in the same edit): gated the
+     scale transition on `useSortable`'s `transition` return value
+     (`!transition && 'transition-none'`), on the wrong assumption that it's
+     falsy only right after this tile's own drop. DOM inspection showed
+     `transition-none` applied unconditionally, even at rest — `transition`
+     is falsy essentially always except during an active multi-tile
+     reorder. This disabled the press-feedback transition permanently.
+     Reverted.
+   - **Attempt 3, shipped.** Replaced CSS `:active` entirely with JS
+     `pointerdown`/`pointerup` state (`pressed`), since only JS state can be
+     selectively excluded via `e.stopPropagation()` on the "⋯" wrapper's own
+     `onPointerDown` — native `:active` bubbling can't be stopped by
+     `stopPropagation()` at all (it's computed by the browser's hit-testing
+     pipeline independent of JS event delivery), which is why attempt 1
+     needed `:has()` in the first place. Clearing `pressed` on `pointerup`
+     is done via a `window`-level listener (`LinkTile.tsx`'s new `useEffect`),
+     not a local handler on the tile, because dnd-kit's pointer capture
+     during a real drag can retarget `pointerup` away from the tile itself —
+     mirrors the existing `window`-level pattern in
+     `useLinkDragAndDrop.ts`'s `suppressClickAfterDrag`. This project's ESLint
+     config (React Compiler-oriented rules) rejects both the naive
+     `useEffect(() => { if (!isDragging) setPressed(false) }, [isDragging])`
+     form (`set-state-in-effect`) and the classic "adjust ref during render"
+     form (`refs`) — the mount-once window-listener effect (setState inside
+     the listener callback, not the effect body) is what those rules
+     actually want, and it also sidesteps the whole "which prop transition
+     do I need to watch" question.
+
+2. **Still open.** A flicker after dropping a dragged tile, showing stale
+   image content at the tile's old position. Root cause unconfirmed —
+   see the attempt-1/2 notes above for what's already been ruled out
+   (a scale/transform race, and `useSortable`'s `transition` value). Whoever
+   picks this back up should get isolated reproduction data (does it happen
+   on tiles with no background image too? every drop or only some?) before
+   trying another fix.
+
+`src/components/LinkTile.tsx` — shipped target (full file, given how much
+changed from the original draft above): see the file itself. Summary of the
+diff from the original draft: `pressed` state + `onPointerDown` on the
+`AspectRatio` drives `cn(..., pressed && 'scale-[0.98]')` instead of a plain
+`active:scale-[0.98]` class; a mount-once `useEffect` clears `pressed` on any
+`window` `pointerup`/`pointercancel`; the "⋯" wrapper `div` gained
+`onPointerDown={(e) => e.stopPropagation()}`.
+
 ### Steps
 
 1. `src/components/LinkTile.tsx:51` — replace `transition-shadow` with
-   `transition-[box-shadow,scale] duration-150 ease-out-strong` and add
-   `active:scale-[0.98]` before the `dark:` class.
+   `transition-[box-shadow,scale] duration-150 ease-out-strong` (no
+   `active:scale-[0.98]` — see the shipped target above for the JS-driven
+   replacement).
 2. `src/components/DashboardGrid.tsx:31` — replace `transition-colors` with
    `transition-[color,border-color,scale] duration-150 ease-out-strong` and
    replace `active:translate-y-px` with `active:scale-[0.98]`.
