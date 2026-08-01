@@ -50,6 +50,12 @@ function linksEqual(a: Link[], b: Link[]): boolean {
 }
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
+  // bulkUpsert falls back to one incremental write per pre-existing document
+  // (see reorderLinks) instead of a single atomic write, so the links
+  // subscription can see partially-applied intermediate states while a
+  // reorder is in flight. Ignoring emissions during that window keeps the
+  // optimistic state authoritative until the write fully settles.
+  const reorderInFlightRef = useRef(false)
   const [db, setDb] = useState<AppDatabase | null>(null)
   const [dashboards, setDashboards] = useState<Dashboard[]>([])
   const [links, setLinks] = useState<Link[]>([])
@@ -59,10 +65,20 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
+    let cancelled = false
     let dashboardsSub: { unsubscribe: () => void } | undefined
     let linksSub: { unsubscribe: () => void } | undefined
 
     getDatabase().then((database) => {
+      // StrictMode mounts, cleans up, and remounts this effect synchronously
+      // in dev -- cleanup runs before this promise resolves, so `cancelled`
+      // is the only way to stop this callback from subscribing on behalf of
+      // an already-torn-down effect instance. Without it, the first
+      // instance's subscriptions never get into `dashboardsSub`/`linksSub`
+      // in time for its own cleanup to unsubscribe them, leaking a second,
+      // permanent set of `setLinks`/`setDashboards` subscribers that can
+      // reintroduce stale data after a later, correct update.
+      if (cancelled) return
       setDb(database)
 
       // The first emission from a reactive query can arrive before the
@@ -76,6 +92,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           setReady(true)
         })
       linksSub = database.links.find().$.subscribe((docs) => {
+        if (reorderInFlightRef.current) return
         const next = docs.map((d) => d.toJSON())
         // After reorderLinks/moveLinkToDashboard apply the new order
         // optimistically, this subscription still fires once the write
@@ -89,6 +106,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     })
 
     return () => {
+      cancelled = true
       dashboardsSub?.unsubscribe()
       linksSub?.unsubscribe()
     }
@@ -272,12 +290,20 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     // the round trip back through the reactive subscription) catches up.
     setLinks(reordered)
 
-    // One bulk write, not N concurrent findOne+patch calls -- each patch()
-    // triggers its own reactive emission as soon as it resolves, so doing
-    // them one at a time caused the subscription to overwrite the
-    // optimistic update above with partially-reordered intermediate states,
-    // each one its own visible jump.
-    await db.links.bulkUpsert(reordered.filter((l) => l.dashboardId === dashboardId))
+    // bulkUpsert looks atomic but isn't: for documents that already exist
+    // (every link here), it falls back to one incremental write per
+    // document under the hood, each resolving independently and each
+    // triggering its own reactive emission -- reintroducing the exact
+    // partially-reordered-intermediate-state jump a single bulk write was
+    // meant to avoid. reorderInFlightRef makes the subscription ignore
+    // those emissions and trust the optimistic update above until the
+    // whole write settles.
+    reorderInFlightRef.current = true
+    try {
+      await db.links.bulkUpsert(reordered.filter((l) => l.dashboardId === dashboardId))
+    } finally {
+      reorderInFlightRef.current = false
+    }
   }
 
   async function moveLinkToDashboard(linkId: string, targetDashboardId: string) {

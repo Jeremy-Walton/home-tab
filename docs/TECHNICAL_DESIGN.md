@@ -21,7 +21,12 @@ the PRD.
   character remapping, e.g. macOS Option+digit), does exact chord matching
   (so `alt+1` doesn't also fire on `alt+cmd+1`), and ships a default filter
   that already ignores form-input targets.
-- **Styling**: Tailwind CSS v4
+- **Styling**: Tailwind CSS v4. Motion tokens (`--ease-out-strong`,
+  `--ease-in-out-strong`) are defined in a plain `@theme { }` block in
+  `src/index.css` (not the existing `@theme inline` block, which doesn't
+  emit custom properties to `:root`) and are the source of truth for easing
+  across popups, dialogs, and press feedback — don't invent a new curve
+  inline.
 - **UI component layer**: [shadcn/ui](https://ui.shadcn.com) (`base-luma`
   style/preset) generating thin wrappers in `src/components/ui/`, built on
   **Base UI** (`@base-ui/react`) primitives — not Radix UI; this project
@@ -325,6 +330,32 @@ remaining highest-value targets: drag-and-drop/click-suppression behavior
   emission* before flipping a `ready` flag, or first-load bootstrap logic
   (e.g. "create a default dashboard if none exist") can misfire on every
   reload by momentarily seeing an empty array. See `AppStateContext.tsx`.
+- **Dev-mode-only: a dropped reorder could briefly show the correct new
+  position, then silently revert to the old one and stay there.** Root
+  cause was `AppStateProvider`'s bootstrap `useEffect` subscribing to
+  `database.links.find().$` *inside* an async `getDatabase().then(...)`
+  callback, with `dashboardsSub`/`linksSub` only assigned once that promise
+  resolves. `<StrictMode>` (`main.tsx`) mounts, cleans up, and remounts
+  every effect once synchronously in dev — the cleanup from the first
+  mount runs *before* the promise resolves, so it unsubscribes nothing
+  (the variables are still `undefined`), and the subscriptions it
+  eventually creates are never torn down. That first, orphaned subscription
+  lives for the rest of the session alongside the second (correctly
+  tracked) one, so every RxDB emission calls `setLinks` twice from two
+  independent subscriptions — normally redundant no-ops via the
+  `linksEqual` guard below, but capable of momentarily reasserting stale
+  data depending on emission timing, which is what produced the
+  "reverts after a correct drop" symptom. Confirmed by frame-by-frame
+  analysis of a screen recording (not reproducible from a single
+  screenshot — the correct state was visibly present for 1-2 frames
+  before the revert). Fixed with the standard React idiom for this
+  exact class of bug: a `cancelled` flag set in the effect's cleanup and
+  checked at the top of the `.then()` callback, so a torn-down effect
+  instance's async continuation is a no-op instead of leaking a
+  subscription. Production builds don't run `<StrictMode>`'s
+  double-invoke, so this was invisible there — but the underlying bug
+  (an unguarded async subscription in an effect) was real regardless of
+  whether double-invocation ever exposed it.
 - **Tiles could jump to wrong positions (sometimes off-screen) right after
   dropping a drag-reorder.** This took three separate fixes, found by
   testing many drag distances/directions with Playwright and tracking
@@ -342,8 +373,9 @@ remaining highest-value targets: drag-and-drop/click-suppression behavior
      kept overwriting the UI with partially-reordered intermediate states
      — one visible jump per write. Fixed by computing the full new order
      and applying it to local state *immediately* (before any persistence
-     call), then writing it as a *single* `bulkUpsert` instead of N
-     separate writes.
+     call), then writing it as a `bulkUpsert` instead of N separate writes
+     — **this was believed to make the write atomic; see point 5, it
+     doesn't for this case.**
   3. Even after that, the subscription's later, redundant-but-same-data
      emission (new array/object references once the bulkUpsert resolved)
      could land while dnd-kit's post-drop layout-change animation was
@@ -355,11 +387,52 @@ remaining highest-value targets: drag-and-drop/click-suppression behavior
      `useSortable` in `LinkTile.tsx` so the *settle-after-drop* transition
      specifically (`wasDragging`) snaps instantly instead of animating —
      the live drag-preview animation is untouched and still smooth.
+  4. A separate, milder pop: `LinkTile.tsx`'s `opacity: isDragging ? 0.5 :
+     1` snapped instantly on pickup/drop, because dnd-kit's own `transition`
+     string is hardcoded to `property: "transform"` and never covers
+     opacity. Fixed by combining the two into one `transition` value
+     (`[transition, 'opacity 150ms var(--ease-out-strong)'].filter(Boolean).join(', ')`)
+     rather than adding a `transition-opacity` class — an inline `style`
+     always wins over a class for the same CSS property, so a class-based
+     attempt would have been silently overridden by dnd-kit's own inline
+     `transition`.
+  5. **Point 2's `bulkUpsert` fix was itself incomplete**, discovered via
+     frame-by-frame analysis of a screen recording after a fix for point 4
+     didn't change the reported symptom at all: a drop could show the
+     tile correctly in its new position for 1-2 frames, then revert to the
+     old position, then self-correct back to the new one shortly after —
+     a genuine data-level flicker, not a paint/animation one.
+     `RxCollection.bulkUpsert` (`node_modules/rxdb/dist/cjs/rx-collection.js`)
+     only uses the storage layer's real atomic `bulkWrite` for documents
+     it can insert fresh; for documents that already exist — every link
+     in a reorder — it falls back to `bulkInsert` (which 409-conflicts on
+     all of them) followed by one `incrementalWriteQueue.addWrite` call
+     *per document*, run via `Promise.all`. Each resolves independently
+     and triggers its own reactive emission, so the `links` subscription
+     sees a genuinely partially-reordered intermediate state (not merely
+     a redundant-but-equal one) before the final consistent state lands —
+     `linksEqual` doesn't help here since the intermediate data really is
+     different from both the before and after state. Fixed with
+     `reorderInFlightRef`: set before the `bulkUpsert` call, cleared in a
+     `finally` after it resolves; the links subscription ignores every
+     emission while it's set, trusting the optimistic update for that
+     window instead of resyncing to whatever RxDB has partially applied.
+     No known way to make `bulkUpsert` itself atomic for pre-existing
+     documents from the public `RxCollection` API — this is a real
+     limitation of that method, not a configuration issue.
 
   Any future change to reorder/move logic should keep applying local-state
   updates optimistically and as a single batched write, and should be
   re-verified the same way (position-by-identity tracking across many
   drag distances/directions, not just one screenshot diff).
+
+  `deleteLink` follows the same optimistic-update shape for an unrelated
+  reason: `document.startViewTransition()` (used for the delete-reflow
+  animation) needs the DOM already updated by the time its callback
+  returns, so the local-state removal is applied synchronously via
+  `flushSync` *before* the RxDB write, not after. The `linksEqual` guard
+  above is what makes the write's later, redundant subscription emission a
+  no-op instead of a second visible reflow.
 
 - **The `ui/` wrappers moved from Radix UI to Base UI (`@base-ui/react`);
   `components.json` reads `base-luma`.** A few Base UI defaults differ from
@@ -376,10 +449,10 @@ remaining highest-value targets: drag-and-drop/click-suppression behavior
     separator will pick up an extra a11y-tree node.
   - `AlertDialogAction` renders a plain `Button` and does **not**
     auto-close the dialog the way Radix's `Action` part did (`Dialog.Close`
-    still does, this is specific to alert-dialog). Both current call sites
-    (`DashboardTabs.tsx`, `LinkTile.tsx`) unmount the dialog themselves in
-    `onConfirm`, so this is invisible today — any new `AlertDialogAction`
-    consumer must close the dialog itself.
+    still does, this is specific to alert-dialog) — every current consumer
+    (`ConfirmDialog.tsx`, `ImportExportBar.tsx`'s `FeedbackDialog`) closes
+    itself explicitly in the action's `onClick`. See the dialog-lifecycle
+    gotcha below for why this now matters more than a one-line fix.
   - `AspectRatio`'s registry-provided base variant sets the sizing
     `style={{"--ratio": ratio}}` and spreads `{...props}` *after* it, so a
     consumer-supplied `style` prop (e.g. `LinkTile.tsx`'s background image
@@ -397,6 +470,18 @@ remaining highest-value targets: drag-and-drop/click-suppression behavior
     doesn't recognize straight through to its own `render` target, so this
     composes the same way nested Radix `Slot`s used to.
 
+- **A dialog conditionally mounted by its parent (`{editing && <EditDialog/>}`)
+  never plays its exit animation unless it owns its own `open` state.**
+  Flipping the parent's boolean straight to `false` unmounts the whole
+  subtree in the same commit, so Base UI never applies `data-closed` and
+  `animate-out`/`fade-out-0` never run. Every dialog in this codebase
+  (`EditDialog.tsx`, `ConfirmDialog.tsx`, `ShortcutsDialog.tsx`,
+  `ImportExportBar.tsx`'s `FeedbackDialog`) instead owns a local `open`
+  state initialized to `true`, sets it to `false` to close, and defers the
+  parent's actual callback (`onClose`/`onConfirm`/`onCancel`) to
+  `onOpenChangeComplete`, which Base UI fires only after the closing
+  animation finishes. Call sites are unaffected — they still mount/unmount
+  on their own boolean exactly as before.
 - **`hotkeys-js` latches its `capture` flag on the first binding registered
   per element, not per binding.** `elementEventMap` short-circuits listener
   registration for an element it's already seen, so a later

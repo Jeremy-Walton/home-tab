@@ -50,7 +50,9 @@ export function LinkTile({ link }: { link: Link }) {
 
   const style = {
     transform: CSS.Translate.toString(transform),
-    transition,
+    // dnd-kit's own `transition` only ever covers `transform` -- opacity
+    // needs its own entry or it snaps instantly on pickup/drop.
+    transition: [transition, 'opacity 150ms var(--ease-out-strong)'].filter(Boolean).join(', '),
     opacity: isDragging ? 0.5 : 1,
     viewTransitionName: `link-${link.id}`,
   }
@@ -62,7 +64,7 @@ export function LinkTile({ link }: { link: Link }) {
         onPointerDown={() => setPressed(true)}
         className={cn(
           'flex flex-col items-center justify-end overflow-hidden rounded-2xl bg-muted shadow-lg ring-1 ring-black/10 transition-[box-shadow,scale] duration-150 ease-out-strong group-hover:shadow-xl dark:ring-white/10',
-          pressed && 'scale-[0.98]',
+          pressed && 'motion-safe:scale-[0.98]',
         )}
       >
         {showImage && (
