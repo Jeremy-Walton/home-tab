@@ -83,8 +83,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       linksSub = database.links.find().$.subscribe((docs) => {
         if (reorderInFlightRef.current) return
         const next = docs.map((d) => d.toJSON())
-        // After reorderLinks/moveLinkToDashboard apply the new order
-        // optimistically, this subscription still fires once the write
+        // After reorderLinks/deleteLink apply their change optimistically,
+        // this subscription still fires once the write
         // resolves -- with the same data but new array/object references.
         // That redundant render, arriving while the layout-change animation
         // from the optimistic update is still mid-flight, was causing

@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { useAppState } from '../context/useAppState'
+import { useClosingDialog } from '../hooks/useClosingDialog'
 import { cn } from '../lib/utils'
 import { OptionsMenu } from './OptionsMenu'
 import { DropdownMenuItem } from './ui/dropdown-menu'
@@ -21,23 +22,15 @@ function FeedbackDialog({
   message: string
   onClose: () => void
 }) {
-  const [open, setOpen] = useState(true)
+  const { close, dialogProps } = useClosingDialog(onClose)
 
   return (
-    <AlertDialog
-      open={open}
-      onOpenChange={(nextOpen) => {
-        if (!nextOpen) setOpen(false)
-      }}
-      onOpenChangeComplete={(nextOpen) => {
-        if (!nextOpen) onClose()
-      }}
-    >
+    <AlertDialog {...dialogProps}>
       <AlertDialogContent size="sm">
         <AlertDialogTitle>{title}</AlertDialogTitle>
         <AlertDialogDescription>{message}</AlertDialogDescription>
         <AlertDialogFooter>
-          <AlertDialogAction onClick={() => setOpen(false)}>OK</AlertDialogAction>
+          <AlertDialogAction onClick={() => close()}>OK</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

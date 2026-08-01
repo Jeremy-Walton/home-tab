@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { defaultAnimateLayoutChanges, useSortable, type AnimateLayoutChanges } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useAppState } from '../context/useAppState'
@@ -20,7 +20,6 @@ export function LinkTile({ link }: { link: Link }) {
   const [imageLoaded, setImageLoaded] = useState(false)
   const [editing, setEditing] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
-  const [pressed, setPressed] = useState(false)
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: link.id,
@@ -32,26 +31,11 @@ export function LinkTile({ link }: { link: Link }) {
     animateLayoutChanges,
   })
 
-  // Drag's pointer capture can retarget pointerup away from this element,
-  // so listen on window instead (same pattern as suppressClickAfterDrag).
-  useEffect(() => {
-    function clearPressed() {
-      setPressed(false)
-    }
-    window.addEventListener('pointerup', clearPressed)
-    window.addEventListener('pointercancel', clearPressed)
-    return () => {
-      window.removeEventListener('pointerup', clearPressed)
-      window.removeEventListener('pointercancel', clearPressed)
-    }
-  }, [])
-
   const showImage = link.backgroundImageUrl && !imageFailed
 
   const style = {
     transform: CSS.Translate.toString(transform),
-    // dnd-kit's own `transition` only ever covers `transform` -- opacity
-    // needs its own entry or it snaps instantly on pickup/drop.
+    // dnd-kit's own `transition` only covers `transform`, never opacity.
     transition: [transition, 'opacity 150ms var(--ease-out-strong)'].filter(Boolean).join(', '),
     opacity: isDragging ? 0.5 : 1,
     viewTransitionName: `link-${link.id}`,
@@ -61,11 +45,7 @@ export function LinkTile({ link }: { link: Link }) {
     <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="group relative w-56">
       <AspectRatio
         ratio={16 / 9}
-        onPointerDown={() => setPressed(true)}
-        className={cn(
-          'flex flex-col items-center justify-end overflow-hidden rounded-2xl bg-muted shadow-lg ring-1 ring-black/10 transition-[box-shadow,scale] duration-150 ease-out-strong group-hover:shadow-xl dark:ring-white/10',
-          pressed && 'motion-safe:scale-[0.98]',
-        )}
+        className="flex flex-col items-center justify-end overflow-hidden rounded-2xl bg-muted shadow-lg ring-1 ring-black/10 transition-[box-shadow,scale] duration-150 ease-out-strong group-hover:shadow-xl motion-safe:active:not-has-[button:active]:scale-[0.98] dark:ring-white/10"
       >
         {showImage && (
           <img
@@ -93,7 +73,7 @@ export function LinkTile({ link }: { link: Link }) {
           <Badge variant="overlay">{link.title || 'Untitled'}</Badge>
         </a>
 
-        <div className="absolute right-1 top-1" onPointerDown={(e) => e.stopPropagation()}>
+        <div className="absolute right-1 top-1">
           <EntityOptionsMenu
             label="Link options"
             variant="secondary"

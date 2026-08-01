@@ -54,6 +54,29 @@
     --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
+/* The two enter/exit tempos used by every Base UI popup. tw-animate-css's
+   `animate-in`/`animate-out` read --tw-duration/--tw-ease, so setting those
+   is equivalent to the `ease-out-strong data-open:duration-*` class trio. */
+@utility motion-dialog {
+    --tw-ease: var(--ease-out-strong);
+    &[data-open] {
+        --tw-duration: 200ms;
+    }
+    &[data-closed] {
+        --tw-duration: 150ms;
+    }
+}
+
+@utility motion-popup {
+    --tw-ease: var(--ease-out-strong);
+    &[data-open] {
+        --tw-duration: 150ms;
+    }
+    &[data-closed] {
+        --tw-duration: 100ms;
+    }
+}
+
 :root {
     --background: oklch(1 0 0);
     --foreground: oklch(0.148 0.004 228.8);

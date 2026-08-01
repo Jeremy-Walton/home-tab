@@ -26,7 +26,10 @@ the PRD.
   `src/index.css` (not the existing `@theme inline` block, which doesn't
   emit custom properties to `:root`) and are the source of truth for easing
   across popups, dialogs, and press feedback — don't invent a new curve
-  inline.
+  inline. The two enter/exit *tempos* are likewise tokenized, as the
+  `motion-dialog` and `motion-popup` `@utility` rules next to that block;
+  every `src/components/ui/` popup wears one of the two rather than
+  spelling out its own `duration-*` pair.
 - **UI component layer**: [shadcn/ui](https://ui.shadcn.com) (`base-luma`
   style/preset) generating thin wrappers in `src/components/ui/`, built on
   **Base UI** (`@base-ui/react`) primitives — not Radix UI; this project
@@ -147,6 +150,9 @@ Two distinct version concepts, kept separate:
   shortcuts" below.
 - `src/hooks/useAltHeld.ts` — tracks whether ⌥ is currently held, driving the
   tab-strip digit badges in `DashboardTabs.tsx`.
+- `src/hooks/useClosingDialog.ts` — the shared dialog close lifecycle (local
+  `open` state + deferring the parent's callback to `onOpenChangeComplete`)
+  used by every dialog in the app; see "Known Gotchas".
 - `src/lib/` — `id.ts` (`generateId`, currently `crypto.randomUUID()`),
   `url.ts` (`normalizeUrl`), `importExport.ts` (format detection +
   legacy-mapping, see `docs/DATA_FORMATS.md`), `dashboardDropId.ts` (encodes/
@@ -310,6 +316,11 @@ If component-level automated coverage is added later, these are the
 remaining highest-value targets: drag-and-drop/click-suppression behavior
 (browser-only, per the gotcha above), then broken-image fallback.
 
+For the manual browser passes above, `docs/fixtures/animation-test-data.json`
+is a ready-made export to load via the Import menu: enough links to force a
+multi-row reorder, tiles with and without background images, a deliberately
+broken image URL, a dashboard with a background, and an empty dashboard.
+
 ## Known Gotchas
 
 - **A real drag-and-drop still fires a native `click` afterward, and
@@ -455,8 +466,9 @@ remaining highest-value targets: drag-and-drop/click-suppression behavior
     gotcha below for why this now matters more than a one-line fix.
   - `AspectRatio`'s registry-provided base variant sets the sizing
     `style={{"--ratio": ratio}}` and spreads `{...props}` *after* it, so a
-    consumer-supplied `style` prop (e.g. `LinkTile.tsx`'s background image
-    styling) silently clobbers `--ratio` instead of merging with it. Our
+    consumer-supplied `style` prop silently clobbers `--ratio` instead of
+    merging with it. (No consumer passes `style` today — `LinkTile.tsx`
+    used to, for its background image, before that moved to an `<img>`.) Our
     `aspect-ratio.tsx` destructures `style` and merges it explicitly
     (`{...style, "--ratio": ratio}`) — if this file is ever regenerated
     from the registry (`shadcn add aspect-ratio --overwrite`), reapply
@@ -474,14 +486,27 @@ remaining highest-value targets: drag-and-drop/click-suppression behavior
   never plays its exit animation unless it owns its own `open` state.**
   Flipping the parent's boolean straight to `false` unmounts the whole
   subtree in the same commit, so Base UI never applies `data-closed` and
-  `animate-out`/`fade-out-0` never run. Every dialog in this codebase
-  (`EditDialog.tsx`, `ConfirmDialog.tsx`, `ShortcutsDialog.tsx`,
-  `ImportExportBar.tsx`'s `FeedbackDialog`) instead owns a local `open`
-  state initialized to `true`, sets it to `false` to close, and defers the
-  parent's actual callback (`onClose`/`onConfirm`/`onCancel`) to
+  `animate-out`/`fade-out-0` never run. The dialog must instead own a local
+  `open` state initialized to `true`, set it to `false` to close, and defer
+  the parent's actual callback (`onClose`/`onConfirm`/`onCancel`) to
   `onOpenChangeComplete`, which Base UI fires only after the closing
-  animation finishes. Call sites are unaffected — they still mount/unmount
-  on their own boolean exactly as before.
+  animation finishes. That three-part contract lives in one place —
+  `hooks/useClosingDialog.ts`, which returns `{ close, dialogProps }` — so a
+  new dialog gets it by spreading `dialogProps` rather than by
+  re-deriving it; `ConfirmDialog.tsx` shows the variant that needs to know
+  *which* outcome closed it. Call sites are unaffected — they still
+  mount/unmount on their own boolean exactly as before.
+- **Reduced motion is enforced by two mechanisms, and the CSS one
+  deliberately has a hole.** `src/index.css`'s
+  `@media (prefers-reduced-motion: reduce)` block zeroes tw-animate-css's
+  `--tw-enter-*`/`--tw-exit-*` variables, which covers every `animate-in`/
+  `animate-out` popup automatically. It pointedly does *not* reset `scale`
+  (the inline comment there explains why — `scale: 1` would make every
+  matched element a containing block and break fixed-position dialogs), so
+  any `scale-*`/`translate-*` utility written outside tw-animate-css must
+  carry a `motion-safe:` prefix itself. Nothing enforces that: an
+  unprefixed `active:scale-*` ships motion to reduced-motion users and
+  passes typecheck, lint, and tests.
 - **`hotkeys-js` latches its `capture` flag on the first binding registered
   per element, not per binding.** `elementEventMap` short-circuits listener
   registration for an element it's already seen, so a later
