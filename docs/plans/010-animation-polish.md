@@ -19,7 +19,7 @@ and wait for approval before starting the next. Update this file's phase status
 | 4 | Press feedback on link tiles and the add tile | MEDIUM | DONE (mild post-drop flicker still open, see Phase 4 notes) |
 | 5 | `transition-all` + drop-target ring timing | LOW | DONE (pending browser verify) |
 | 6 | Fade link background images in on load | — (opportunity) | DONE (pending browser verify) |
-| 7 | Empty-state entrance | — (opportunity) | TODO |
+| 7 | Empty-state entrance | — (opportunity) | DONE (pending browser verify) |
 | 8 | View Transitions for delete reflow (fenced) | — (opportunity) | TODO |
 | 9 | Reduced-motion press feedback via `motion-safe:` | MEDIUM | TODO |
 
