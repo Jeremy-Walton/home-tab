@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { dashboardShortcutDigit, isDialogOpen, isMac, shortcutLabel } from './keyboard'
+import { dashboardShortcutDigit, isDialogOpen, isMac, shortcutLabel } from '@/lib/keyboard'
 
 describe('isMac', () => {
   afterEach(() => {

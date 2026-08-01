@@ -1,15 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { AppStateProvider } from '../context/AppStateContext'
-import { createTestDatabase } from '../test/testDb'
-import { LinkEditModal } from './LinkEditModal'
-import type { AppDatabase } from '../storage/db'
-import type { Link } from '../types'
+import { AppStateProvider } from '@/context/AppStateContext'
+import { createTestDatabase } from '../support/testDb'
+import { LinkEditModal } from '@/components/LinkEditModal'
+import type { AppDatabase } from '@/storage/db'
+import type { Link } from '@/types'
 
 let testDb: AppDatabase
 
-vi.mock('../storage/db', () => ({
+vi.mock('@/storage/db', () => ({
   getDatabase: () => Promise.resolve(testDb),
 }))
 

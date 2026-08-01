@@ -1,13 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
-import { AppStateProvider } from './AppStateContext'
-import { useAppState } from './useAppState'
-import { createTestDatabase } from '../test/testDb'
-import type { AppDatabase } from '../storage/db'
+import { AppStateProvider } from '@/context/AppStateContext'
+import { useAppState } from '@/context/useAppState'
+import { createTestDatabase } from '../support/testDb'
+import type { AppDatabase } from '@/storage/db'
 
 let testDb: AppDatabase
 
-vi.mock('../storage/db', () => ({
+vi.mock('@/storage/db', () => ({
   getDatabase: () => Promise.resolve(testDb),
 }))
 

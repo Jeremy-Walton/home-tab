@@ -138,6 +138,9 @@ In Phase 8, `MIGRATED` is replaced with `['src/**/*.tsx', 'index.html']`.
 **Mechanical check:** `yarn lint && tsc -b && yarn test` — all 81 tests must
 still pass, same count.
 
+**Status: done.** `yarn lint`, `tsc -b`, and `yarn test` (7 files, 81 tests,
+same count) all pass clean. Not yet committed.
+
 **Browser verification (you):** none needed — no runtime code changed. A
 `yarn dev` smoke load is enough to confirm nothing was moved that shouldn't
 have been.

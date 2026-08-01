@@ -6,8 +6,8 @@ import {
   mapLegacyState,
   sanitizeExportedState,
   serializeState,
-} from './importExport'
-import type { ExportedState, LegacyState } from '../types'
+} from '@/lib/importExport'
+import type { ExportedState, LegacyState } from '@/types'
 
 describe('isLegacyState', () => {
   it('recognizes the old localStorage.state shape', () => {

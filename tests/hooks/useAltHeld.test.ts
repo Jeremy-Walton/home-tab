@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react'
 import { fireEvent } from '@testing-library/dom'
 import hotkeys from 'hotkeys-js'
 import { afterEach, describe, expect, it } from 'vitest'
-import { useAltHeld } from './useAltHeld'
+import { useAltHeld } from '@/hooks/useAltHeld'
 
 afterEach(() => {
   hotkeys.unbind()

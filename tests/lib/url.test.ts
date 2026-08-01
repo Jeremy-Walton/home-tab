@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isSafeHref, normalizeUrl } from './url'
+import { isSafeHref, normalizeUrl } from '@/lib/url'
 
 describe('normalizeUrl', () => {
   it('prepends https:// when no scheme is present', () => {
