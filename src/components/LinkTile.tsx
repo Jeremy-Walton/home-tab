@@ -47,9 +47,11 @@ export function LinkTile({ link }: { link: Link }) {
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="group relative w-56">
+      {/* Press feedback keys off the full-bleed <a>: the kebab is painted over
+          it, not inside it, so pressing the kebab can't match. */}
       <AspectRatio
         ratio={16 / 9}
-        className="flex flex-col items-center justify-end overflow-hidden rounded-2xl bg-muted shadow-lg ring-1 ring-black/10 transition-[box-shadow,scale] duration-150 ease-out-strong group-hover:shadow-xl motion-safe:active:not-has-[button:active]:scale-[0.98] dark:ring-white/10"
+        className="flex flex-col items-center justify-end overflow-hidden rounded-2xl bg-muted shadow-lg ring-1 ring-black/10 transition-[box-shadow,scale] duration-150 ease-out-strong group-hover:shadow-xl motion-safe:has-[a:active]:scale-[0.98] dark:ring-white/10"
       >
         {showImage && (
           <img
