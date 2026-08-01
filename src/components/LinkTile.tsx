@@ -16,8 +16,10 @@ const animateLayoutChanges: AnimateLayoutChanges = (args) =>
 
 export function LinkTile({ link }: { link: Link }) {
   const { dashboards, deleteLink, moveLinkToDashboard } = useAppState()
-  const [imageFailed, setImageFailed] = useState(false)
-  const [imageLoaded, setImageLoaded] = useState(false)
+  // Tracked as URLs rather than booleans so that editing a tile's image
+  // invalidates the previous image's load/error result instead of inheriting it.
+  const [failedUrl, setFailedUrl] = useState<string>()
+  const [loadedUrl, setLoadedUrl] = useState<string>()
   const [editing, setEditing] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
 
@@ -31,7 +33,9 @@ export function LinkTile({ link }: { link: Link }) {
     animateLayoutChanges,
   })
 
-  const showImage = link.backgroundImageUrl && !imageFailed
+  const imageUrl = link.backgroundImageUrl
+  const showImage = imageUrl && failedUrl !== imageUrl
+  const imageLoaded = loadedUrl === imageUrl
 
   const style = {
     transform: CSS.Translate.toString(transform),
@@ -51,17 +55,17 @@ export function LinkTile({ link }: { link: Link }) {
           <img
             ref={(node) => {
               // A cached image can finish loading before React attaches onLoad.
-              if (node?.complete) setImageLoaded(true)
+              if (node?.complete) setLoadedUrl(imageUrl)
             }}
-            src={link.backgroundImageUrl}
+            src={imageUrl}
             alt=""
             draggable={false}
             className={cn(
               'absolute inset-0 size-full object-cover transition-opacity duration-200 ease-out-strong',
               imageLoaded ? 'opacity-100' : 'opacity-0',
             )}
-            onLoad={() => setImageLoaded(true)}
-            onError={() => setImageFailed(true)}
+            onLoad={() => setLoadedUrl(imageUrl)}
+            onError={() => setFailedUrl(imageUrl)}
           />
         )}
 

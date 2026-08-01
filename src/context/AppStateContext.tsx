@@ -285,7 +285,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     try {
       await db.links.bulkUpsert(reordered.filter((l) => l.dashboardId === dashboardId))
     } finally {
+      // Every emission dropped above committed before this read, so one resync
+      // recovers whatever it swallowed -- a concurrent write from another tab,
+      // or the pre-reorder state if the write itself failed.
       reorderInFlightRef.current = false
+      const next = (await db.links.find().exec()).map((d) => d.toJSON())
+      setLinks((prev) => (linksEqual(prev, next) ? prev : next))
     }
   }
 

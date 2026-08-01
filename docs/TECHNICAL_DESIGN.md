@@ -428,6 +428,13 @@ broken image URL, a dashboard with a background, and an empty dashboard.
      `finally` after it resolves; the links subscription ignores every
      emission while it's set, trusting the optimistic update for that
      window instead of resyncing to whatever RxDB has partially applied.
+     Because that drops *all* emissions, not just this reorder's own, the
+     same `finally` clears the flag and then re-reads the collection once.
+     Every dropped emission committed before that read, so the resync can't
+     miss one — it recovers a concurrent write from another tab (routine in
+     a new-tab app), and reverts the optimistic order if the write failed.
+     `linksEqual` makes the usual case, where the resync matches the
+     optimistic state, a no-op rather than a second render.
      No known way to make `bulkUpsert` itself atomic for pre-existing
      documents from the public `RxCollection` API — this is a real
      limitation of that method, not a configuration issue.
