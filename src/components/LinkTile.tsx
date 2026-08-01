@@ -32,11 +32,8 @@ export function LinkTile({ link }: { link: Link }) {
     animateLayoutChanges,
   })
 
-  // Pointer capture during a real drag can retarget pointerup away from this
-  // element, so its own onPointerUp/onPointerCancel handlers below aren't
-  // guaranteed to fire. A window-level listener still sees the event
-  // regardless of capture retargeting, matching the pattern already used in
-  // useLinkDragAndDrop.ts's suppressClickAfterDrag.
+  // Drag's pointer capture can retarget pointerup away from this element,
+  // so listen on window instead (same pattern as suppressClickAfterDrag).
   useEffect(() => {
     function clearPressed() {
       setPressed(false)
@@ -55,6 +52,7 @@ export function LinkTile({ link }: { link: Link }) {
     transform: CSS.Translate.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+    viewTransitionName: `link-${link.id}`,
   }
 
   return (

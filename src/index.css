@@ -136,10 +136,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* tw-animate-css composes `enter`/`exit` from these properties, so zeroing
-     them strips the movement out of every popup animation while the opacity
-     fades still run. They are registered with `inherits: false`, so they have
-     to be set on each element rather than inherited from a root rule. */
+  /* Zeroing these strips movement from tw-animate-css's enter/exit while
+     opacity fades still run. `inherits: false`, so set on every element. */
   *,
   *::before,
   *::after {
@@ -154,12 +152,29 @@
     --tw-exit-translate-x: 0 !important;
     --tw-exit-translate-y: 0 !important;
   }
-  /* Neutralizing the standalone `scale` press-feedback property under
-     reduced motion is deliberately not done here — see Phase 9. Both a
-     blanket `*` selector and a `*:active` selector broke `position: fixed`
-     app-wide (`scale`, even `scale: 1`, is a containing-block trigger, and
-     `:active` bubbles to every ancestor of a clicked element, including
-     `body`/`html`). Until Phase 9 lands, press feedback still scales down
-     slightly under reduced motion — a minor imperfection, not a functional
-     break. */
+  /* Deliberately not resetting `scale` here: `scale: 1` still counts as
+     non-`none` and makes any selector matching it (`*`, `*:active`, ...) a
+     containing block for `position: fixed` descendants, which broke every
+     dialog/menu on the page. Press feedback stays slightly visible under
+     reduced motion as a result -- a minor imperfection, not a bug. */
+}
+
+/* Every group (incl. implicit `root`) cross-fades old/new by default, even
+   when they're pixel-identical -- causes a page-wide blink and tiles
+   dimming mid-slide. Forcing `new` to paint fully opaque immediately hides
+   that; `old`'s fade-out (below) then only shows for a genuinely deleted
+   tile, which has no `new` counterpart. */
+::view-transition-new(*) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-group(*) {
+  animation-duration: 200ms;
+  animation-timing-function: var(--ease-in-out-strong);
+}
+
+::view-transition-old(*) {
+  animation-duration: 150ms;
+  animation-timing-function: var(--ease-out-strong);
 }

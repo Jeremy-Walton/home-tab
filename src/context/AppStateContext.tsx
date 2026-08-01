@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { flushSync } from 'react-dom'
 import { getDatabase, type AppDatabase } from '../storage/db'
 import { generateId } from '../lib/id'
 import { normalizeUrl } from '../lib/url'
@@ -23,6 +24,13 @@ function withBootstrapLock<T>(fn: () => Promise<T>): Promise<T> {
     return navigator.locks.request('launch-tabs:bootstrap', fn)
   }
   return fn()
+}
+
+function canAnimateViewTransition() {
+  return (
+    typeof document.startViewTransition === 'function' &&
+    !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  )
 }
 
 function linksEqual(a: Link[], b: Link[]): boolean {
@@ -233,6 +241,18 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   async function deleteLink(id: string) {
     if (!db) return
+
+    // startViewTransition needs the DOM update to be synchronous.
+    const removeLocally = () => {
+      flushSync(() => setLinks((prev) => prev.filter((link) => link.id !== id)))
+    }
+
+    if (canAnimateViewTransition()) {
+      document.startViewTransition(removeLocally)
+    } else {
+      removeLocally()
+    }
+
     const doc = await db.links.findOne(id).exec()
     await doc?.remove()
   }

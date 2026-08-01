@@ -20,7 +20,7 @@ and wait for approval before starting the next. Update this file's phase status
 | 5 | `transition-all` + drop-target ring timing | LOW | DONE (pending browser verify) |
 | 6 | Fade link background images in on load | — (opportunity) | DONE (pending browser verify) |
 | 7 | Empty-state entrance | — (opportunity) | DONE (pending browser verify) |
-| 8 | View Transitions for delete reflow (fenced) | — (opportunity) | TODO |
+| 8 | View Transitions for delete reflow (fenced) | — (opportunity) | DONE (pending browser verify) |
 | 9 | Reduced-motion press feedback via `motion-safe:` | MEDIUM | TODO |
 
 ---
@@ -1262,6 +1262,47 @@ displaces only the add tile, which is not the jarring case.
    *moving on screen*; the removed tile is *exiting*, so it gets
    `--ease-out-strong`. No reduced-motion guard is needed in CSS — the JS check
    skips the transition entirely in that case.
+
+   **Found during browser verification — two rounds, both well-documented
+   View Transitions API defaults rather than anything app-specific.**
+
+   1. The whole page (header, everything) visibly blinked on every delete.
+      `document.startViewTransition()` snapshots the *entire page* and
+      cross-fades old-page → new-page by default (a UA stylesheet animation
+      on the implicit `root` group) unless explicitly suppressed. The
+      `::view-transition-group(*)`/`::view-transition-old(*)` rules above
+      match `root` too (`*` matches any `view-transition-name`, including
+      the implicit one) but only override `animation-duration`/
+      `animation-timing-function` — the UA's default cross-fade `animation`
+      itself, and its `plus-lighter` blend mode, were still running
+      underneath. First fix: kill both, scoped to `root` only.
+   2. That fixed the page-wide blink, but surviving tiles then visibly
+      dimmed and un-dimmed mid-slide. Same underlying mechanism, just scoped
+      to every *named* group, not only `root`: even a tile whose old and new
+      snapshots are pixel-identical (it only moved, its content didn't
+      change) still gets the same default cross-fade between the two
+      stacked images, and blending two near-identical semi-transparent
+      copies visibly dims the result partway through. The `root`-only fix
+      from step 1 didn't cover this because tile groups aren't `root`.
+
+   Final shipped fix — generalized to every group via `::view-transition-new(*)`,
+   which subsumes the `root`-only rule entirely (so that one was removed,
+   not kept alongside this):
+   ```css
+   ::view-transition-new(*) {
+     animation: none;
+     mix-blend-mode: normal;
+   }
+   ```
+   Forcing the *new* snapshot to appear immediately, fully opaque, and
+   normally blended makes it paint over the old one from frame one, for
+   every group including `root`. `::view-transition-old(*)`'s own fade-out
+   animation (below, unchanged) is therefore only ever visible for a name
+   that has no `new` snapshot at all — i.e. the tile that was actually
+   deleted, which is exactly the one case that should still fade out. The
+   always-on `::view-transition-group` position/size morph (a separate,
+   automatic mechanism, not governed by this at all) is what produces the
+   slide and is unaffected either way.
 
 ### Steps
 
