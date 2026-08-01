@@ -17,6 +17,7 @@ const animateLayoutChanges: AnimateLayoutChanges = (args) =>
 export function LinkTile({ link }: { link: Link }) {
   const { dashboards, deleteLink, moveLinkToDashboard } = useAppState()
   const [imageFailed, setImageFailed] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false)
   const [editing, setEditing] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [pressed, setPressed] = useState(false)
@@ -56,17 +57,10 @@ export function LinkTile({ link }: { link: Link }) {
     opacity: isDragging ? 0.5 : 1,
   }
 
-  const backgroundStyle = {
-    backgroundImage: showImage ? `url(${link.backgroundImageUrl})` : undefined,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-  }
-
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="group relative w-56">
       <AspectRatio
         ratio={16 / 9}
-        style={backgroundStyle}
         onPointerDown={() => setPressed(true)}
         className={cn(
           'flex flex-col items-center justify-end overflow-hidden rounded-2xl bg-muted shadow-lg ring-1 ring-black/10 transition-[box-shadow,scale] duration-150 ease-out-strong group-hover:shadow-xl dark:ring-white/10',
@@ -75,9 +69,18 @@ export function LinkTile({ link }: { link: Link }) {
       >
         {showImage && (
           <img
+            ref={(node) => {
+              // A cached image can finish loading before React attaches onLoad.
+              if (node?.complete) setImageLoaded(true)
+            }}
             src={link.backgroundImageUrl}
             alt=""
-            className="hidden"
+            draggable={false}
+            className={cn(
+              'absolute inset-0 size-full object-cover transition-opacity duration-200 ease-out-strong',
+              imageLoaded ? 'opacity-100' : 'opacity-0',
+            )}
+            onLoad={() => setImageLoaded(true)}
             onError={() => setImageFailed(true)}
           />
         )}

@@ -18,7 +18,7 @@ and wait for approval before starting the next. Update this file's phase status
 | 3 | `prefers-reduced-motion` support | MEDIUM | DONE (pending browser verify) |
 | 4 | Press feedback on link tiles and the add tile | MEDIUM | DONE (mild post-drop flicker still open, see Phase 4 notes) |
 | 5 | `transition-all` + drop-target ring timing | LOW | DONE (pending browser verify) |
-| 6 | Fade link background images in on load | — (opportunity) | TODO |
+| 6 | Fade link background images in on load | — (opportunity) | DONE (pending browser verify) |
 | 7 | Empty-state entrance | — (opportunity) | TODO |
 | 8 | View Transitions for delete reflow (fenced) | — (opportunity) | TODO |
 | 9 | Reduced-motion press feedback via `motion-safe:` | MEDIUM | TODO |
@@ -1032,6 +1032,16 @@ const [imageLoaded, setImageLoaded] = useState(false)
 
 `AspectRatio` is already `relative` (`ui/aspect-ratio.tsx:18`), and dropping the
 `style` prop also sidesteps the documented `--ratio` clobbering gotcha entirely.
+
+**Adapted at implementation time**: the target snippet above still shows
+`active:scale-[0.98]` and a plain hidden `<img>`, but by the time this phase
+landed, Phase 4 had already replaced that with JS `pressed` state (`onPointerDown`
++ `cn(..., pressed && 'scale-[0.98]')`) — see Phase 4's notes for why. This
+phase's changes were applied on top of that: the `<img>` still slots into the
+exact same position (after the AspectRatio's opening tag, before the `<a>`
+overlay), the `AspectRatio`'s `onPointerDown`/`cn()` press-feedback wiring is
+unchanged, and `backgroundStyle`/the `style` prop are gone as planned. No
+change to the shipped press-feedback mechanism itself.
 
 ### Steps
 
