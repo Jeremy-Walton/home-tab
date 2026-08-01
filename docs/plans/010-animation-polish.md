@@ -17,7 +17,7 @@ and wait for approval before starting the next. Update this file's phase status
 | 2 | Dialog exit animations actually play | HIGH | DONE (pending browser verify) |
 | 3 | `prefers-reduced-motion` support | MEDIUM | DONE (pending browser verify) |
 | 4 | Press feedback on link tiles and the add tile | MEDIUM | DONE (mild post-drop flicker still open, see Phase 4 notes) |
-| 5 | `transition-all` + drop-target ring timing | LOW | TODO |
+| 5 | `transition-all` + drop-target ring timing | LOW | DONE (pending browser verify) |
 | 6 | Fade link background images in on load | — (opportunity) | TODO |
 | 7 | Empty-state entrance | — (opportunity) | TODO |
 | 8 | View Transitions for delete reflow (fenced) | — (opportunity) | TODO |
