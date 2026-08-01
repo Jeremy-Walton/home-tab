@@ -7,6 +7,7 @@ import { EntityOptionsMenu } from './EntityOptionsMenu'
 import { LinkEditModal } from './LinkEditModal'
 import { AspectRatio } from './ui/aspect-ratio'
 import { Badge } from './ui/badge'
+import { cn } from '../lib/utils'
 import { isSafeHref } from '../lib/url'
 import type { Link } from '../types'
 
@@ -15,7 +16,10 @@ const animateLayoutChanges: AnimateLayoutChanges = (args) =>
 
 export function LinkTile({ link }: { link: Link }) {
   const { dashboards, deleteLink, moveLinkToDashboard } = useAppState()
-  const [imageFailed, setImageFailed] = useState(false)
+  // Tracked as URLs rather than booleans so that editing a tile's image
+  // invalidates the previous image's load/error result instead of inheriting it.
+  const [failedUrl, setFailedUrl] = useState<string>()
+  const [loadedUrl, setLoadedUrl] = useState<string>()
   const [editing, setEditing] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
 
@@ -29,33 +33,41 @@ export function LinkTile({ link }: { link: Link }) {
     animateLayoutChanges,
   })
 
-  const showImage = link.backgroundImageUrl && !imageFailed
+  const imageUrl = link.backgroundImageUrl
+  const showImage = imageUrl && failedUrl !== imageUrl
+  const imageLoaded = loadedUrl === imageUrl
 
   const style = {
     transform: CSS.Translate.toString(transform),
-    transition,
+    // dnd-kit's own `transition` only covers `transform`, never opacity.
+    transition: [transition, 'opacity 150ms var(--ease-out-strong)'].filter(Boolean).join(', '),
     opacity: isDragging ? 0.5 : 1,
-  }
-
-  const backgroundStyle = {
-    backgroundImage: showImage ? `url(${link.backgroundImageUrl})` : undefined,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
+    viewTransitionName: `link-${link.id}`,
   }
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="group relative w-56">
+      {/* Press feedback keys off the full-bleed <a>: the kebab is painted over
+          it, not inside it, so pressing the kebab can't match. */}
       <AspectRatio
         ratio={16 / 9}
-        style={backgroundStyle}
-        className="flex flex-col items-center justify-end overflow-hidden rounded-2xl bg-muted shadow-lg ring-1 ring-black/10 transition-shadow group-hover:shadow-xl dark:ring-white/10"
+        className="flex flex-col items-center justify-end overflow-hidden rounded-2xl bg-muted shadow-lg ring-1 ring-black/10 transition-[box-shadow,scale] duration-150 ease-out-strong group-hover:shadow-xl motion-safe:has-[a:active]:scale-[0.98] dark:ring-white/10"
       >
         {showImage && (
           <img
-            src={link.backgroundImageUrl}
+            ref={(node) => {
+              // A cached image can finish loading before React attaches onLoad.
+              if (node?.complete) setLoadedUrl(imageUrl)
+            }}
+            src={imageUrl}
             alt=""
-            className="hidden"
-            onError={() => setImageFailed(true)}
+            draggable={false}
+            className={cn(
+              'absolute inset-0 size-full object-cover transition-opacity duration-200 ease-out-strong',
+              imageLoaded ? 'opacity-100' : 'opacity-0',
+            )}
+            onLoad={() => setLoadedUrl(imageUrl)}
+            onError={() => setFailedUrl(imageUrl)}
           />
         )}
 

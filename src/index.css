@@ -49,6 +49,34 @@
     --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+@theme {
+    --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+/* The two enter/exit tempos used by every Base UI popup. tw-animate-css's
+   `animate-in`/`animate-out` read --tw-duration/--tw-ease, so setting those
+   is equivalent to the `ease-out-strong data-open:duration-*` class trio. */
+@utility motion-dialog {
+    --tw-ease: var(--ease-out-strong);
+    &[data-open] {
+        --tw-duration: 200ms;
+    }
+    &[data-closed] {
+        --tw-duration: 150ms;
+    }
+}
+
+@utility motion-popup {
+    --tw-ease: var(--ease-out-strong);
+    &[data-open] {
+        --tw-duration: 150ms;
+    }
+    &[data-closed] {
+        --tw-duration: 100ms;
+    }
+}
+
 :root {
     --background: oklch(1 0 0);
     --foreground: oklch(0.148 0.004 228.8);
@@ -128,4 +156,48 @@
   html {
     @apply font-sans;
     }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Zeroing these strips movement from tw-animate-css's enter/exit while
+     opacity fades still run. `inherits: false`, so set on every element. */
+  *,
+  *::before,
+  *::after {
+    --tw-enter-blur: 0 !important;
+    --tw-enter-rotate: 0 !important;
+    --tw-enter-scale: 1 !important;
+    --tw-enter-translate-x: 0 !important;
+    --tw-enter-translate-y: 0 !important;
+    --tw-exit-blur: 0 !important;
+    --tw-exit-rotate: 0 !important;
+    --tw-exit-scale: 1 !important;
+    --tw-exit-translate-x: 0 !important;
+    --tw-exit-translate-y: 0 !important;
+  }
+  /* Deliberately not resetting `scale` here: `scale: 1` still counts as
+     non-`none` and makes any selector matching it (`*`, `*:active`, ...) a
+     containing block for `position: fixed` descendants, which broke every
+     dialog/menu on the page. Press feedback stays slightly visible under
+     reduced motion as a result -- a minor imperfection, not a bug. */
+}
+
+/* Every group (incl. implicit `root`) cross-fades old/new by default, even
+   when they're pixel-identical -- causes a page-wide blink and tiles
+   dimming mid-slide. Forcing `new` to paint fully opaque immediately hides
+   that; `old`'s fade-out (below) then only shows for a genuinely deleted
+   tile, which has no `new` counterpart. */
+::view-transition-new(*) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-group(*) {
+  animation-duration: 200ms;
+  animation-timing-function: var(--ease-in-out-strong);
+}
+
+::view-transition-old(*) {
+  animation-duration: 150ms;
+  animation-timing-function: var(--ease-out-strong);
 }

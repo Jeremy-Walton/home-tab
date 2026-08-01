@@ -1,0 +1,143 @@
+{
+  "version": 1,
+  "dashboards": [
+    {
+      "id": "a0000000-0000-4000-8000-000000000001",
+      "name": "Motion QA",
+      "order": 0,
+      "createdAt": 1753660800000
+    },
+    {
+      "id": "a0000000-0000-4000-8000-000000000002",
+      "name": "Backgrounds",
+      "order": 1,
+      "backgroundImageUrl": "https://picsum.photos/seed/launchtabs-dashboard/1920/1080",
+      "createdAt": 1753660800001
+    },
+    {
+      "id": "a0000000-0000-4000-8000-000000000003",
+      "name": "Empty",
+      "order": 2,
+      "createdAt": 1753660800002
+    }
+  ],
+  "links": [
+    {
+      "id": "b0000000-0000-4000-8000-000000000001",
+      "dashboardId": "a0000000-0000-4000-8000-000000000001",
+      "order": 0,
+      "title": "Tile 01",
+      "url": "https://example.com/01",
+      "backgroundImageUrl": "https://picsum.photos/seed/tile01/640/360"
+    },
+    {
+      "id": "b0000000-0000-4000-8000-000000000002",
+      "dashboardId": "a0000000-0000-4000-8000-000000000001",
+      "order": 1,
+      "title": "Tile 02",
+      "url": "https://example.com/02",
+      "backgroundImageUrl": "https://picsum.photos/seed/tile02/640/360"
+    },
+    {
+      "id": "b0000000-0000-4000-8000-000000000003",
+      "dashboardId": "a0000000-0000-4000-8000-000000000001",
+      "order": 2,
+      "title": "Tile 03 (no image)",
+      "url": "https://example.com/03"
+    },
+    {
+      "id": "b0000000-0000-4000-8000-000000000004",
+      "dashboardId": "a0000000-0000-4000-8000-000000000001",
+      "order": 3,
+      "title": "Tile 04",
+      "url": "https://example.com/04",
+      "backgroundImageUrl": "https://picsum.photos/seed/tile04/640/360"
+    },
+    {
+      "id": "b0000000-0000-4000-8000-000000000005",
+      "dashboardId": "a0000000-0000-4000-8000-000000000001",
+      "order": 4,
+      "title": "Tile 05 (broken image)",
+      "url": "https://example.com/05",
+      "backgroundImageUrl": "https://example.com/missing-image-404.png"
+    },
+    {
+      "id": "b0000000-0000-4000-8000-000000000006",
+      "dashboardId": "a0000000-0000-4000-8000-000000000001",
+      "order": 5,
+      "title": "Tile 06",
+      "url": "https://example.com/06",
+      "backgroundImageUrl": "https://picsum.photos/seed/tile06/640/360"
+    },
+    {
+      "id": "b0000000-0000-4000-8000-000000000007",
+      "dashboardId": "a0000000-0000-4000-8000-000000000001",
+      "order": 6,
+      "title": "Tile 07 (no image)",
+      "url": "https://example.com/07"
+    },
+    {
+      "id": "b0000000-0000-4000-8000-000000000008",
+      "dashboardId": "a0000000-0000-4000-8000-000000000001",
+      "order": 7,
+      "title": "Tile 08",
+      "url": "https://example.com/08",
+      "backgroundImageUrl": "https://picsum.photos/seed/tile08/640/360"
+    },
+    {
+      "id": "b0000000-0000-4000-8000-000000000009",
+      "dashboardId": "a0000000-0000-4000-8000-000000000001",
+      "order": 8,
+      "title": "Tile 09",
+      "url": "https://example.com/09",
+      "backgroundImageUrl": "https://picsum.photos/seed/tile09/640/360"
+    },
+    {
+      "id": "b0000000-0000-4000-8000-000000000010",
+      "dashboardId": "a0000000-0000-4000-8000-000000000001",
+      "order": 9,
+      "title": "Tile 10 (no image)",
+      "url": "https://example.com/10"
+    },
+    {
+      "id": "b0000000-0000-4000-8000-000000000011",
+      "dashboardId": "a0000000-0000-4000-8000-000000000001",
+      "order": 10,
+      "title": "Tile 11",
+      "url": "https://example.com/11",
+      "backgroundImageUrl": "https://picsum.photos/seed/tile11/640/360"
+    },
+    {
+      "id": "b0000000-0000-4000-8000-000000000012",
+      "dashboardId": "a0000000-0000-4000-8000-000000000001",
+      "order": 11,
+      "title": "Tile 12",
+      "url": "https://example.com/12",
+      "backgroundImageUrl": "https://picsum.photos/seed/tile12/640/360"
+    },
+    {
+      "id": "b0000000-0000-4000-8000-000000000013",
+      "dashboardId": "a0000000-0000-4000-8000-000000000002",
+      "order": 0,
+      "title": "BG 01",
+      "url": "https://example.com/bg-01",
+      "backgroundImageUrl": "https://picsum.photos/seed/bg01/640/360"
+    },
+    {
+      "id": "b0000000-0000-4000-8000-000000000014",
+      "dashboardId": "a0000000-0000-4000-8000-000000000002",
+      "order": 1,
+      "title": "BG 02 (no image)",
+      "url": "https://example.com/bg-02"
+    },
+    {
+      "id": "b0000000-0000-4000-8000-000000000015",
+      "dashboardId": "a0000000-0000-4000-8000-000000000002",
+      "order": 2,
+      "title": "BG 03",
+      "url": "https://example.com/bg-03",
+      "backgroundImageUrl": "https://picsum.photos/seed/bg03/640/360"
+    }
+  ],
+  "activeDashboardId": "a0000000-0000-4000-8000-000000000001"
+}

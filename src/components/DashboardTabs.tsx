@@ -32,7 +32,7 @@ function DashboardTabItem({
   return (
     <div
       ref={setNodeRef}
-      className={`group relative rounded-full transition-shadow ${isOver ? 'ring-2 ring-ring' : ''}`}
+      className={`group relative rounded-full transition-shadow duration-100 ease-out-strong ${isOver ? 'ring-2 ring-ring' : ''}`}
     >
       <TabsTrigger
         value={dashboard.id}

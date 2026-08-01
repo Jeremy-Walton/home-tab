@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { useAppState } from '../context/useAppState'
+import { useClosingDialog } from '../hooks/useClosingDialog'
 import { cn } from '../lib/utils'
 import { OptionsMenu } from './OptionsMenu'
 import { DropdownMenuItem } from './ui/dropdown-menu'
@@ -11,6 +12,30 @@ import {
   AlertDialogFooter,
   AlertDialogTitle,
 } from './ui/alert-dialog'
+
+function FeedbackDialog({
+  title,
+  message,
+  onClose,
+}: {
+  title: string
+  message: string
+  onClose: () => void
+}) {
+  const { close, dialogProps } = useClosingDialog(onClose)
+
+  return (
+    <AlertDialog {...dialogProps}>
+      <AlertDialogContent size="sm">
+        <AlertDialogTitle>{title}</AlertDialogTitle>
+        <AlertDialogDescription>{message}</AlertDialogDescription>
+        <AlertDialogFooter>
+          <AlertDialogAction onClick={() => close()}>OK</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}
 
 export function ImportExportBar({ className }: { className?: string }) {
   const { exportState, importState } = useAppState()
@@ -70,15 +95,11 @@ export function ImportExportBar({ className }: { className?: string }) {
         }}
       />
       {feedback && (
-        <AlertDialog open onOpenChange={(open) => !open && setFeedback(null)}>
-          <AlertDialogContent size="sm">
-            <AlertDialogTitle>{feedback.title}</AlertDialogTitle>
-            <AlertDialogDescription>{feedback.message}</AlertDialogDescription>
-            <AlertDialogFooter>
-              <AlertDialogAction onClick={() => setFeedback(null)}>OK</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <FeedbackDialog
+          title={feedback.title}
+          message={feedback.message}
+          onClose={() => setFeedback(null)}
+        />
       )}
     </div>
   )

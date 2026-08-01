@@ -41,6 +41,12 @@ hosting/CI branch mismatch, no custom domain yet).
 
 Run typecheck, lint, and tests before considering any change done — none of them are caught by the others.
 
+## Comments
+
+Keep comments short — one line stating the non-obvious *why*, not a multi-line
+explanation of mechanism or history. If it needs more than a line, that detail
+belongs in `docs/TECHNICAL_DESIGN.md`'s "Known Gotchas," not inline.
+
 ## Gotchas
 
 Known gotchas (dnd-kit/click interaction, RxDB ready-state timing, legacy import gating, hotkeys-js's per-element capture latching and module-singleton state) are documented in `docs/TECHNICAL_DESIGN.md`'s "Known Gotchas" section — read it before touching drag-and-drop, the RxDB bootstrap effect, legacy import in `AppStateContext.tsx`, or keyboard shortcut bindings in `useKeyboardShortcuts.ts`.

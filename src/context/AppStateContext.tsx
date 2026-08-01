@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { flushSync } from 'react-dom'
 import { getDatabase, type AppDatabase } from '../storage/db'
 import { generateId } from '../lib/id'
 import { normalizeUrl } from '../lib/url'
@@ -25,6 +26,13 @@ function withBootstrapLock<T>(fn: () => Promise<T>): Promise<T> {
   return fn()
 }
 
+function canAnimateViewTransition() {
+  return (
+    typeof document.startViewTransition === 'function' &&
+    !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  )
+}
+
 function linksEqual(a: Link[], b: Link[]): boolean {
   if (a.length !== b.length) return false
   const byId = new Map(a.map((link) => [link.id, link]))
@@ -42,6 +50,8 @@ function linksEqual(a: Link[], b: Link[]): boolean {
 }
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
+  // Suppresses the links subscription while reorderLinks's bulkUpsert is writing.
+  const reorderInFlightRef = useRef(false)
   const [db, setDb] = useState<AppDatabase | null>(null)
   const [dashboards, setDashboards] = useState<Dashboard[]>([])
   const [links, setLinks] = useState<Link[]>([])
@@ -51,10 +61,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
+    let cancelled = false
     let dashboardsSub: { unsubscribe: () => void } | undefined
     let linksSub: { unsubscribe: () => void } | undefined
 
     getDatabase().then((database) => {
+      // Guards against StrictMode's synchronous mount+cleanup+remount in dev.
+      if (cancelled) return
       setDb(database)
 
       // The first emission from a reactive query can arrive before the
@@ -68,9 +81,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           setReady(true)
         })
       linksSub = database.links.find().$.subscribe((docs) => {
+        if (reorderInFlightRef.current) return
         const next = docs.map((d) => d.toJSON())
-        // After reorderLinks/moveLinkToDashboard apply the new order
-        // optimistically, this subscription still fires once the write
+        // After reorderLinks/deleteLink apply their change optimistically,
+        // this subscription still fires once the write
         // resolves -- with the same data but new array/object references.
         // That redundant render, arriving while the layout-change animation
         // from the optimistic update is still mid-flight, was causing
@@ -81,6 +95,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     })
 
     return () => {
+      cancelled = true
       dashboardsSub?.unsubscribe()
       linksSub?.unsubscribe()
     }
@@ -233,6 +248,18 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   async function deleteLink(id: string) {
     if (!db) return
+
+    // startViewTransition needs the DOM update to be synchronous.
+    const removeLocally = () => {
+      flushSync(() => setLinks((prev) => prev.filter((link) => link.id !== id)))
+    }
+
+    if (canAnimateViewTransition()) {
+      document.startViewTransition(removeLocally)
+    } else {
+      removeLocally()
+    }
+
     const doc = await db.links.findOne(id).exec()
     await doc?.remove()
   }
@@ -252,12 +279,19 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     // the round trip back through the reactive subscription) catches up.
     setLinks(reordered)
 
-    // One bulk write, not N concurrent findOne+patch calls -- each patch()
-    // triggers its own reactive emission as soon as it resolves, so doing
-    // them one at a time caused the subscription to overwrite the
-    // optimistic update above with partially-reordered intermediate states,
-    // each one its own visible jump.
-    await db.links.bulkUpsert(reordered.filter((l) => l.dashboardId === dashboardId))
+    // bulkUpsert isn't atomic for existing docs -- writes them one at a
+    // time under the hood, each emitting its own intermediate state.
+    reorderInFlightRef.current = true
+    try {
+      await db.links.bulkUpsert(reordered.filter((l) => l.dashboardId === dashboardId))
+    } finally {
+      // Every emission dropped above committed before this read, so one resync
+      // recovers whatever it swallowed -- a concurrent write from another tab,
+      // or the pre-reorder state if the write itself failed.
+      reorderInFlightRef.current = false
+      const next = (await db.links.find().exec()).map((d) => d.toJSON())
+      setLinks((prev) => (linksEqual(prev, next) ? prev : next))
+    }
   }
 
   async function moveLinkToDashboard(linkId: string, targetDashboardId: string) {

@@ -1,3 +1,4 @@
+import { useClosingDialog } from '../hooks/useClosingDialog'
 import { Button } from './ui/button'
 import {
   Dialog,
@@ -16,13 +17,15 @@ interface EditDialogProps {
 }
 
 export function EditDialog({ title, onSave, onClose, children }: EditDialogProps) {
+  const { close, dialogProps } = useClosingDialog(onClose)
+
   async function handleSave() {
     const result = await onSave()
-    if (result !== false) onClose()
+    if (result !== false) close()
   }
 
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
+    <Dialog {...dialogProps}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
@@ -31,7 +34,7 @@ export function EditDialog({ title, onSave, onClose, children }: EditDialogProps
         <FieldGroup>{children}</FieldGroup>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={() => close()}>
             Cancel
           </Button>
           <Button onClick={() => void handleSave()}>Save</Button>
