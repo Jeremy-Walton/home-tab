@@ -8,5 +8,7 @@ export default {
     // Relaxed to allow the existing token names, including the underscore
     // used for a fractional spacing step (e.g. --space-0_5).
     'custom-property-pattern': '^([a-z][a-z0-9_]*)(-[a-z0-9_]+)*$',
+    // CSS Modules' :global()/:local() scoping escapes aren't standard CSS.
+    'selector-pseudo-class-no-unknown': [true, { ignorePseudoClasses: ['global', 'local'] }],
   },
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useAppState } from '../context/useAppState'
 import { EditDialog } from './EditDialog'
-import { Input } from './ui/input'
+import { Input } from './ui/input/input'
 import { Field, FieldLabel, FieldError } from './ui/field'
 import { normalizeUrl, isSafeHref } from '../lib/url'
 import type { Dashboard } from '../types'

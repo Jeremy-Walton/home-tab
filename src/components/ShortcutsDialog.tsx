@@ -1,6 +1,6 @@
 import { useClosingDialog } from '../hooks/useClosingDialog'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog'
-import { Kbd, KbdGroup } from './ui/kbd'
+import { Kbd, KbdGroup } from './ui/kbd/kbd'
 import { SHORTCUTS } from '../lib/shortcuts'
 
 export function ShortcutsDialog({ onClose }: { onClose: () => void }) {

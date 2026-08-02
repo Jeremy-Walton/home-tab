@@ -1,5 +1,5 @@
 import { useClosingDialog } from '../hooks/useClosingDialog'
-import { Button } from './ui/button'
+import { Button } from './ui/button/button'
 import {
   Dialog,
   DialogContent,

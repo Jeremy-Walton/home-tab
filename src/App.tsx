@@ -8,7 +8,7 @@ import { DashboardGrid } from './components/DashboardGrid'
 import { LinkEditModal } from './components/LinkEditModal'
 import { Navbar } from './components/Navbar'
 import { ShortcutsDialog } from './components/ShortcutsDialog'
-import { Kbd } from './components/ui/kbd'
+import { Kbd } from './components/ui/kbd/kbd'
 import { TooltipProvider } from './components/ui/tooltip'
 
 function Dashboard() {

@@ -383,6 +383,57 @@ imports `./ui/button|badge|kbd|input|label|separator|aspect-ratio`.
 
 **Mechanical check:** `yarn check`.
 
+**Status: done.** `yarn check` passes (81 tests, same count). Notes:
+- **`scripts/no-tailwind.mjs` needed real fixes, not just new `MIGRATED`
+  entries**, discovered by running it against the actual converted output
+  rather than assuming the Phase 1 script was correct: (1) each glob now
+  ends `/**/*.tsx` instead of `/**` — the bare form matched `.module.css`
+  and generated `.d.ts` files too, and real CSS is full of false positives
+  against these regexes (`border-radius`, `inline-flex`, `flex-shrink`,
+  `font-size`, `:active`, `transition-property`, … all contain substrings
+  the patterns are hunting for). This matches Phase 8's own final
+  `MIGRATED = ['src/**/*.tsx', 'index.html']` — CSS was never meant to be
+  scanned, only `.tsx`. (2) Lines matching `^\s*(import|export)\b.*\bfrom\b`
+  are skipped — a converted file's own `import styles from
+  './foo.module.css'` line trips the same collision. (3) Dropped bare
+  `sm|md|lg` from the variant-colon pattern — this app has no responsive
+  breakpoints post-migration (confirmed by grep), and bare `sm:`/`lg:` as a
+  CVA size key (`sm: styles.sizeSm`) is otherwise indistinguishable from a
+  Tailwind breakpoint variant. (4) `aspect-` now excludes the literal suffix
+  `ratio` via a negative lookahead — `aspect-ratio` is the CSS property name
+  and this project's own `data-slot` value, never a real Tailwind aspect
+  utility (`aspect-auto/square/video/<number>/[value]`). None of these
+  narrow the check's ability to catch genuine unconverted Tailwind in a
+  later phase — verified by re-running it after each fix and confirming it
+  still flags real hits before the fix, zero after.
+- **`button` svg sizing**: went with the plain default (`.button svg { … }`,
+  overridden per-size-variant by cascade order later in the same file), not
+  the `:not([data-sized])` escape hatch — grepped every icon call site in
+  the app and none passes an explicit size override today, so the escape
+  hatch would be unexercised. Applied the same plain-default approach to
+  `kbd`/`badge` for consistency.
+- **`separator`**: the installed `@base-ui/react` version's `Separator`
+  component doesn't actually render a `data-orientation` attribute (checked
+  its source directly) — and `Separator` itself is never rendered anywhere
+  in the app (`FieldSeparator` in `field.tsx` is unused). The
+  `[data-orientation="…"]` sizing rules are therefore inert both before and
+  after this conversion; ported the *intended* (correct, standard) attribute
+  name rather than literally reproducing dead Tailwind classes, since a
+  future Base UI upgrade may restore the attribute.
+- **`label`'s `peer`/`group` disabled-state styling** and **`kbd`'s
+  tooltip/input-group-nested styling** are also currently unreachable (no
+  disabled form field, no nested-in-tooltip Kbd exist in this app today) but
+  were ported faithfully rather than dropped, consistent with this plan's
+  earlier decision to keep other currently-unused pieces (`--sidebar-*`/
+  `--chart-*` tokens) rather than prune opportunistically.
+- Used `oklch(from var(--x) l c h / N%)` (CSS relative color syntax) as the
+  standard translation for every Tailwind `<color>/<alpha>` modifier
+  (`bg-primary/80`, `ring-ring/30`, etc.) — exact and requires no new tokens.
+- All `dark:` overrides were resolved to their winning (dark) value per the
+  Decisions table, e.g. `badge`'s destructive variant ended up
+  `oklch(from var(--destructive) l c h / 20%)` background (the `dark:`
+  value), not the light-mode `/10%` in the original source.
+
 **Browser verification (you):**
 - Every button variant: primary (dialog Save), outline, secondary (tile
   kebab), ghost, destructive (delete confirm), link (footer extension link)

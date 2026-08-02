@@ -1,6 +1,6 @@
 import { DotsThreeVerticalIcon } from '@phosphor-icons/react'
 import { cn } from '../lib/utils'
-import { Button } from './ui/button'
+import { Button } from './ui/button/button'
 import {
   DropdownMenu,
   DropdownMenuContent,

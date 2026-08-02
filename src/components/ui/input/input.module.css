@@ -1,0 +1,48 @@
+.input {
+  width: 100%;
+  min-width: 0;
+  height: 2.25rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-3xl);
+  padding-inline: var(--space-3);
+  padding-block: var(--space-1);
+  color: inherit;
+  font-size: var(--text-sm);
+  background: oklch(from var(--input) l c h / 50%);
+  outline: none;
+  transition-property: color, box-shadow, background-color;
+  transition-duration: 150ms;
+}
+
+.input::file-selector-button {
+  height: var(--space-7);
+  border: 0;
+  color: var(--foreground);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  background: transparent;
+  display: inline-flex;
+}
+
+.input::placeholder {
+  color: var(--muted-foreground);
+}
+
+.input:focus-visible {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px oklch(from var(--ring) l c h / 30%);
+}
+
+.input:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.input:global([aria-invalid='true']) {
+  border-color: var(--destructive);
+}
+
+.input:global([aria-invalid='true']):focus-visible {
+  box-shadow: 0 0 0 3px oklch(from var(--destructive) l c h / 20%);
+}

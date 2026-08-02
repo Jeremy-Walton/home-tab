@@ -1,0 +1,42 @@
+.kbd {
+  display: inline-flex;
+  width: fit-content;
+  min-width: var(--space-5_5);
+  height: var(--space-5_5);
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  border-radius: var(--radius-lg);
+  padding-inline: var(--space-1_5);
+  color: var(--muted-foreground);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--text-xs-line-height);
+  background: var(--muted);
+  user-select: none;
+  pointer-events: none;
+}
+
+.kbd svg {
+  width: var(--space-3);
+  height: var(--space-3);
+}
+
+/* Registry defaults for a Kbd nested inside an input-group or tooltip
+   content — no current consumer nests one, kept for parity with
+   tooltip.module.css's matching **:data-[slot=kbd]:* selectors. */
+[data-slot='input-group'] .kbd {
+  background: var(--input);
+}
+
+[data-slot='tooltip-content'] .kbd {
+  color: var(--background);
+  background: oklch(from var(--background) l c h / 10%);
+}
+
+.group {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}

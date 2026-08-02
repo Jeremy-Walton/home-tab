@@ -1,0 +1,216 @@
+.button {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-4xl);
+  background-clip: padding-box;
+  font-weight: var(--font-weight-medium);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  transition-property: color, background-color, box-shadow, scale;
+  transition-duration: 150ms;
+  outline: none;
+  user-select: none;
+}
+
+.button:focus-visible {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px oklch(from var(--ring) l c h / 30%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .button:active:not([aria-haspopup]) {
+    scale: 0.96;
+  }
+}
+
+.button:disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.button:global([aria-invalid='true']) {
+  border-color: oklch(from var(--destructive) l c h / 50%);
+  box-shadow: 0 0 0 3px oklch(from var(--destructive) l c h / 40%);
+}
+
+.button svg {
+  flex-shrink: 0;
+  width: var(--space-4);
+  height: var(--space-4);
+  pointer-events: none;
+}
+
+.default {
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+
+.default:hover {
+  background: oklch(from var(--primary) l c h / 80%);
+}
+
+.outline {
+  border-color: var(--border);
+  background: transparent;
+}
+
+.outline:hover {
+  color: var(--foreground);
+  background: oklch(from var(--input) l c h / 30%);
+}
+
+.outline:global([aria-expanded='true']) {
+  color: var(--foreground);
+  background: var(--muted);
+}
+
+.secondary {
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+}
+
+.secondary:hover {
+  background: color-mix(in oklch, var(--secondary), var(--foreground) 5%);
+}
+
+.secondary:global([aria-expanded='true']) {
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+}
+
+.ghost:hover {
+  color: var(--foreground);
+  background: oklch(from var(--muted) l c h / 50%);
+}
+
+.ghost:global([aria-expanded='true']) {
+  color: var(--foreground);
+  background: var(--muted);
+}
+
+.destructive {
+  color: var(--destructive);
+  background: oklch(from var(--destructive) l c h / 20%);
+}
+
+.destructive:hover {
+  background: oklch(from var(--destructive) l c h / 30%);
+}
+
+.destructive:focus-visible {
+  border-color: oklch(from var(--destructive) l c h / 40%);
+  box-shadow: 0 0 0 3px oklch(from var(--destructive) l c h / 40%);
+}
+
+.link {
+  color: var(--primary);
+  text-underline-offset: 4px;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.sizeDefault {
+  height: 2.25rem;
+  gap: var(--space-1_5);
+  padding-inline: var(--space-3);
+}
+
+.sizeDefault:has([data-icon='inline-end']) {
+  padding-inline-end: var(--space-2_5);
+}
+
+.sizeDefault:has([data-icon='inline-start']) {
+  padding-inline-start: var(--space-2_5);
+}
+
+.sizeXs {
+  height: var(--space-6);
+  gap: var(--space-1);
+  padding-inline: var(--space-2_5);
+  font-size: var(--text-xs);
+}
+
+.sizeXs:has([data-icon='inline-end']) {
+  padding-inline-end: var(--space-2);
+}
+
+.sizeXs:has([data-icon='inline-start']) {
+  padding-inline-start: var(--space-2);
+}
+
+.sizeXs svg {
+  width: var(--space-3);
+  height: var(--space-3);
+}
+
+.sizeSm {
+  height: var(--space-8);
+  gap: var(--space-1);
+  padding-inline: var(--space-3);
+}
+
+.sizeSm:has([data-icon='inline-end']) {
+  padding-inline-end: var(--space-2);
+}
+
+.sizeSm:has([data-icon='inline-start']) {
+  padding-inline-start: var(--space-2);
+}
+
+.sizeLg {
+  height: 2.5rem;
+  gap: var(--space-1_5);
+  padding-inline: var(--space-4);
+}
+
+.sizeLg:has([data-icon='inline-end']) {
+  padding-inline-end: var(--space-3);
+}
+
+.sizeLg:has([data-icon='inline-start']) {
+  padding-inline-start: var(--space-3);
+}
+
+.sizeIcon {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.sizeIconXs {
+  position: relative;
+  width: var(--space-6);
+  height: var(--space-6);
+}
+
+.sizeIconXs::before {
+  content: '';
+  position: absolute;
+  inset: calc(-1 * var(--space-2));
+}
+
+.sizeIconXs svg {
+  width: var(--space-3);
+  height: var(--space-3);
+}
+
+.sizeIconSm {
+  position: relative;
+  width: var(--space-8);
+  height: var(--space-8);
+}
+
+.sizeIconSm::before {
+  content: '';
+  position: absolute;
+  inset: calc(-1 * var(--space-1));
+}
+
+.sizeIconLg {
+  width: 2.5rem;
+  height: 2.5rem;
+}
