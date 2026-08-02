@@ -16,20 +16,20 @@
   background: var(--muted);
   user-select: none;
   pointer-events: none;
-}
 
-.kbd svg {
-  width: var(--space-small);
-  height: var(--space-small);
-}
+  svg {
+    width: var(--space-small);
+    height: var(--space-small);
+  }
 
-[data-slot='input-group'] .kbd {
-  background: var(--input);
-}
+  :global([data-slot='input-group']) & {
+    background: var(--input);
+  }
 
-[data-slot='tooltip-content'] .kbd {
-  color: var(--background);
-  background: oklch(from var(--background) l c h / 10%);
+  :global([data-slot='tooltip-content']) & {
+    color: var(--background);
+    background: oklch(from var(--background) l c h / 10%);
+  }
 }
 
 .group {

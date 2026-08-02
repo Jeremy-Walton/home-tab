@@ -12,37 +12,37 @@
   outline: none;
   transition-property: color, box-shadow, background-color;
   transition-duration: 150ms;
-}
 
-.input::file-selector-button {
-  height: var(--space-2x-large);
-  border: 0;
-  color: var(--foreground);
-  font-size: var(--text-small);
-  font-weight: var(--font-weight-medium);
-  background: transparent;
-  display: inline-flex;
-}
+  &::file-selector-button {
+    height: var(--space-2x-large);
+    border: 0;
+    color: var(--foreground);
+    font-size: var(--text-small);
+    font-weight: var(--font-weight-medium);
+    background: transparent;
+    display: inline-flex;
+  }
 
-.input::placeholder {
-  color: var(--muted-foreground);
-}
+  &::placeholder {
+    color: var(--muted-foreground);
+  }
 
-.input:focus-visible {
-  border-color: var(--ring);
-  box-shadow: 0 0 0 3px oklch(from var(--ring) l c h / 30%);
-}
+  &:focus-visible {
+    border-color: var(--ring);
+    box-shadow: 0 0 0 3px oklch(from var(--ring) l c h / 30%);
+  }
 
-.input:disabled {
-  cursor: not-allowed;
-  pointer-events: none;
-  opacity: 0.5;
-}
+  &:disabled {
+    cursor: not-allowed;
+    pointer-events: none;
+    opacity: 0.5;
+  }
 
-.input:global([aria-invalid='true']) {
-  border-color: var(--destructive);
-}
+  &:global([aria-invalid='true']) {
+    border-color: var(--destructive);
 
-.input:global([aria-invalid='true']):focus-visible {
-  box-shadow: 0 0 0 3px oklch(from var(--destructive) l c h / 20%);
+    &:focus-visible {
+      box-shadow: 0 0 0 3px oklch(from var(--destructive) l c h / 20%);
+    }
+  }
 }

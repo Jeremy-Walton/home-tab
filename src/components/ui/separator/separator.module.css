@@ -1,14 +1,14 @@
 .separator {
   flex-shrink: 0;
   background: var(--border);
-}
 
-.separator:global([data-orientation='horizontal']) {
-  width: 100%;
-  height: 1px;
-}
+  &:global([data-orientation='horizontal']) {
+    width: 100%;
+    height: 1px;
+  }
 
-.separator:global([data-orientation='vertical']) {
-  width: 1px;
-  align-self: stretch;
+  &:global([data-orientation='vertical']) {
+    width: 1px;
+    align-self: stretch;
+  }
 }

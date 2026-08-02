@@ -6,15 +6,14 @@
   font-weight: var(--font-weight-medium);
   line-height: 1;
   user-select: none;
-}
 
-:global(.group[data-disabled='true']) .label {
-  pointer-events: none;
-  opacity: 0.5;
-}
+  :global(.group[data-disabled='true']) & {
+    pointer-events: none;
+    opacity: 0.5;
+  }
 
-:global(.peer):disabled ~ .label {
-  cursor: not-allowed;
-  opacity: 0.5;
+  :global(.peer):disabled ~ & {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
 }
-

@@ -33,6 +33,25 @@ registry component can still be pulled in and then converted to CSS Modules
 
 ## Conventions
 
+**Native CSS nesting.** Every module uses native CSS nesting (Chrome-only
+app, no build-time downleveling needed) rather than flat repeated
+selectors: a class's own pseudo-classes/pseudo-elements/`:has()`/`:global()`
+states nest inside its own rule via `&`, and a class's own descendant
+selectors (`svg { … }`, `::before { … }`) nest as bare selectors. Compiles
+to the exact same flat CSS either way — confirmed with Playwright
+(`getComputedStyle`) that behavior is byte-identical before/after nesting
+`button`/`badge`/`kbd`/`label`/`separator`/`input` in Phase 2. Two
+exceptions, both left un-nested for concrete reasons: (1) the `@layer base`
+escape-hatch blocks in `button.module.css` (`sizeIconXs`/`sizeIconSm`'s
+`position: relative`) stay as separate top-level blocks rather than nested
+`@layer` blocks using `:where(&)` — the separate form is the one actually
+verified working in a browser, and nesting an `@layer` inside a normal rule
+is a less common pattern not worth the added risk for a cosmetic gain; (2)
+peer/variant classes that don't share a selector relationship with each
+other (e.g. `badge`'s `.default`/`.secondary`/`.destructive`/…) each keep
+their own top-level rule — nesting is for a class's relationship to *itself*
+in different states, not a way to group unrelated sibling classes together.
+
 **Class naming.** Write class names in `camelCase` in the CSS itself and
 leave Vite's `localsConvention` at its default (identity mapping). This keeps
 `tcm`'s generated `.d.ts` and Vite's runtime keys identical — a
