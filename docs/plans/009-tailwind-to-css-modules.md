@@ -1048,28 +1048,140 @@ derivable from the repo alone; read it before starting a phase.
 
 ### Where to resume
 
-`git status` + `git log` against this plan file. Each phase lands as its own
-commit; the plan file is updated in-place as phases complete (per
-`~/.claude/CLAUDE.md`: update the plan file after each step before moving on).
-If no phase has landed, start at Phase 0.
+**Phases 0, 1, and 2 are done and committed** (`git log`: `9a02e34` phase 0,
+`e33447d` phase 1, then five commits for phase 2 — `1df5240` through
+`0645caf`, the last three of which were corrections to phase 2 itself, not
+new work; see "Facts established executing Phases 0–2" below for why there
+were so many). Working tree is clean. **Resume at Phase 3** — read that
+phase's scope, then this Handoff section in full, then the Conventions
+section (materially different from what Phase 3 was originally drafted
+against — see below) before writing any CSS.
+
+Each phase lands as its own commit; the plan file is updated in-place as
+phases complete (per `~/.claude/CLAUDE.md`: update the plan file after each
+step before moving on).
 
 ### Working agreements for this repo and user
 
 - **Never run `git commit` unless the user says "commit" in the moment.** Not
   at a wrap-up, not because a phase finished. List uncommitted work instead.
-- **The user verifies UI changes themselves.** Do not proactively start a dev
-  server, drive Playwright, or take screenshots. Each phase's "Browser
-  verification (you)" list is written *for the user to execute*. Hand it over
-  and stop at the pause.
+  (In practice this session the user committed each part themselves between
+  turns — don't assume that means permission to commit proactively next time.)
+- **The user verifies UI changes themselves** for the general manual
+  click-through QA pass — each phase's "Browser verification (you)" list is
+  written *for the user to execute*. Hand it over and stop at the pause.
+  **Narrower carve-out, learned this session:** if the user reports a bug, a
+  fix is applied, and they report the *same* bug persists, don't reason
+  about it from first principles a second time — start a scratch dev server
+  (check for port conflicts with the user's own running one first) and use
+  Playwright (a devDependency now — see below) to check
+  `getComputedStyle`/DOM state directly and confirm the fix numerically
+  before reporting it fixed again. This is targeted debugging verification
+  for a specific hypothesis, not the general visual QA pass, which still
+  isn't yours to do proactively.
+- **Use Playwright, not the `mcp__claude-in-chrome__*` tools, for scripted
+  browser verification** (`getComputedStyle` checks, DOM queries) — the
+  user asked for this explicitly, it's faster. `playwright` is a
+  devDependency now; write a throwaway `.mjs` script *inside* the project
+  directory (Yarn here uses the `node-modules` linker, so a script outside
+  the repo, e.g. under a `/tmp` scratchpad, can't resolve `import {
+  chromium } from 'playwright'`), run it with `node`, delete it when done.
+  Kill any scratch dev server you started when finished (`lsof -ti:<port> |
+  xargs kill`) — don't leave it running.
 - **Pause at every ⏸.** Do not roll into the next phase without review.
 - If the user asks for a deviation mid-execution, implement it directly and
   update this plan file's record (decision table, scope, notes) — don't ask
   first, and don't leave the plan describing what was originally decided.
+  Phase 2 needed *four* separate correction rounds after its first "done"
+  report this session (dead-code framing in comments, the space/text/
+  radius/shadow scale naming, two real CSS bugs, then the full BEM/
+  stylelint-bem rework) — each was a direct instruction to redo something,
+  not a request for permission, and each was executed and re-verified
+  before moving on rather than deferred.
+- Don't report something "fixed" or "verified" from reasoning alone when a
+  cheap empirical check is available — the CSS Cascade Layers bug (see
+  below) was misdiagnosed as a specificity issue on the first pass, shipped
+  without checking `getComputedStyle`, and the user caught it. The fix
+  itself was correct once actually checked; the miss was skipping
+  verification, not the CSS knowledge.
 - The user prefers options over a single recommendation, and interview-style
   questions one at a time.
 - Run typecheck, lint **and** tests — none catches the others' failures.
 
-### Facts established this session (don't re-derive)
+### Facts established executing Phases 0–2 (a later session — don't re-derive)
+
+- **CSS Cascade Layers, not specificity, decides ties between a CSS Module
+  rule and a not-yet-converted consumer's Tailwind utility class.**
+  `@import "tailwindcss"` wraps every utility in `@layer theme, base,
+  components, utilities;`; unlayered CSS (a plain CSS Module rule) always
+  beats *any* layered CSS regardless of specificity — that tier of the
+  cascade is checked before specificity. This broke `button`'s
+  `sizeIconXs`/`sizeIconSm` (`position: relative`, needed for the
+  `::before` hit-area trick) against consumers passing a Tailwind
+  `absolute` class (`dialog.tsx`'s close button, the dashboard-tab and
+  link-tile kebab triggers). Fix: put the declaration in `@layer base`,
+  reusing Tailwind's own `base` layer name (registered lower-precedence
+  than `utilities` by its layer-order statement in `index.css`) — see
+  `button.module.css`. **This will recur** for any other converted
+  module's property that a not-yet-converted consumer overrides via a
+  Tailwind utility; check for it specifically in Phases 3–7, and verify
+  with `getComputedStyle`, not just by reading the CSS.
+- **`--border` and `--input` are the only two tokens with their own
+  embedded alpha** (`oklch(100% 0 0deg / 10%)` and `/ 15%`). A Tailwind
+  `<token>/<N>` opacity modifier on an *opaque* token
+  (`--primary`/`--destructive`/etc.) compiles to a straight alpha
+  substitution — `oklch(from var(--token) l c h / N%)` is the correct,
+  verified-byte-identical translation. On `--border`/`--input` specifically,
+  Tailwind instead compiles to `color-mix(in oklab, var(--token) N%,
+  transparent)`, which *multiplies* the existing alpha (15%×30% = 4.5%),
+  not overrides it — using the substitution form there is a real, visible
+  bug (input fields render as light gray, not barely-there). Two
+  not-yet-converted spots will need this when they convert: `tabs.tsx`'s
+  `dark:data-active:bg-input/30`, `field.tsx`'s
+  `has-data-checked:bg-input/30`.
+- **CSS Modules are written as real kebab-case BEM**, enforced by
+  `@jeremywalton/stylelint-bem` (installed from the npm registry —
+  `@jeremywalton/stylelint-bem`, *not* the GitHub URL, which needs a
+  `dist/` build step it doesn't have for git-based installs). This
+  **supersedes** an earlier, wrong attempt at flattening BEM into bare
+  camelCase modifier classes (`.default`, `.sizeXs`) with no real
+  separator — indistinguishable from an orphaned modifier, and invisible
+  to the linter (`stylelint-bem` only recognizes classes using the
+  configured `__`/`--` separators). `package.json`'s `css:types` script
+  runs `tcm -c`/`--camelCase` and `vite.config.ts` sets
+  `css.modules.localsConvention: 'camelCaseOnly'` — both must convert
+  identically or the generated `.d.ts` and Vite's runtime keys silently
+  disagree; `.button--size-icon-xs` → JS `buttonSizeIconXs` in both. See
+  the Conventions section's "Class naming and structuring (BEM)" for the
+  full rules and `docs/BEM.md` for the methodology (its own
+  `PRODUCT.md`/`CHECKS.md` live only in the plugin's own repo, checked out
+  locally at `~/Workspace/stylelint-bem` on this machine — not part of
+  this repo).
+- **Native CSS nesting compiles to identical runtime behavior as flat
+  rules** — confirmed with Playwright (`getComputedStyle`) before/after
+  nesting every Phase 2 module, including the trickier bits (the `@layer`
+  position fix, a `color-mix` background, and a nested `@media
+  (prefers-reduced-motion: no-preference)` block gating `:active` press
+  feedback, verified with a real `page.mouse.down()`/`.up()`, not a
+  `getComputedStyle(el, ':active')` call — that doesn't simulate the
+  pseudo-class at all and always returns the rest-state value).
+- **Don't editorialize preserved-but-currently-unexercised component
+  styling as "dead code"** in comments or chat — port it faithfully,
+  silently. Components are full-featured; not every feature needs a call
+  site in this app today. Applies to `kbd`'s tooltip/input-group nesting,
+  `label`'s peer/group-disabled styling, `badge`/`button`'s
+  `:has([data-icon=…])` rules — none have a current call site, all are
+  kept.
+- **`separator`'s `[data-orientation]` attribute never actually applied**
+  — the installed `@base-ui/react` version's `Separator` never renders
+  that attribute (checked its source directly), and `Separator` itself
+  was unused anywhere in the app (`FieldSeparator` in `field.tsx` is
+  dead). Converted to a real `cva()` call driven by the `orientation`
+  prop instead of the (inert) attribute selector — incidentally the one
+  place this migration's CSS is *more* correct than the pre-migration
+  Tailwind version, not just equivalent.
+
+### Facts established drafting this plan (an earlier session — don't re-derive)
 
 - **Scale:** 14 `ui/` primitives, 15 app components, `App.tsx`, ~2,540 lines
   of TSX total. `index.css` is 203 lines. Largest files: `dropdown-menu`
@@ -1126,6 +1238,17 @@ before Phases 3, 4 and 5. The ones this migration can plausibly break:
 - `AlertDialogAction` **does not auto-close** in Base UI; consumers close
   themselves in `onClick`.
 - `aspect-ratio.tsx`'s hand-applied `{...style, '--ratio': ratio}` merge.
+- **Button's `sizeIconXs`/`sizeIconSm` `position: relative` lives in
+  `@layer base`**, not the module's main nested block (see Facts above).
+  Don't "clean this up" by moving it back inside `.button { }` — that
+  silently reintroduces the position bug for any not-yet-converted
+  consumer overriding it via a Tailwind `absolute` class.
+- **`tcm -c` and `vite.config.ts`'s `localsConvention: 'camelCaseOnly'`
+  must change together, never one without the other** — they're what keep
+  kebab-case BEM CSS and camelCase JS property access in sync (see Facts
+  above). A change to one without the other is a silent, type-checked-away
+  mismatch (the `.d.ts` would list a key Vite's runtime object doesn't
+  actually have, or vice versa).
 
 ### Reference docs
 
@@ -1133,5 +1256,6 @@ before Phases 3, 4 and 5. The ones this migration can plausibly break:
 preserve), `docs/TECHNICAL_DESIGN.md` (stack, gotchas, testing focus),
 `docs/DATA_FORMATS.md` (untouched by this work), `docs/BEM.md` (the
 Block/Element/Modifier structuring methodology this plan's "Class naming and
-structuring" convention applies), `AGENTS.md` (commands, comment style, plan
-conventions).
+structuring" convention applies — its own linked `PRODUCT.md`/`CHECKS.md`
+are in the `stylelint-bem` package repo, not this one), `AGENTS.md`
+(commands, comment style, plan conventions).
