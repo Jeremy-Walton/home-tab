@@ -30,6 +30,7 @@ registry component can still be pulled in and then converted to CSS Modules
 | CSS Module typing | Generated `.d.ts` per module via `typed-css-modules` (`tcm`), gitignored, regenerated before `tsc` in the mechanical check. |
 | Mechanical check | `css:types` → `lint` → `stylelint` → `tsc -b` → `test`, wrapped as `yarn check`, plus a Tailwind-residue grep. No `yarn build` (not selected). |
 | Phase granularity | Grouped by tier, 9 phases (0–8). |
+| Class structuring methodology | **BEM (Block/Element/Modifier), per `docs/BEM.md`** — adapted to this project's camelCase/CSS-Modules convention rather than BEM's literal kebab-case `__`/`--` syntax (see that doc's "Applying this to this project's CSS Modules" section). Block = the module's root class (`.tile`); Element = a flattened child class scoped to that module (`.tileHeader`, not `.tile__tileHeader` — CSS Modules' file scoping already gives the collision-safety BEM's `__` prefix is for); Modifier = a composed sibling class or CVA variant, not a literal `--` suffix. Also pulls in BEM's non-naming rule: a component owns its own look/feel and its slotted elements' layout, not its own position within the page — avoid `margin` on a module's root class; trust the parent to position it. |
 
 ## Conventions
 
@@ -52,11 +53,36 @@ other (e.g. `badge`'s `.default`/`.secondary`/`.destructive`/…) each keep
 their own top-level rule — nesting is for a class's relationship to *itself*
 in different states, not a way to group unrelated sibling classes together.
 
-**Class naming.** Write class names in `camelCase` in the CSS itself and
-leave Vite's `localsConvention` at its default (identity mapping). This keeps
-`tcm`'s generated `.d.ts` and Vite's runtime keys identical — a
-`camelCaseOnly` conversion in one but not the other is a silent
-class-name mismatch that nothing catches.
+**Class naming and structuring (BEM).** Every module is structured per
+`docs/BEM.md`'s Block/Element/Modifier methodology, written in `camelCase`
+rather than BEM's literal kebab-case `__`/`--` syntax:
+
+- **Block** — the module's root class, generally matching the component's
+  own name (`LinkTile.module.css`'s `.tile`, `dialog.module.css`'s
+  `.dialog`).
+- **Element** — a child class scoped to that block, flattened rather than
+  nested per-ancestor (`.tileHeader`, not `.tile__tileHeader` or
+  `.header__title`) — CSS Modules' per-file scoping already gives the
+  collision-safety BEM's `__` prefix exists for, so the separator is
+  dropped, not renamed.
+- **Modifier** — a composed sibling class (`cn(styles.tile, isActive &&
+  styles.active)`) or a CVA variant key, per the module's own convention —
+  never a literal `--` suffix.
+- **No orphaned elements/modifiers.** An element class is only ever used
+  inside its block's own JSX subtree; a modifier class is only ever
+  combined with its base class, never applied alone.
+- **No margin on a block's own root class.** Per BEM.md's "Structure"
+  section, a component owns its own look/feel and the layout of its
+  slotted elements, but not its position within the page — that's the
+  parent's job (grid/flex gap, not margin). Watch for this specifically
+  when transcribing Tailwind spacing utilities that used `m-*`/`mt-*`/etc.
+  on a component's own root element; translate those to the parent's
+  layout instead of porting a literal `margin` declaration.
+
+Separately: leave Vite's `localsConvention` at its default (identity
+mapping) so `tcm`'s generated `.d.ts` and Vite's runtime keys stay
+identical — a `camelCaseOnly` conversion in one but not the other is a
+silent class-name mismatch that nothing catches.
 
 **Token usage.** Every color, radius, easing, duration, spacing, font size,
 shadow and z-index in a module is `var(--token)`. Literal values are allowed
@@ -82,9 +108,13 @@ var(--token) l c h / N%)`.
 
 **Cross-component styling (the `group-hover:` translation).** Tailwind's
 `group`/`group-hover:` pairs span component boundaries — e.g. `LinkTile`'s
-outer `div.group` styling the `AspectRatio` it renders. The CSS Modules
-equivalent is to keep *both* classes in the *parent's* module and pass the
-child one down as a `className` prop:
+outer `div.group` styling the `AspectRatio` it renders. This is the one
+place BEM's "an element only belongs to its own block" rule doesn't apply
+cleanly, since `AspectRatio` is itself a separate block (its own component)
+rather than an element of `LinkTile`. The CSS Modules equivalent is to keep
+*both* classes in the *parent's* module and pass the child one down as a
+`className` prop — the parent block reaching into a child block it composes,
+not a same-block element reference:
 
 ```css
 /* LinkTile.module.css */
@@ -1000,5 +1030,7 @@ before Phases 3, 4 and 5. The ones this migration can plausibly break:
 
 `docs/PRD.md` (product behavior — the visual contract this migration must
 preserve), `docs/TECHNICAL_DESIGN.md` (stack, gotchas, testing focus),
-`docs/DATA_FORMATS.md` (untouched by this work), `AGENTS.md` (commands,
-comment style, plan conventions).
+`docs/DATA_FORMATS.md` (untouched by this work), `docs/BEM.md` (the
+Block/Element/Modifier structuring methodology this plan's "Class naming and
+structuring" convention applies), `AGENTS.md` (commands, comment style, plan
+conventions).

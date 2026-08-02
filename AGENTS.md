@@ -9,6 +9,7 @@ Launch Tabs (a.k.a. Home Tab) — a browser new-tab dashboard for quickly naviga
 Product requirements: @docs/PRD.md
 Architecture and stack decisions: @docs/TECHNICAL_DESIGN.md
 Export/import wire formats: @docs/DATA_FORMATS.md
+CSS Modules structuring methodology (Block/Element/Modifier): @docs/BEM.md
 
 ## Plans
 
