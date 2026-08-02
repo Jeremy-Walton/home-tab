@@ -4,10 +4,10 @@
   align-items: center;
   justify-content: center;
   border: 1px solid transparent;
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-4x-large);
   background-clip: padding-box;
   font-weight: var(--font-weight-medium);
-  font-size: var(--text-sm);
+  font-size: var(--text-small);
   white-space: nowrap;
   transition-property: color, background-color, box-shadow, scale;
   transition-duration: 150ms;
@@ -38,8 +38,8 @@
 
 .button svg {
   flex-shrink: 0;
-  width: var(--space-4);
-  height: var(--space-4);
+  width: var(--space-medium);
+  height: var(--space-medium);
   pointer-events: none;
 }
 
@@ -59,7 +59,7 @@
 
 .outline:hover {
   color: var(--foreground);
-  background: oklch(from var(--input) l c h / 30%);
+  background: color-mix(in oklab, var(--input) 30%, transparent);
 }
 
 .outline:global([aria-expanded='true']) {
@@ -115,102 +115,112 @@
 }
 
 .sizeDefault {
-  height: 2.25rem;
-  gap: var(--space-1_5);
-  padding-inline: var(--space-3);
+  height: var(--space-4x-large);
+  gap: var(--space-x-small);
+  padding-inline: var(--space-small);
 }
 
 .sizeDefault:has([data-icon='inline-end']) {
-  padding-inline-end: var(--space-2_5);
+  padding-inline-end: var(--space-small);
 }
 
 .sizeDefault:has([data-icon='inline-start']) {
-  padding-inline-start: var(--space-2_5);
+  padding-inline-start: var(--space-small);
 }
 
 .sizeXs {
-  height: var(--space-6);
-  gap: var(--space-1);
-  padding-inline: var(--space-2_5);
-  font-size: var(--text-xs);
+  height: var(--space-x-large);
+  gap: var(--space-2x-small);
+  padding-inline: var(--space-small);
+  font-size: var(--text-x-small);
 }
 
 .sizeXs:has([data-icon='inline-end']) {
-  padding-inline-end: var(--space-2);
+  padding-inline-end: var(--space-x-small);
 }
 
 .sizeXs:has([data-icon='inline-start']) {
-  padding-inline-start: var(--space-2);
+  padding-inline-start: var(--space-x-small);
 }
 
 .sizeXs svg {
-  width: var(--space-3);
-  height: var(--space-3);
+  width: var(--space-small);
+  height: var(--space-small);
 }
 
 .sizeSm {
-  height: var(--space-8);
-  gap: var(--space-1);
-  padding-inline: var(--space-3);
+  height: var(--space-3x-large);
+  gap: var(--space-2x-small);
+  padding-inline: var(--space-small);
 }
 
 .sizeSm:has([data-icon='inline-end']) {
-  padding-inline-end: var(--space-2);
+  padding-inline-end: var(--space-x-small);
 }
 
 .sizeSm:has([data-icon='inline-start']) {
-  padding-inline-start: var(--space-2);
+  padding-inline-start: var(--space-x-small);
 }
 
 .sizeLg {
-  height: 2.5rem;
-  gap: var(--space-1_5);
-  padding-inline: var(--space-4);
+  height: var(--space-5x-large);
+  gap: var(--space-x-small);
+  padding-inline: var(--space-medium);
 }
 
 .sizeLg:has([data-icon='inline-end']) {
-  padding-inline-end: var(--space-3);
+  padding-inline-end: var(--space-small);
 }
 
 .sizeLg:has([data-icon='inline-start']) {
-  padding-inline-start: var(--space-3);
+  padding-inline-start: var(--space-small);
 }
 
 .sizeIcon {
-  width: 2.25rem;
-  height: 2.25rem;
+  width: var(--space-4x-large);
+  height: var(--space-4x-large);
 }
 
 .sizeIconXs {
-  position: relative;
-  width: var(--space-6);
-  height: var(--space-6);
+  width: var(--space-x-large);
+  height: var(--space-x-large);
+}
+
+@layer base {
+  :where(.sizeIconXs) {
+    position: relative;
+  }
 }
 
 .sizeIconXs::before {
   content: '';
   position: absolute;
-  inset: calc(-1 * var(--space-2));
+  inset: calc(-1 * var(--space-x-small));
 }
 
 .sizeIconXs svg {
-  width: var(--space-3);
-  height: var(--space-3);
+  width: var(--space-small);
+  height: var(--space-small);
 }
 
 .sizeIconSm {
-  position: relative;
-  width: var(--space-8);
-  height: var(--space-8);
+  width: var(--space-3x-large);
+  height: var(--space-3x-large);
+}
+
+@layer base {
+  :where(.sizeIconSm) {
+    position: relative;
+  }
 }
 
 .sizeIconSm::before {
   content: '';
   position: absolute;
-  inset: calc(-1 * var(--space-1));
+  inset: calc(-1 * var(--space-2x-small));
 }
 
 .sizeIconLg {
-  width: 2.5rem;
-  height: 2.5rem;
+  width: var(--space-5x-large);
+  height: var(--space-5x-large);
 }

@@ -18,7 +18,8 @@ registry component can still be pulled in and then converted to CSS Modules
 | Test file location | Top-level `tests/`, mirroring `src/`'s subfolders; `setup.ts` + `testDb.ts` → `tests/support/`. `src/` ends with zero test files. |
 | Component folder shape | Folder named after the component, files inside share that name, **no barrel** — `components/ui/button/{button.tsx,button.module.css}`, imported as `@/components/ui/button/button`. |
 | Design tokens | One global `src/styles/tokens.css` holding the existing color/radius/motion vars **plus** explicit vars for the scales Tailwind implied (spacing, font size, line height, font weight, shadow, z-index). Modules reference `var()`, not magic numbers. |
-| Dead tokens (`--sidebar-*`, `--chart-*`) | **Kept** — pruning them was offered and explicitly not chosen. |
+| Tokens/styling with no call site in this app yet (`--sidebar-*`, `--chart-*`, a component's disabled-state or nested-context rules, etc.) | **Kept, ported faithfully, no comments calling it out.** These are full-featured components; parity means porting the whole component, not just the parts this app's current call sites happen to exercise. |
+| Scale token naming | **Named tiers, not numeric/abbreviated, for every scale.** Applies to `space` (`--space-3x-small` … `--space-5x-large`, `0.125rem`→`2.5rem`), `text` (`--text-x-small/small/medium/large`, replacing Tailwind's `xs/sm/base/lg`), `radius` (`--radius-small/medium/large/x-large/2x-large/3x-large/4x-large`, replacing `sm/md/lg/xl/2xl/3xl/4xl`), and `shadow` (`--shadow-small/large/x-large`, replacing `sm/lg/xl`) — the `small…large` + `Nx-` prefix vocabulary is the one naming convention for every scale in `tokens.css`. `font-weight` keeps its CSS-spec names (`normal/medium/semibold`) since those are already semantic, not numeric. Component spacing/sizing is snapped to the nearest defined tier rather than adding a token per exact pre-migration pixel value — see Phase 2 status notes for the mapping. |
 | Light theme / `dark:` variants | **Collapsed to dark-only.** Every `dark:` override resolves to its winning (dark) value; light `:root` values are discarded; dark values are flattened into `:root`. |
 | `<html class="dark">` | **Kept** (amended — the original decision dropped it). Harmless once tokens are flattened into `:root`, and required for the retained shadcn scratch path to preview registry components correctly. |
 | CSS reset | Andy Bell's modern reset, verbatim (supplied by the user — see Phase 1). |
@@ -43,6 +44,23 @@ shadow and z-index in a module is `var(--token)`. Literal values are allowed
 only for one-off geometry that has no scale equivalent (e.g. `16 / 9`,
 `-1px`).
 
+**Translating a Tailwind `<color>/<alpha>` modifier.** For a token whose own
+value is fully opaque (`--primary`, `--destructive`, `--ring`, `--muted`,
+etc.), `bg-foo/40` becomes `oklch(from var(--foo) l c h / 40%)` — a straight
+alpha substitution, confirmed byte-identical to Tailwind's own output via
+Playwright (`getComputedStyle`) for several of these. **But `--border` and
+`--input` are themselves already translucent** (`oklch(100% 0 0deg / 10%)`
+and `/ 15%` respectively) — for those two, Tailwind can't algebraically
+substitute an alpha it doesn't know at build time, so it compiles
+`bg-input/50` to `color-mix(in oklab, var(--input) 50%, transparent)`
+instead, which *multiplies* the existing alpha (15% × 50% = 7.5%), not
+overrides it. Using the `oklch(from …)` substitution on `--border`/`--input`
+silently produces a far more opaque, visibly-wrong result (confirmed as a
+real bug in `input`'s and `button`'s Phase 2 conversion — see status notes).
+Rule: `--border`/`--input` always translate to `color-mix(in oklab,
+var(--token) N%, transparent)`; every other (opaque) token uses `oklch(from
+var(--token) l c h / N%)`.
+
 **Cross-component styling (the `group-hover:` translation).** Tailwind's
 `group`/`group-hover:` pairs span component boundaries — e.g. `LinkTile`'s
 outer `div.group` styling the `AspectRatio` it renders. The CSS Modules
@@ -51,7 +69,7 @@ child one down as a `className` prop:
 
 ```css
 /* LinkTile.module.css */
-.tile:hover .surface { box-shadow: var(--shadow-xl); }
+.tile:hover .surface { box-shadow: var(--shadow-x-large); }
 ```
 ```tsx
 <div className={styles.tile}>
@@ -160,11 +178,13 @@ the app renders identically (Tailwind still supplies everything).
    - the **dark** values of every `:root`/`.dark` var, flattened into a single
      `:root` block (light values discarded per the dark-only decision);
      `--sidebar-*` and `--chart-*` kept as-is
-   - `--radius` + the `--radius-sm…4xl` calc chain
+   - `--radius` + the `--radius-small…4x-large` calc chain
    - `--ease-out-strong`, `--ease-in-out-strong`
-   - **new**: `--space-0_5 … --space-8` (Tailwind's 0.125rem steps),
-     `--text-xs/sm/base/lg` + line heights, `--font-weight-medium/semibold`,
-     `--shadow-sm/lg/xl`, `--z-popup: 50`, and the two font stacks
+   - **new**: `--space-3x-small … --space-5x-large` (a named scale, not
+     Tailwind's numeric multiples — see Decisions),
+     `--text-x-small/small/medium/large` + line heights,
+     `--font-weight-medium/semibold`,
+     `--shadow-small/large/x-large`, `--z-popup: 50`, and the two font stacks
      (`--font-sans`, `--font-heading`)
    - Derive each new value by reading it off the current Tailwind output, not
      from memory — `yarn dev` + devtools computed styles on a real element.
@@ -412,20 +432,10 @@ imports `./ui/button|badge|kbd|input|label|separator|aspect-ratio`.
   the app and none passes an explicit size override today, so the escape
   hatch would be unexercised. Applied the same plain-default approach to
   `kbd`/`badge` for consistency.
-- **`separator`**: the installed `@base-ui/react` version's `Separator`
-  component doesn't actually render a `data-orientation` attribute (checked
-  its source directly) — and `Separator` itself is never rendered anywhere
-  in the app (`FieldSeparator` in `field.tsx` is unused). The
-  `[data-orientation="…"]` sizing rules are therefore inert both before and
-  after this conversion; ported the *intended* (correct, standard) attribute
-  name rather than literally reproducing dead Tailwind classes, since a
-  future Base UI upgrade may restore the attribute.
-- **`label`'s `peer`/`group` disabled-state styling** and **`kbd`'s
-  tooltip/input-group-nested styling** are also currently unreachable (no
-  disabled form field, no nested-in-tooltip Kbd exist in this app today) but
-  were ported faithfully rather than dropped, consistent with this plan's
-  earlier decision to keep other currently-unused pieces (`--sidebar-*`/
-  `--chart-*` tokens) rather than prune opportunistically.
+- **`separator`**: ported `[data-orientation="…"]` sizing using the correct,
+  standard Base UI attribute name (verified against `@base-ui/react`'s own
+  source) rather than Tailwind's literal `data-horizontal`/`data-vertical`
+  class names, which never corresponded to a real DOM attribute.
 - Used `oklch(from var(--x) l c h / N%)` (CSS relative color syntax) as the
   standard translation for every Tailwind `<color>/<alpha>` modifier
   (`bg-primary/80`, `ring-ring/30`, etc.) — exact and requires no new tokens.
@@ -433,6 +443,86 @@ imports `./ui/button|badge|kbd|input|label|separator|aspect-ratio`.
   Decisions table, e.g. `badge`'s destructive variant ended up
   `oklch(from var(--destructive) l c h / 20%)` background (the `dark:`
   value), not the light-mode `/10%` in the original source.
+- **Spacing scale**: `tokens.css` uses the named scale from the Decisions
+  table (`--space-3x-small` … `--space-5x-large`) instead of the numeric
+  half-steps Phase 1 originally shipped. Every component's spacing was
+  snapped to the nearest tier, rounding an in-between value up to the next
+  full tier (e.g. Tailwind's `gap-1.5`/0.375rem → `--space-x-small`/0.5rem,
+  `px-2.5`/0.625rem → `--space-small`/0.75rem) rather than adding a token
+  per exact pixel value. `button`'s literal `2.25rem`/`2.5rem` heights
+  (`h-9`/`size-9` and `h-10`/`size-10`, previously left as literals since
+  they exceeded the old numeric scale) are now `--space-4x-large` and
+  `--space-5x-large` — the extended scale covers them natively.
+- **Every other scale in `tokens.css` renamed to match** (`text`, `radius`,
+  `shadow`): `--text-xs/sm/base/lg` → `--text-x-small/small/medium/large`,
+  `--radius-sm/md/lg/xl/2xl/3xl/4xl` → `--radius-small/medium/large/
+  x-large/2x-large/3x-large/4x-large`, `--shadow-sm/lg/xl` →
+  `--shadow-small/large/x-large`. `font-weight` was left alone
+  (`normal/medium/semibold` are already semantic, not numeric). All
+  converted components (`badge`, `button`, `kbd`, `input`, `label`) updated
+  to the new names — no value changes here, since these tokens' values were
+  already exact matches at every call site (unlike `space`, nothing needed
+  snapping to a different tier).
+- **Bug found in browser testing (twice — the first fix was wrong), now
+  actually fixed**: `button`'s `sizeIconXs`/`sizeIconSm` set
+  `position: relative` (needed for the `::before` hit-area trick) as a
+  plain CSS Module rule. Several not-yet-converted consumers (`dialog.tsx`'s
+  close button, `EntityOptionsMenu`'s kebab trigger used by both
+  `DashboardTabs` and `LinkTile`) pass a Tailwind `absolute` utility class
+  expecting to override that. Root cause is **not** specificity — it's CSS
+  Cascade Layers. `@import "tailwindcss"` wraps every generated utility in
+  `@layer theme, base, components, utilities;`, and *unlayered* CSS always
+  beats *any* layered CSS regardless of specificity (that's the layer tier
+  of the cascade, checked before specificity). Plain CSS Module rules are
+  unlayered, so `.sizeIconXs`'s `position: relative` was unconditionally
+  beating Tailwind's layered `.absolute`, no matter what. My first attempt
+  (wrapping the declaration in `:where(.sizeIconXs)` for zero specificity)
+  had no effect, because the fight was never at the specificity tier —
+  confirmed by inspecting `getComputedStyle(...).position` live in a
+  browser both before and after that change, still `"relative"` either way.
+  The actual fix: put the declaration in `@layer base` — reusing Tailwind's
+  *own* `base` layer name (already registered lower than `utilities` by
+  its layer-order statement), so it now loses to any Tailwind utility for
+  the same property, exactly like an unlayered author style is supposed to
+  be beatable by nothing except `!important`/inline styles, while a
+  same-named-layer rule sorts into Tailwind's own precedence order. Verified
+  live: `position` computed as `"absolute"` for both the dialog close
+  button and the dashboard-tab kebab after this change, and confirmed
+  visually (kebab centered in the pill, close button pinned top-right).
+  This is a temporary, migration-period-only concern — it disappears
+  entirely once Phase 8 removes Tailwind from the runtime, since there's no
+  more layered utility CSS to lose to. Until then, watch for the same
+  pattern in other converted modules: any CSS-Module rule setting a
+  property that a not-yet-converted consumer overrides via a Tailwind
+  utility class needs the same `@layer base` treatment, not a specificity
+  trick.
+- **Lesson**: don't trust a plausible-sounding CSS cascade explanation
+  without checking `getComputedStyle` in an actual browser — the
+  specificity theory was reasonable-sounding and wrong, and shipping it
+  without verification is exactly why the user caught it, not me.
+- **Third bug found in browser testing**: `input`'s and `button`'s
+  `bg-input/50` and `dark:hover:bg-input/30` were translated as
+  `oklch(from var(--input) l c h / 50%)` / `/ 30%` — wrong, because
+  `--input` is itself already translucent (`oklch(100% 0 0deg / 15%)`), so
+  this substitution *overrode* the 15% alpha with 50%/30% instead of
+  *multiplying* it, rendering input fields as a visibly light gray instead
+  of the intended barely-there overlay. Verified Tailwind's actual compiled
+  output for `bg-input/30` with Playwright: `color-mix(in oklab,
+  var(--input) 30%, transparent)`, giving an effective alpha of 15%×30% =
+  4.5% — confirmed byte-identical (`oklab(1 0 0 / 0.045)`) between
+  Tailwind's own rule and the `color-mix()` replacement in a real page.
+  Fixed both spots to use `color-mix(in oklab, var(--token) N%,
+  transparent)`; see the new Conventions entry above ("Translating a
+  Tailwind `<color>/<alpha>` modifier") — this is the general rule for
+  `--border`/`--input` specifically, the only two tokens with their own
+  embedded alpha, and needs rechecking anywhere else in later phases a
+  `border/N` or `input/N` opacity modifier shows up (e.g. `tabs.tsx`'s
+  `dark:data-active:bg-input/30` and `field.tsx`'s `has-data-checked:
+  bg-input/30`, both still Tailwind-only, both due in later phases).
+  Verification for this one used Playwright directly (per the user's
+  request — faster than the chrome-extension tool for scripted
+  computed-style checks) rather than the chrome MCP tools used for the
+  previous two bugs.
 
 **Browser verification (you):**
 - Every button variant: primary (dialog Save), outline, secondary (tile

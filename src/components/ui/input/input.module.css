@@ -1,24 +1,24 @@
 .input {
   width: 100%;
   min-width: 0;
-  height: 2.25rem;
+  height: var(--space-4x-large);
   border: 1px solid transparent;
-  border-radius: var(--radius-3xl);
-  padding-inline: var(--space-3);
-  padding-block: var(--space-1);
+  border-radius: var(--radius-3x-large);
+  padding-inline: var(--space-small);
+  padding-block: var(--space-2x-small);
   color: inherit;
-  font-size: var(--text-sm);
-  background: oklch(from var(--input) l c h / 50%);
+  font-size: var(--text-small);
+  background: color-mix(in oklab, var(--input) 50%, transparent);
   outline: none;
   transition-property: color, box-shadow, background-color;
   transition-duration: 150ms;
 }
 
 .input::file-selector-button {
-  height: var(--space-7);
+  height: var(--space-2x-large);
   border: 0;
   color: var(--foreground);
-  font-size: var(--text-sm);
+  font-size: var(--text-small);
   font-weight: var(--font-weight-medium);
   background: transparent;
   display: inline-flex;

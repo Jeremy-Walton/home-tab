@@ -1,18 +1,18 @@
 .badge {
   display: inline-flex;
   width: fit-content;
-  height: var(--space-5);
+  height: var(--space-large);
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  gap: var(--space-1);
+  gap: var(--space-2x-small);
   overflow: hidden;
   border: 1px solid transparent;
-  border-radius: var(--radius-3xl);
-  padding-inline: var(--space-2);
-  padding-block: var(--space-0_5);
+  border-radius: var(--radius-3x-large);
+  padding-inline: var(--space-x-small);
+  padding-block: var(--space-3x-small);
   font-weight: var(--font-weight-medium);
-  font-size: var(--text-xs);
+  font-size: var(--text-x-small);
   white-space: nowrap;
   transition-property: color, background-color;
   transition-duration: 150ms;
@@ -29,19 +29,17 @@
 }
 
 .badge svg {
-  width: var(--space-3) !important;
-  height: var(--space-3) !important;
+  width: var(--space-small) !important;
+  height: var(--space-small) !important;
   pointer-events: none;
 }
 
-/* No current consumer marks a child icon this way, kept for parity with
-   the registry default. */
 .badge:has([data-icon='inline-end']) {
-  padding-inline-end: var(--space-1_5);
+  padding-inline-end: var(--space-x-small);
 }
 
 .badge:has([data-icon='inline-start']) {
-  padding-inline-start: var(--space-1_5);
+  padding-inline-start: var(--space-x-small);
 }
 
 .default {
@@ -106,16 +104,16 @@
   color: white;
   text-overflow: ellipsis;
   white-space: nowrap;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-large);
   background: rgb(0 0 0 / 50%);
 }
 
 .shortcut {
-  min-width: var(--space-4);
-  height: var(--space-4);
+  min-width: var(--space-medium);
+  height: var(--space-medium);
   border: none;
   border-radius: 9999px;
-  padding-inline: var(--space-1);
+  padding-inline: var(--space-2x-small);
   color: var(--background);
   font-weight: var(--font-weight-semibold);
   font-size: 0.625rem;

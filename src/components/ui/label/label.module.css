@@ -1,16 +1,13 @@
 .label {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  font-size: var(--text-sm);
+  gap: var(--space-x-small);
+  font-size: var(--text-small);
   font-weight: var(--font-weight-medium);
   line-height: 1;
   user-select: none;
 }
 
-/* No current consumer renders a disabled peer input or a `group` ancestor
-   with data-disabled — this app never disables form fields — kept for
-   parity with the registry default. */
 :global(.group[data-disabled='true']) .label {
   pointer-events: none;
   opacity: 0.5;

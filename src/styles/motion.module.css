@@ -53,7 +53,7 @@
 
 @keyframes slideInFromTop {
   from {
-    translate: 0 calc(-1 * var(--space-2));
+    translate: 0 calc(-1 * var(--space-x-small));
   }
 
   to {
@@ -63,7 +63,7 @@
 
 @keyframes slideInFromBottom {
   from {
-    translate: 0 var(--space-2);
+    translate: 0 var(--space-x-small);
   }
 
   to {
@@ -73,7 +73,7 @@
 
 @keyframes slideInFromLeft {
   from {
-    translate: calc(-1 * var(--space-2)) 0;
+    translate: calc(-1 * var(--space-x-small)) 0;
   }
 
   to {
@@ -83,7 +83,7 @@
 
 @keyframes slideInFromRight {
   from {
-    translate: var(--space-2) 0;
+    translate: var(--space-x-small) 0;
   }
 
   to {
