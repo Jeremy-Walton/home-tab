@@ -30,7 +30,7 @@ registry component can still be pulled in and then converted to CSS Modules
 | CSS Module typing | Generated `.d.ts` per module via `typed-css-modules` (`tcm`), gitignored, regenerated before `tsc` in the mechanical check. |
 | Mechanical check | `css:types` → `lint` → `stylelint` → `tsc -b` → `test`, wrapped as `yarn check`, plus a Tailwind-residue grep. No `yarn build` (not selected). |
 | Phase granularity | Grouped by tier, 9 phases (0–8). |
-| Class structuring methodology | **BEM (Block/Element/Modifier), per `docs/BEM.md`** — adapted to this project's camelCase/CSS-Modules convention rather than BEM's literal kebab-case `__`/`--` syntax (see that doc's "Applying this to this project's CSS Modules" section). Block = the module's root class (`.tile`); Element = a flattened child class scoped to that module (`.tileHeader`, not `.tile__tileHeader` — CSS Modules' file scoping already gives the collision-safety BEM's `__` prefix is for); Modifier = a composed sibling class or CVA variant, not a literal `--` suffix. Also pulls in BEM's non-naming rule: a component owns its own look/feel and its slotted elements' layout, not its own position within the page — avoid `margin` on a module's root class; trust the parent to position it. |
+| Class structuring methodology | **BEM (Block/Element/Modifier), per `docs/BEM.md`, enforced by `@jeremywalton/stylelint-bem`.** **Supersedes the camelCase-adapted version below** — CSS source is now literal kebab-case BEM (`.button`, `.button--outline`, `.kbd-group`), the real `__`/`--` separators, not a camelCase-flattened stand-in. `tcm -c`/`--camelCase` (`css:types` script) and Vite's `css.modules.localsConvention: 'camelCaseOnly'` (`vite.config.ts`) convert every class to a camelCase JS property (`.button--size-icon-xs` → `styles.buttonSizeIconXs`), so `.tsx` call sites still read as camelCase even though the `.css` source doesn't. See Phase 2 status notes for why the plain-camelCase version didn't survive contact with a deterministic linter. |
 
 ## Conventions
 
@@ -54,23 +54,27 @@ their own top-level rule — nesting is for a class's relationship to *itself*
 in different states, not a way to group unrelated sibling classes together.
 
 **Class naming and structuring (BEM).** Every module is structured per
-`docs/BEM.md`'s Block/Element/Modifier methodology, written in `camelCase`
-rather than BEM's literal kebab-case `__`/`--` syntax:
+`docs/BEM.md`'s Block/Element/Modifier methodology, written as **real
+kebab-case BEM** — literal `__`/`--` separators, not a camelCase stand-in
+(see "Superseded: camelCase-flattened BEM" below for why):
 
 - **Block** — the module's root class, generally matching the component's
   own name (`LinkTile.module.css`'s `.tile`, `dialog.module.css`'s
   `.dialog`).
-- **Element** — a child class scoped to that block, flattened rather than
-  nested per-ancestor (`.tileHeader`, not `.tile__tileHeader` or
-  `.header__title`) — CSS Modules' per-file scoping already gives the
-  collision-safety BEM's `__` prefix exists for, so the separator is
-  dropped, not renamed.
-- **Modifier** — a composed sibling class (`cn(styles.tile, isActive &&
-  styles.active)`) or a CVA variant key, per the module's own convention —
-  never a literal `--` suffix.
-- **No orphaned elements/modifiers.** An element class is only ever used
-  inside its block's own JSX subtree; a modifier class is only ever
-  combined with its base class, never applied alone.
+- **Element** — a child class nested inside its block via native CSS
+  nesting, one level flat (`.tile__header`, never
+  `.tile__header__title` — flatten to `.tile__title`).
+- **Modifier** — always compounded with its block or element, either as
+  `&.block--modifier` nested inside the block's own rule, or
+  `.block.block--modifier` written directly (both equivalent; see
+  `docs/BEM.md`'s nesting example and `CHECKS.md`'s `require-nesting` rule
+  for the exact accepted shapes). A CVA variant's class value is a modifier
+  by this same rule — `variant: { outline: styles.buttonOutline }` maps to
+  the CSS `&.button--outline { }`, never a bare `&.outline { }`.
+- **No orphaned elements/modifiers.** `stylelint-bem/no-orphaned-element`
+  and `stylelint-bem/no-orphaned-modifier` enforce this mechanically — a
+  `.block__element`/`.block--modifier` is invalid unless `.block` is
+  defined somewhere in the project.
 - **No margin on a block's own root class.** Per BEM.md's "Structure"
   section, a component owns its own look/feel and the layout of its
   slotted elements, but not its position within the page — that's the
@@ -79,10 +83,41 @@ rather than BEM's literal kebab-case `__`/`--` syntax:
   on a component's own root element; translate those to the parent's
   layout instead of porting a literal `margin` declaration.
 
-Separately: leave Vite's `localsConvention` at its default (identity
-mapping) so `tcm`'s generated `.d.ts` and Vite's runtime keys stay
-identical — a `camelCaseOnly` conversion in one but not the other is a
-silent class-name mismatch that nothing catches.
+Enforced by `@jeremywalton/stylelint-bem`'s five rules (`stylelint.config.js`):
+`valid-name`, `no-orphaned-element`, `no-orphaned-modifier`,
+`no-double-nested-element`, `require-nesting` (default `strict`). Native
+pseudo-classes/attributes (`:hover`, `:focus-visible`, `:disabled`,
+`[aria-invalid]`, ancestor/sibling context selectors like `kbd`'s
+tooltip-nesting or `label`'s peer/group-disabled) are **not** BEM modifiers
+and are left as plain selectors — they don't use the configured separators,
+so the plugin ignores them entirely, and there's no component prop to drive
+a modifier class from for genuinely external/native state.
+
+Keeping JS ergonomic despite kebab-case CSS: `package.json`'s `css:types`
+script runs `tcm` with `-c`/`--camelCase`, and `vite.config.ts` sets
+`css.modules.localsConvention: 'camelCaseOnly'` — both convert
+`.button--size-icon-xs` to the single JS property `buttonSizeIconXs`, so
+`.tsx` files reference `styles.buttonSizeIconXs`, never bracket-notation
+kebab-case. The two must stay in lockstep (same conversion in both, not
+just one) or `tcm`'s generated `.d.ts` and Vite's actual runtime export
+silently disagree on key names.
+
+### Superseded: camelCase-flattened BEM
+
+Phase 2 originally shipped `docs/BEM.md` adapted to flatten BEM into bare
+camelCase classes with no real separators (`.default`, `.sizeXs`, a
+modifier being "a composed sibling class... never a literal `--` suffix").
+That version is **wrong** — a bare `.default` sibling class is
+indistinguishable from a modifier "floating free" of anything it modifies
+(exactly BEM.md's "Orphaned Modifiers" mistake), and it can't be checked
+mechanically at all: `@jeremywalton/stylelint-bem`'s rules only recognize
+class names using the configured `__`/`--` separators — a flat camelCase
+class is invisible to it, indistinguishable from a utility class. Installed
+the plugin, rewrote `button`/`badge`/`kbd`/`separator`/`aspect-ratio` to
+real kebab-case BEM class names, and only then did the tooling
+(`tcm -c`, `localsConvention: 'camelCaseOnly'`) come into the picture, to
+recover camelCase JS property access without reintroducing the ambiguity in
+the CSS source itself.
 
 **Token usage.** Every color, radius, easing, duration, spacing, font size,
 shadow and z-index in a module is `var(--token)`. Literal values are allowed
@@ -572,6 +607,72 @@ imports `./ui/button|badge|kbd|input|label|separator|aspect-ratio`.
   request — faster than the chrome-extension tool for scripted
   computed-style checks) rather than the chrome MCP tools used for the
   previous two bugs.
+- **Restructured to BEM per the user's `docs/BEM.md` addition and CVA
+  example.** All variant/size modifier classes in `button` and `badge`
+  (`.default`, `.outline`, `.sizeXs`, …) moved from separate top-level rules
+  into compound `&.modifier` selectors nested inside the block's own rule
+  (`.button { &.default { … } }`, matching `BEM.md`'s `.card { &.card--padded
+  {} }` example) — every CVA variant class is always applied alongside its
+  base class, so the compound selector is both accurate and gives modifiers
+  natural specificity over the base without relying on source order.
+  `kbd`'s `.group` (the `KbdGroup` sibling component's class) renamed to
+  `.kbdGroup` per BEM's naming guidance (prefer a specific name). `separator`
+  converted from relying on a `[data-orientation]` attribute selector to an
+  actual `cva()` call driven by the `orientation` prop, with
+  `orientationHorizontal`/`orientationVertical` modifier classes nested the
+  same way — this incidentally **fixes** the sizing rule that was inert
+  since Phase 2 started (the installed `@base-ui/react` version never
+  rendered `data-orientation`; driving it from the prop instead of the
+  attribute sidesteps that entirely). `label`, `input`, and `aspect-ratio`
+  needed no structural change — `label`/`input` were already a single block
+  with nested pseudo/attribute modifiers (no separate top-level modifier
+  classes to fold in), and `aspect-ratio` has no modifiers at all.
+  `:has([data-icon=…])` and the ancestor/sibling context selectors
+  (`kbd`'s tooltip/input-group nesting, `label`'s peer/group-disabled) were
+  **not** converted into explicit boolean CVA props — nothing in this app
+  sets `data-icon`, and the ancestor/sibling versions depend on external
+  DOM context the component doesn't receive as a prop, so there's no prop
+  to drive a modifier class from; they stay as plain attribute/combinator
+  selectors, which BEM doesn't have an opinion against for genuine
+  native-state or child-content selectors (as opposed to variant styling
+  the component's own code controls). Verified with Playwright: button
+  variants (`Save`/`Cancel` colors), the `@layer base` position fix, and
+  the newly-real separator orientation classes (created a test element
+  with the actual hashed class names and confirmed
+  `orientationHorizontal`/`orientationVertical` produce the right
+  width/height/background) all still resolve correctly after the
+  restructuring.
+- **Superseded by the next entry below.** The bare-camelCase modifier names
+  in this note (`.default`, `.sizeXs`, `.orientationHorizontal`, `.kbdGroup`)
+  were replaced with real kebab-case BEM (`.button--default`,
+  `.button--size-xs`, `.separator--horizontal`, `.kbd-group`) after
+  installing `@jeremywalton/stylelint-bem` — see "Class structuring
+  methodology" in Decisions and the Conventions section's "Superseded:
+  camelCase-flattened BEM". The structural work described above (which
+  rules got nested where) is still accurate; only the class name strings
+  changed.
+- **Installed `@jeremywalton/stylelint-bem`** (`yarn add -D
+  @jeremywalton/stylelint-bem` — the plain npm registry install; an earlier
+  attempt to install directly from its GitHub URL was unnecessary and
+  needed a Yarn `approvedGitRepositories` entry plus a manual `dist/` copy
+  to work around the package lacking a `prepare` build step for git-URL
+  installs — reverted once the correct install command was pointed out).
+  Registered all five rules in `stylelint.config.js`, converted
+  `button`/`badge`/`kbd`/`separator`/`aspect-ratio` to real kebab-case BEM
+  class names (see Conventions), and updated `selector-class-pattern` to
+  accept the new `block[__element][--modifier]` shape. One `require-nesting`
+  violation surfaced and was fixed: the `@layer base` position-fix escape
+  hatch (`sizeIconXs`/`sizeIconSm`) used `:where(.button--size-icon-xs)` —
+  a modifier not compounded with its block, which the rule correctly
+  rejects. Fixed by using a direct compound selector
+  (`.button.button--size-icon-xs`) instead — the `:where()` zero-specificity
+  trick turned out to be unnecessary now that `@layer` (not specificity)
+  is what makes the override work; layers are resolved before specificity,
+  so the compound selector's higher specificity doesn't matter. Re-verified
+  everything with Playwright after the rename (kebab/close-button position,
+  input background alpha, button variant colors, separator orientation
+  sizing, reduced-motion press feedback) — all unchanged from before the
+  rename, as expected for a pure class-name refactor.
 
 **Browser verification (you):**
 - Every button variant: primary (dialog Save), outline, secondary (tile

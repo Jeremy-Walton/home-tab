@@ -6,7 +6,7 @@ function Kbd({ className, ...props }: React.ComponentProps<'kbd'>) {
 }
 
 function KbdGroup({ className, ...props }: React.ComponentProps<'div'>) {
-  return <kbd data-slot="kbd-group" className={cn(styles.group, className)} {...props} />
+  return <kbd data-slot="kbd-group" className={cn(styles.kbdGroup, className)} {...props} />
 }
 
 export { Kbd, KbdGroup }

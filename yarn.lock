@@ -907,6 +907,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@jeremywalton/stylelint-bem@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "@jeremywalton/stylelint-bem@npm:0.1.0"
+  dependencies:
+    fast-glob: "npm:^3.3.0"
+    postcss: "npm:^8.4.0"
+    postcss-scss: "npm:^4.0.9"
+    postcss-selector-parser: "npm:^6.1.0"
+  peerDependencies:
+    stylelint: ^16.0.0 || ^17.0.0
+  checksum: 10c0/7a2365a9d1d1f31df3acff9dae0963f2fe2005f8400ddf4191cd7349c2ead247fe1899e744e75c7df373bc11d46e5c9a6ff9691fe1586adc7fcf09793ee5cca6
+  languageName: node
+  linkType: hard
+
 "@jridgewell/gen-mapping@npm:^0.3.12, @jridgewell/gen-mapping@npm:^0.3.5":
   version: 0.3.13
   resolution: "@jridgewell/gen-mapping@npm:0.3.13"
@@ -3130,7 +3144,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-glob@npm:^3.3.3":
+"fast-glob@npm:^3.3.0, fast-glob@npm:^3.3.3":
   version: 3.3.3
   resolution: "fast-glob@npm:3.3.3"
   dependencies:
@@ -4317,6 +4331,7 @@ __metadata:
     "@eslint/js": "npm:^10.0.1"
     "@fontsource-variable/figtree": "npm:^5.3.0"
     "@fontsource-variable/space-grotesk": "npm:^5.3.0"
+    "@jeremywalton/stylelint-bem": "npm:^0.1.0"
     "@phosphor-icons/react": "npm:^2.1.10"
     "@tailwindcss/vite": "npm:^4.3.3"
     "@testing-library/dom": "npm:^10.4.1"
@@ -5249,6 +5264,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"postcss-scss@npm:^4.0.9":
+  version: 4.0.9
+  resolution: "postcss-scss@npm:4.0.9"
+  peerDependencies:
+    postcss: ^8.4.29
+  checksum: 10c0/f917ecfd4b9113a6648e966a41f027ff7e14238393914978d44596e227a50f084667dc8818742348dc7d8b20130b30d4259aca1d4db86754a9c141202ae03714
+  languageName: node
+  linkType: hard
+
+"postcss-selector-parser@npm:^6.1.0":
+  version: 6.1.4
+  resolution: "postcss-selector-parser@npm:6.1.4"
+  dependencies:
+    cssesc: "npm:^3.0.0"
+    util-deprecate: "npm:^1.0.2"
+  checksum: 10c0/996f3290dee08ecb073d5f396d1134e619494cfd83140aec07a29618ee1e76d370769a8959d4c0cfefb24aa96dcffa4e7c4937dd881e03b735d50cba959ceb19
+  languageName: node
+  linkType: hard
+
 "postcss-selector-parser@npm:^7.0.0, postcss-selector-parser@npm:^7.1.0, postcss-selector-parser@npm:^7.1.4":
   version: 7.1.4
   resolution: "postcss-selector-parser@npm:7.1.4"
@@ -5266,7 +5300,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.0.0, postcss@npm:^8.5.16":
+"postcss@npm:^8.0.0, postcss@npm:^8.4.0, postcss@npm:^8.5.16":
   version: 8.5.25
   resolution: "postcss@npm:8.5.25"
   dependencies:

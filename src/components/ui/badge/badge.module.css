@@ -40,85 +40,87 @@
   &:has([data-icon='inline-start']) {
     padding-inline-start: var(--space-x-small);
   }
-}
 
-.default {
-  color: var(--primary-foreground);
-  background: var(--primary);
+  /* Modifiers: variant */
 
-  &:is(a):hover {
-    background: oklch(from var(--primary) l c h / 80%);
-  }
-}
+  &.badge--default {
+    color: var(--primary-foreground);
+    background: var(--primary);
 
-.secondary {
-  color: var(--secondary-foreground);
-  background: var(--secondary);
-
-  &:is(a):hover {
-    background: oklch(from var(--secondary) l c h / 80%);
-  }
-}
-
-.destructive {
-  color: var(--destructive);
-  background: oklch(from var(--destructive) l c h / 20%);
-
-  &:focus-visible {
-    box-shadow: 0 0 0 3px oklch(from var(--destructive) l c h / 40%);
+    &:is(a):hover {
+      background: oklch(from var(--primary) l c h / 80%);
+    }
   }
 
-  &:is(a):hover {
+  &.badge--secondary {
+    color: var(--secondary-foreground);
+    background: var(--secondary);
+
+    &:is(a):hover {
+      background: oklch(from var(--secondary) l c h / 80%);
+    }
+  }
+
+  &.badge--destructive {
+    color: var(--destructive);
     background: oklch(from var(--destructive) l c h / 20%);
+
+    &:focus-visible {
+      box-shadow: 0 0 0 3px oklch(from var(--destructive) l c h / 40%);
+    }
+
+    &:is(a):hover {
+      background: oklch(from var(--destructive) l c h / 20%);
+    }
   }
-}
 
-.outline {
-  border-color: var(--border);
-  color: var(--foreground);
+  &.badge--outline {
+    border-color: var(--border);
+    color: var(--foreground);
 
-  &:is(a):hover {
-    color: var(--muted-foreground);
-    background: var(--muted);
+    &:is(a):hover {
+      color: var(--muted-foreground);
+      background: var(--muted);
+    }
   }
-}
 
-.ghost {
-  &:hover {
-    color: var(--muted-foreground);
-    background: oklch(from var(--muted) l c h / 50%);
+  &.badge--ghost {
+    &:hover {
+      color: var(--muted-foreground);
+      background: oklch(from var(--muted) l c h / 50%);
+    }
   }
-}
 
-.link {
-  color: var(--primary);
-  text-underline-offset: 4px;
+  &.badge--link {
+    color: var(--primary);
+    text-underline-offset: 4px;
 
-  &:hover {
-    text-decoration: underline;
+    &:hover {
+      text-decoration: underline;
+    }
   }
-}
 
-.overlay {
-  height: auto;
-  max-width: 100%;
-  overflow: hidden;
-  color: white;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  border-radius: var(--radius-large);
-  background: rgb(0 0 0 / 50%);
-}
+  &.badge--overlay {
+    height: auto;
+    max-width: 100%;
+    overflow: hidden;
+    color: white;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    border-radius: var(--radius-large);
+    background: rgb(0 0 0 / 50%);
+  }
 
-.shortcut {
-  min-width: var(--space-medium);
-  height: var(--space-medium);
-  border: none;
-  border-radius: 9999px;
-  padding-inline: var(--space-2x-small);
-  color: var(--background);
-  font-weight: var(--font-weight-semibold);
-  font-size: 0.625rem;
-  line-height: 1;
-  background: var(--foreground);
+  &.badge--shortcut {
+    min-width: var(--space-medium);
+    height: var(--space-medium);
+    border: none;
+    border-radius: 9999px;
+    padding-inline: var(--space-2x-small);
+    color: var(--background);
+    font-weight: var(--font-weight-semibold);
+    font-size: 0.625rem;
+    line-height: 1;
+    background: var(--foreground);
+  }
 }

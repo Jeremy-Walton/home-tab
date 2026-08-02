@@ -8,14 +8,14 @@ import styles from './badge.module.css'
 const badgeVariants = cva(styles.badge, {
   variants: {
     variant: {
-      default: styles.default,
-      secondary: styles.secondary,
-      destructive: styles.destructive,
-      outline: styles.outline,
-      ghost: styles.ghost,
-      link: styles.link,
-      overlay: styles.overlay,
-      shortcut: styles.shortcut,
+      default: styles.badgeDefault,
+      secondary: styles.badgeSecondary,
+      destructive: styles.badgeDestructive,
+      outline: styles.badgeOutline,
+      ghost: styles.badgeGhost,
+      link: styles.badgeLink,
+      overlay: styles.badgeOverlay,
+      shortcut: styles.badgeShortcut,
     },
   },
   defaultVariants: {
