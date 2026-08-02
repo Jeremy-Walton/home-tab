@@ -16,6 +16,4 @@ jobs:
           node-version: 24
           cache: yarn
       - run: yarn install --immutable
-      - run: yarn lint
-      - run: yarn tsc -b
-      - run: yarn test
+      - run: yarn check

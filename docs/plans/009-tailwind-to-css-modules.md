@@ -305,6 +305,40 @@ textarea:not([rows]) {
 Also confirm `yarn css:types` runs clean on `motion.module.css` and emits a
 `.d.ts` beside it, including for `composes:` targets.
 
+**Status: done.** `yarn check` passes (81 tests, same count). Notes for
+whoever converts a component that consumes these files next:
+- `motion.module.css` ended up with **4** cardinal `slideInFrom*` keyframes
+  (top/bottom/left/right), not eight — the six `data-side` values map onto
+  those four (`inline-start`/`inline-end` reuse `right`/`left`, matching the
+  actual Tailwind classes on `tooltip.tsx`/`dropdown-menu.tsx` today, grepped
+  rather than assumed). `slide-out-to-*` isn't used anywhere in the current
+  app (exits are fade+zoom only), so no exit-slide keyframes were added.
+- `.dialog[data-open]`/`[data-closed]` in the shared module set only
+  `animation-duration`/`animation-timing-function` — no `animation-name`,
+  since the overlay (fade only) and content (fade+zoom) need different
+  keyframes. Each Phase 3 consumer module supplies its own `animation-name`
+  (`fadeIn`/`fadeOut` for the overlay, `popIn`/`popOut` for content); this is
+  exactly the documented cascade-order risk ("Watch" note above) — Phase 3's
+  browser pass must confirm it resolves correctly, especially the
+  reduced-motion override.
+- `.popup[data-open]`/`[data-closed]` **do** fully bake in `animation-name`
+  (`popIn`/`popOut`, plus a slide keyframe layered in per `data-side`) since
+  every popup consumer (tooltip, dropdown, dropdown submenu) wants identical
+  behavior — no per-consumer override needed there.
+- Added `.stylelintignore` (`src/index.css`) and per-line
+  `stylelint-disable` comments on the reset's two vendor-prefixed
+  `text-size-adjust` declarations — not in the original phase text, but
+  required: `stylelint "src/**/*.css"` chokes on Tailwind's `@theme`/
+  `@utility`/`@apply` at-rules (`at-rule-no-unknown`, on by default in
+  `stylelint-config-recommended`), and its `--fix` collapsed the three
+  vendor-prefixed `text-size-adjust` lines into three duplicate unprefixed
+  ones, silently defeating the reset's actual purpose. Watch for this again
+  in Phase 7 — `tailwind-scratch.css` will need the same ignore-list entry.
+- `--font-weight-normal: 400` was added alongside the decision table's
+  `medium`/`semibold` since `font-normal` is used in the codebase today
+  (`grep font-normal`) and there's no reason to leave that one magic number
+  unconverted.
+
 **Browser verification (you):** the app should look **pixel-identical** to
 before — nothing has been converted. What you're checking is that the new
 reset didn't fight preflight: scroll the grid, open a dialog and a dropdown,
