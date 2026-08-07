@@ -10,6 +10,9 @@ export default {
     'keyframes-name-pattern': '^[a-z][a-zA-Z0-9]*$',
     // CSS Modules' :global()/:local() scoping escapes aren't standard CSS.
     'selector-pseudo-class-no-unknown': [true, { ignorePseudoClasses: ['global', 'local'] }],
+    // CSS Modules' `composes:` (see src/styles/motion.module.css) isn't a
+    // standard CSS property either.
+    'property-no-unknown': [true, { ignoreProperties: ['composes'] }],
     'stylelint-bem/valid-name': true,
     'stylelint-bem/no-orphaned-element': true,
     'stylelint-bem/no-orphaned-modifier': true,

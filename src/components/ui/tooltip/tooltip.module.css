@@ -1,0 +1,78 @@
+.tooltip-positioner {
+  isolation: isolate;
+  z-index: var(--z-popup);
+}
+
+.tooltip-content {
+  composes: popup from '../../../styles/motion.module.css';
+  z-index: var(--z-popup);
+  display: inline-flex;
+  width: fit-content;
+  max-width: 20rem;
+  align-items: center;
+  gap: var(--space-x-small);
+  border-radius: var(--radius-x-large);
+  padding-inline: var(--space-small);
+  padding-block: var(--space-x-small);
+  color: var(--background);
+  font-size: var(--text-x-small);
+  line-height: var(--text-x-small-line-height);
+  background: var(--foreground);
+  transform-origin: var(--transform-origin);
+
+  &:has([data-slot='kbd']) {
+    padding-inline-end: var(--space-x-small);
+  }
+
+  [data-slot='kbd'] {
+    position: relative;
+    isolation: isolate;
+    z-index: var(--z-popup);
+    border-radius: var(--radius-large);
+  }
+
+  /* Rotated square, not an SVG diamond — size and offsets are one-off
+     geometry tuned against `rotate: 45deg`, not the space/radius scales. */
+  .tooltip-content__arrow {
+    z-index: var(--z-popup);
+    width: 0.625rem;
+    height: 0.625rem;
+    translate: 0 calc(-50% - 2px);
+    rotate: 45deg;
+    border-radius: 2px;
+    background: var(--foreground);
+    fill: var(--foreground);
+
+    &[data-side='top'] {
+      bottom: -0.625rem;
+    }
+
+    &[data-side='bottom'] {
+      top: var(--space-2x-small);
+    }
+
+    &[data-side='left'] {
+      top: 50% !important;
+      right: calc(-1 * var(--space-2x-small));
+      translate: -1.5px -50%;
+    }
+
+    &[data-side='right'] {
+      top: 50% !important;
+      left: calc(-1 * var(--space-2x-small));
+      translate: 1.5px -50%;
+    }
+
+    &[data-side='inline-start'] {
+      top: 50% !important;
+      right: calc(-1 * var(--space-2x-small));
+      translate: -1.5px -50%;
+    }
+
+    &[data-side='inline-end'] {
+      top: 50% !important;
+      left: calc(-1 * var(--space-2x-small));
+      translate: 1.5px -50%;
+    }
+  }
+}

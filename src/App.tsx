@@ -9,7 +9,7 @@ import { LinkEditModal } from './components/LinkEditModal'
 import { Navbar } from './components/Navbar'
 import { ShortcutsDialog } from './components/ShortcutsDialog'
 import { Kbd } from './components/ui/kbd/kbd'
-import { TooltipProvider } from './components/ui/tooltip'
+import { TooltipProvider } from './components/ui/tooltip/tooltip'
 
 function Dashboard() {
   const { ready, dashboards, links, activeDashboardId, setActiveDashboardId, addLink } =

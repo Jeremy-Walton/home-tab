@@ -11,7 +11,7 @@ import { EntityOptionsMenu } from './EntityOptionsMenu'
 import { Badge } from './ui/badge/badge'
 import { Button } from './ui/button/button'
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs'
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip/tooltip'
 import type { Dashboard } from '../types'
 
 function DashboardTabItem({

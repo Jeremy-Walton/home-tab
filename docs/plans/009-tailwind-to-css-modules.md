@@ -813,6 +813,57 @@ Notes:
 - Positioner's `isolate z-50` → its own `.tooltip-positioner` block using
   `var(--z-popup)`.
 
+**Status: done.** `yarn check` passes (81 tests, same count). Notes:
+- **Housekeeping done first**: deleted all seven orphaned
+  `ui/{tooltip,dropdown-menu,dialog,alert-dialog,tabs,field,empty}/*.module.css.d.ts`
+  leftovers per the Phase 3 preamble.
+- **Block naming**: `TooltipProvider`/`Tooltip`/`TooltipTrigger` render no
+  element of their own (straight passthroughs to the Base UI primitive), so
+  only `TooltipContent` needed CSS. Its three independently-rendered/nested
+  parts became `.tooltip-positioner` (its own block — sibling-ish to Popup
+  in the render tree, not an element of it), `.tooltip-content` (the block,
+  on `Popup`), and `.tooltip-content__arrow` (an element — `Arrow` is a
+  literal JSX child of `Popup` in this file). Confirmed no fourth block was
+  needed: `Portal` renders nothing of ours.
+- **`composes:` needed a one-time stylelint config fix**: `property-no-unknown`
+  (from `stylelint-config-standard`) doesn't know CSS Modules' `composes`
+  property — this part is the first real consumer of `motion.module.css`'s
+  `.popup` class. Added `'property-no-unknown': [true, { ignoreProperties:
+  ['composes'] }]` to `stylelint.config.js`. Not anticipated in the plan
+  text; every remaining Phase 3 part composes from the same file and inherits
+  this fix for free.
+- **No animation properties declared in this module**, confirmed against the
+  plan's checklist — `tooltip.module.css` is appearance-only, `composes:
+  popup` supplies every keyframe, duration, `data-side` slide, and the
+  reduced-motion override.
+- **The kbd-chip contextual styling (color/background) needed no new CSS
+  here** — `kbd.module.css`'s existing `:global([data-slot='tooltip-content'])
+  &` selector (from Phase 2) already handles it. This part only added the
+  three non-color overrides Tailwind's `**:data-[slot=kbd]:*` variants also
+  set on a nested `Kbd`: `position: relative`, `isolation: isolate`,
+  `z-index: var(--z-popup)`, `border-radius: var(--radius-large)`.
+- **Arrow size/offsets kept as literals** (`0.625rem`, `2px`, `-0.625rem`,
+  `1.5px`) rather than snapped to the space scale — per Conventions'
+  "one-off geometry" carve-out, not the padding/gap snapping rule. These
+  values are tightly coupled to the `rotate: 45deg` diamond math (each
+  offset positions the rotated square's tip against the popup edge); snapping
+  `size-2.5` (0.625rem) up to the nearest space tier (`--space-small`,
+  0.75rem, a 20% jump) risked visibly misaligning the arrow tip without a
+  matching recalculation of every dependent offset, for no token-reuse
+  benefit on a value with no other call site.
+- **`require-nesting` (strict) caught a real structural mistake**: the arrow
+  was first drafted as a top-level `.tooltip-content__arrow { }` rule,
+  sibling to `.tooltip-content { }` rather than nested inside it. The linter
+  correctly rejected it (an element must nest inside its own block's rule in
+  strict mode); fixed by moving the whole rule inside `.tooltip-content`.
+  Confirms the rule catches this class of mistake mechanically, as intended.
+- Translated `translate-x`/`translate-y` pairs to the standalone `translate`
+  property per-side (not composed from separate x/y like Tailwind's CSS-var
+  approach) — each `data-side` rule sets the full `translate: x y` value,
+  matching the codebase's existing standalone-property convention (see
+  `motion.module.css`'s `popIn`/`popOut` using `scale`, not `transform:
+  scale()`).
+
 **Browser verification (you):**
 - Hover the add-dashboard `+`, a kebab, and the import/export button — the
   tooltip appears, fades/zooms in, and fades out on leave
@@ -1564,10 +1615,12 @@ derivable from the repo alone; read it before starting a phase.
 `e33447d` phase 1, then five commits for phase 2 — `1df5240` through
 `0645caf`, the last three of which were corrections to phase 2 itself, not
 new work; see "Facts established executing Phases 0–2" below for why there
-were so many). Working tree is clean. **Resume at Part 3.1 (`tooltip`)** —
-read Phase 3's preamble and that part, then this Handoff section in full,
-then the Conventions section (materially different from what Phase 3 was
-originally drafted against — see below) before writing any CSS.
+were so many). **Part 3.1 (`tooltip`) is done** (`yarn check` passes, not
+yet committed — see its own Status note); the `composes:`/`property-no-unknown`
+stylelint fix it needed applies to every remaining Phase 3 part. **Resume at
+Part 3.2 (`dropdown-menu`)** — read that part, then this Handoff section in
+full, then the Conventions section (materially different from what Phase 3
+was originally drafted against — see below) before writing any CSS.
 
 **A part, not a phase, is the unit of work** (Decisions table, "Phase
 granularity"). One component per part: convert it, `yarn check`, write the

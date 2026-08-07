@@ -12,6 +12,7 @@ const MIGRATED = [
   'src/components/ui/input/**/*.tsx',
   'src/components/ui/separator/**/*.tsx',
   'src/components/ui/aspect-ratio/**/*.tsx',
+  'src/components/ui/tooltip/**/*.tsx',
 ]
 
 const PATTERNS = [
