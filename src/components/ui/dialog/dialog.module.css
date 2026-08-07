@@ -104,7 +104,6 @@
   }
 
   .dialog-content__close {
-    position: absolute;
     top: var(--space-medium);
     right: var(--space-medium);
     background: var(--secondary);

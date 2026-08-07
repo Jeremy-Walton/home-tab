@@ -182,6 +182,7 @@
 }
 
 .alert-dialog-description {
+  color: var(--muted-foreground);
   font-size: var(--text-small);
   line-height: var(--text-small-line-height);
   text-wrap: balance;
@@ -200,18 +201,12 @@
       }
     }
   }
-}
 
-/* A not-yet-converted consumer (ConfirmDialog.tsx) still overrides this via
-   a Tailwind `text-foreground` utility class — that utility is layered
-   (`@layer utilities`), and unlayered CSS always beats any layered CSS
-   regardless of specificity, so this plain rule would otherwise always win.
-   Reusing Tailwind's own `base` layer name makes it lose to that utility
-   the same way button.module.css's icon-size fix does — see
-   docs/plans/009-tailwind-to-css-modules.md Phase 2 notes. */
-@layer base {
-  .alert-dialog-description {
-    color: var(--muted-foreground);
+  /* Modifier: emphasis — a consumer opts a description into full
+     `--foreground` (e.g. a delete-confirmation message) via the
+     `emphasis` prop, rather than passing its own color override. */
+  &.alert-dialog-description--emphasis {
+    color: var(--foreground);
   }
 }
 

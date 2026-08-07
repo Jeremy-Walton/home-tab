@@ -187,6 +187,7 @@
   }
 
   &.button--size-icon-xs {
+    position: relative;
     width: var(--space-x-large);
     height: var(--space-x-large);
 
@@ -203,6 +204,7 @@
   }
 
   &.button--size-icon-sm {
+    position: relative;
     width: var(--space-3x-large);
     height: var(--space-3x-large);
 
@@ -217,17 +219,24 @@
     width: var(--space-5x-large);
     height: var(--space-5x-large);
   }
-}
 
-/* Escape hatch: needs to lose to a not-yet-converted consumer's own
-   Tailwind `absolute` utility class. Kept outside the block's own nested
-   rule and in Tailwind's own `base` layer (lower-precedence than its
-   `utilities` layer, checked before specificity — so the compound
-   selector's specificity here doesn't matter) — see
-   docs/plans/009-tailwind-to-css-modules.md Phase 2 notes. */
-@layer base {
-  .button.button--size-icon-xs,
-  .button.button--size-icon-sm {
-    position: relative;
+  /* Modifier: positioned */
+
+  /* A consumer that needs to place the whole button absolutely within its
+     own layout (a dialog's corner-pinned close button, a tab's kebab)
+     passes the `positioned` prop rather than a raw `position` override —
+     `position: absolute` still leaves a valid containing block for the
+     icon-xs/icon-sm `::before` hit-area trick above, exactly like
+     `relative` did, so nothing else needs to change. */
+  &.button--positioned {
+    position: absolute;
+  }
+
+  /* Needs the extra specificity of this compound to reliably beat the two
+     size modifiers' own `position: relative` above — both rules would
+     otherwise tie at equal (0,2,0) specificity. */
+  &.button--size-icon-xs.button--positioned,
+  &.button--size-icon-sm.button--positioned {
+    position: absolute;
   }
 }

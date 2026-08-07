@@ -108,12 +108,21 @@ function AlertDialogTitle({
 
 function AlertDialogDescription({
   className,
+  emphasis = false,
   ...props
-}: React.ComponentProps<typeof AlertDialogPrimitive.Description>) {
+}: React.ComponentProps<typeof AlertDialogPrimitive.Description> & {
+  /** Reads in full `--foreground` instead of the default muted tone —
+   * e.g. a delete-confirmation message that wants full attention. */
+  emphasis?: boolean
+}) {
   return (
     <AlertDialogPrimitive.Description
       data-slot="alert-dialog-description"
-      className={cn(styles.alertDialogDescription, className)}
+      className={cn(
+        styles.alertDialogDescription,
+        emphasis && styles.alertDialogDescriptionEmphasis,
+        className,
+      )}
       {...props}
     />
   )

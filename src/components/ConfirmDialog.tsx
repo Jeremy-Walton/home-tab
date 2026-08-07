@@ -26,7 +26,7 @@ export function ConfirmDialog({ message, onConfirm, onCancel }: ConfirmDialogPro
     <AlertDialog {...dialogProps}>
       <AlertDialogContent size="sm">
         <AlertDialogTitle className="sr-only">Confirm delete</AlertDialogTitle>
-        <AlertDialogDescription className="text-foreground">{message}</AlertDialogDescription>
+        <AlertDialogDescription emphasis>{message}</AlertDialogDescription>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction variant="destructive" onClick={() => close('confirm')}>

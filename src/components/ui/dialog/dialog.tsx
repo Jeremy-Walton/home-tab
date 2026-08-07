@@ -60,6 +60,7 @@ function DialogContent({
                 variant="ghost"
                 className={styles.dialogContentClose}
                 size="icon-sm"
+                positioned
               />
             }
           >

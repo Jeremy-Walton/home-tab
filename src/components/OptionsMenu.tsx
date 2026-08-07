@@ -14,6 +14,7 @@ interface OptionsMenuProps {
   size?: 'icon-xs' | 'icon-sm'
   align?: 'start' | 'end'
   triggerClassName?: string
+  triggerPositioned?: boolean
   onTriggerClick?: (e: React.MouseEvent) => void
   revealOnHover?: boolean
   children: React.ReactNode
@@ -29,6 +30,7 @@ export function OptionsMenu({
   size = 'icon-xs',
   align = 'start',
   triggerClassName,
+  triggerPositioned,
   onTriggerClick,
   revealOnHover,
   children,
@@ -43,6 +45,7 @@ export function OptionsMenu({
                 <Button
                   variant={variant}
                   size={size}
+                  positioned={triggerPositioned}
                   aria-label={label}
                   className={cn(
                     revealOnHover &&

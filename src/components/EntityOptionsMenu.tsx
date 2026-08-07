@@ -10,6 +10,7 @@ interface EntityOptionsMenuProps {
   label: string
   variant: 'secondary' | 'ghost'
   triggerClassName?: string
+  triggerPositioned?: boolean
   onTriggerClick?: (e: React.MouseEvent) => void
   revealOnHover?: boolean
   onEdit: () => void
@@ -25,6 +26,7 @@ export function EntityOptionsMenu({
   label,
   variant,
   triggerClassName,
+  triggerPositioned,
   onTriggerClick,
   revealOnHover,
   onEdit,
@@ -37,6 +39,7 @@ export function EntityOptionsMenu({
       label={label}
       variant={variant}
       triggerClassName={triggerClassName}
+      triggerPositioned={triggerPositioned}
       onTriggerClick={onTriggerClick}
       revealOnHover={revealOnHover}
     >

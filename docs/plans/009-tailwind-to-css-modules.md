@@ -41,17 +41,17 @@ states nest inside its own rule via `&`, and a class's own descendant
 selectors (`svg { … }`, `::before { … }`) nest as bare selectors. Compiles
 to the exact same flat CSS either way — confirmed with Playwright
 (`getComputedStyle`) that behavior is byte-identical before/after nesting
-`button`/`badge`/`kbd`/`label`/`separator`/`input` in Phase 2. Two
-exceptions, both left un-nested for concrete reasons: (1) the `@layer base`
-escape-hatch blocks in `button.module.css` (`sizeIconXs`/`sizeIconSm`'s
-`position: relative`) stay as separate top-level blocks rather than nested
-`@layer` blocks using `:where(&)` — the separate form is the one actually
-verified working in a browser, and nesting an `@layer` inside a normal rule
-is a less common pattern not worth the added risk for a cosmetic gain; (2)
-peer/variant classes that don't share a selector relationship with each
-other (e.g. `badge`'s `.default`/`.secondary`/`.destructive`/…) each keep
-their own top-level rule — nesting is for a class's relationship to *itself*
-in different states, not a way to group unrelated sibling classes together.
+`button`/`badge`/`kbd`/`label`/`separator`/`input` in Phase 2, and every
+converted module since fully nests, with no exceptions left standing:
+`badge`'s variant/size modifiers (`&.badge--default`, …) all nest inside
+`.badge { }` (an earlier draft of this note claimed they didn't — wrong,
+corrected during the Part 3.4 review), and `button`'s former `@layer base`
+escape hatch (also described here as an exception) is gone entirely — see
+Part 3.4's Status note and the `positioned` prop. A multi-block file
+(`dropdown-menu`, `dialog`, `alert-dialog`, …) nests each block's own
+modifiers inside *that block's* rule the same way; reaching into a
+*different* block (an ancestor-context selector, or the cross-component
+pattern below) still nests, just rooted at the reaching block's own `&`.
 
 **Class naming and structuring (BEM).** Every module is structured per
 `docs/BEM.md`'s Block/Element/Modifier methodology, written as **real
@@ -591,8 +591,15 @@ imports `./ui/button|badge|kbd|input|label|separator|aspect-ratio`.
   more layered utility CSS to lose to. Until then, watch for the same
   pattern in other converted modules: any CSS-Module rule setting a
   property that a not-yet-converted consumer overrides via a Tailwind
-  utility class needs the same `@layer base` treatment, not a specificity
-  trick.
+  utility class needs the same kind of fix.
+  **Superseded (Part 3.4 review):** the `@layer base` escape hatch itself
+  is gone, replaced with an explicit BEM modifier driven by a component
+  prop — see that part's Status note for the full reasoning and the new
+  `Button` `positioned` prop / `.button--positioned` modifier. The
+  underlying cascade-layers diagnosis above is still accurate and still the
+  right way to *think about* why a plain override would have lost; only the
+  fix changed, from fighting Tailwind's layers to not needing an override
+  at all (the consumer now asks for the behavior explicitly via a prop).
 - **Lesson**: don't trust a plausible-sounding CSS cascade explanation
   without checking `getComputedStyle` in an actual browser — the
   specificity theory was reasonable-sounding and wrong, and shipping it
@@ -1128,6 +1135,11 @@ Notes:
   over `button.module.css`'s layered `position: relative`, now that the
   close button's own className moved from a literal Tailwind `absolute`
   string to a CSS Module class.
+  **Superseded (Part 3.4 review):** `button`'s `@layer base` escape hatch
+  is gone — `.dialog-content__close` no longer sets `position` at all, and
+  the close button instead passes `Button`'s new `positioned` prop. The
+  `getComputedStyle` result above is unchanged (re-verified again in Part
+  3.4), only the mechanism producing it changed.
 - **`sm:max-w-md` / `sm:flex-row sm:justify-end` are real, and needed real
   media queries** (`@media (width >= 40rem) { … }`, Tailwind's default `sm`
   breakpoint, confirmed via compiled output) — **not** dropped. This
@@ -1222,24 +1234,36 @@ Notes:
 - `AlertDialogMedia` has no call site — port it faithfully and silently.
 
 **Status: done.** `yarn check` passes (81 tests, same count). Notes:
-- **A real, live `@layer base` cascade-layer case, the first one in Phase
-  3** (Parts 3.1–3.3 all checked and found none). `ConfirmDialog.tsx`
-  (not yet converted, Part 6.6) passes `className="text-foreground"`
-  straight onto `AlertDialogDescription`, expecting it to override the
-  component's own muted color for the delete-confirmation message.
-  `text-foreground` is still a real, layered Tailwind utility; a plain
-  unlayered `.alert-dialog-description { color: var(--muted-foreground) }`
-  would otherwise win unconditionally (per the documented Cascade Layers
-  fact) and the message would stay muted. Fixed the same way as `button`'s
-  `sizeIconXs`/`sizeIconSm` fix: moved just the `color` declaration into
-  `@layer base`, reusing Tailwind's own layer name. **Verified live with
-  Playwright, not by reading the CSS** — opened the real delete-confirmation
-  dialog and read `getComputedStyle(description).color`: `oklch(0.987
-  0.002 197.1)`, an exact match for `--foreground`, confirming the override
-  actually wins in the browser. (`className="sr-only"` on
-  `AlertDialogTitle`, the same consumer's other override, needed no such
-  fix — `sr-only`'s properties don't overlap anything `alert-dialog-title`
-  itself sets, so there's nothing to lose a cascade-layer fight over.)
+- **A real, live cascade-layer case, the first one in Phase 3** (Parts
+  3.1–3.3 all checked and found none). `ConfirmDialog.tsx` (not yet
+  converted, Part 6.6) passes `className="text-foreground"` straight onto
+  `AlertDialogDescription`, expecting it to override the component's own
+  muted color for the delete-confirmation message. `text-foreground` is
+  still a real, layered Tailwind utility; a plain unlayered
+  `.alert-dialog-description { color: var(--muted-foreground) }` would
+  otherwise win unconditionally (per the documented Cascade Layers fact)
+  and the message would stay muted. **Originally fixed with `@layer base`**
+  (moving just the `color` declaration into Tailwind's own layer name, the
+  same technique as `button`'s `sizeIconXs`/`sizeIconSm`), verified working
+  live with Playwright — then, on review, **replaced with a proper BEM
+  modifier instead**, per direct instruction: `AlertDialogDescription` now
+  takes an `emphasis` prop that adds `.alert-dialog-description--emphasis
+  { color: var(--foreground) }`, and `ConfirmDialog.tsx` passes `emphasis`
+  instead of a raw Tailwind className. This is the better fix — the intent
+  ("this message wants full attention") is now declared explicitly by the
+  consumer through the component's own API, instead of being an implicit
+  side effect of which CSS layer happens to win a fight neither file's
+  author necessarily notices. `button`'s `@layer base` escape hatch got the
+  same treatment in the same pass — see "Facts established executing
+  Phases 0–2"'s superseding note and the new `positioned` prop. Re-verified
+  live with Playwright after the change: `getComputedStyle(description
+  ).color` is still `oklch(0.987 0.002 197.1)`, matching `--foreground`
+  exactly, and the dashboard-tab kebab / dialog close button (both
+  consumers of `button`'s old escape hatch) still position correctly.
+  (`className="sr-only"` on `AlertDialogTitle`, the same consumer's other
+  override, needed no fix either way — `sr-only`'s properties don't overlap
+  anything `alert-dialog-title` itself sets, so there's nothing to lose a
+  cascade fight over.)
 - **Duplicated the four `fadeIn`/`fadeOut`/`popIn`/`popOut` keyframes**
   into this file too, per Part 3.3's finding — verified live with
   Playwright (`getComputedStyle` on a real, opened delete-confirmation
@@ -1925,11 +1949,26 @@ resolves to nothing; `dialog.module.css` and `alert-dialog.module.css` each
 duplicate the four keyframes themselves); and check every not-yet-converted
 importer for a `className` passed onto a part whose module now sets that
 same property — 3.4 was the first part with a real instance
-(`ConfirmDialog.tsx`'s `text-foreground` on `AlertDialogDescription`),
-fixed with the same `@layer base` technique as Phase 2's `button`. **Resume
-at Part 3.5 (`tabs`)** — read that part, then this Handoff section in
-full, then the Conventions section (materially different from what Phase 3
-was originally drafted against — see below) before writing any CSS.
+(`ConfirmDialog.tsx`'s `text-foreground` on `AlertDialogDescription`).
+
+**`@layer base` is no longer this project's answer to that last case.**
+Phase 2's `button` and Part 3.4's `alert-dialog` both originally used
+`@layer base` to let a not-yet-converted consumer's Tailwind utility win;
+on review, both were replaced with an explicit BEM modifier driven by a
+new component prop instead (`Button`'s `positioned` prop /
+`.button--positioned`; `AlertDialogDescription`'s `emphasis` prop /
+`.alert-dialog-description--emphasis`) — see "Facts established executing
+Phases 0–2"'s superseding note and Part 3.4's Status note for the full
+reasoning. **Any future case of this shape should reach for a prop-driven
+modifier from the start, not `@layer base`.** The underlying Cascade
+Layers diagnosis (unlayered CSS Module rules always beat layered Tailwind
+utilities, regardless of specificity) is still correct background
+knowledge; it's just no longer the fix.
+
+**Resume at Part 3.5 (`tabs`)** — read that part, then this Handoff
+section in full, then the Conventions section (materially different from
+what Phase 3 was originally drafted against — see below) before writing
+any CSS.
 
 **A part, not a phase, is the unit of work** (Decisions table, "Phase
 granularity"). One component per part: convert it, `yarn check`, write the
@@ -2147,11 +2186,16 @@ before Phases 3, 4 and 5. The ones this migration can plausibly break:
 - `AlertDialogAction` **does not auto-close** in Base UI; consumers close
   themselves in `onClick`.
 - `aspect-ratio.tsx`'s hand-applied `{...style, '--ratio': ratio}` merge.
-- **Button's `sizeIconXs`/`sizeIconSm` `position: relative` lives in
-  `@layer base`**, not the module's main nested block (see Facts above).
-  Don't "clean this up" by moving it back inside `.button { }` — that
-  silently reintroduces the position bug for any not-yet-converted
-  consumer overriding it via a Tailwind `absolute` class.
+- **Button's `sizeIconXs`/`sizeIconSm` set `position: relative` directly in
+  their own nested rule** (the `@layer base` escape hatch this note
+  originally described was removed in the Part 3.4 review — see that
+  part's Status note). A consumer that needs the whole button absolutely
+  positioned within its own layout (a dialog close button, a tab's kebab)
+  passes `Button`'s `positioned` prop, which adds the
+  `.button--positioned` modifier — a higher-specificity compound selector
+  guarantees it wins over the size variant's own `position: relative`. Any
+  new consumer needing this should reach for that prop, not a raw
+  `position`/`absolute` override.
 - **`tcm -c` and `vite.config.ts`'s `localsConvention: 'camelCaseOnly'`
   must change together, never one without the other** — they're what keep
   kebab-case BEM CSS and camelCase JS property access in sync (see Facts

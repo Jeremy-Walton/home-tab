@@ -57,7 +57,8 @@ function DashboardTabItem({
       <EntityOptionsMenu
         label="Dashboard options"
         variant="ghost"
-        triggerClassName="absolute right-0.5 top-1/2 -translate-y-1/2"
+        triggerClassName="right-0.5 top-1/2 -translate-y-1/2"
+        triggerPositioned
         revealOnHover
         onTriggerClick={(e) => e.stopPropagation()}
         onEdit={() => setEditing(true)}

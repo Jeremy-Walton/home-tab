@@ -35,12 +35,21 @@ function Button({
   className,
   variant = 'default',
   size = 'default',
+  positioned = false,
   ...props
-}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+}: ButtonPrimitive.Props &
+  VariantProps<typeof buttonVariants> & {
+    /** Absolutely positions the button within its own layout — e.g. a
+     * dialog's corner-pinned close button, a tab's kebab trigger. */
+    positioned?: boolean
+  }) {
   return (
     <ButtonPrimitive
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(
+        buttonVariants({ variant, size, className }),
+        positioned && styles.buttonPositioned,
+      )}
       {...props}
     />
   )
