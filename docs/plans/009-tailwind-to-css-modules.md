@@ -901,6 +901,118 @@ Notes:
   `@layer base` treatment (see Handoff "Facts") — verify with
   `getComputedStyle`, not by reading the CSS.
 
+**Status: done.** `yarn check` passes (81 tests, same count). Notes:
+- **Verified every non-trivial Tailwind→CSS translation against the
+  installed `tailwindcss` (4.3.3)'s own compiled output**, not from memory —
+  compiled the project's real `index.css` (with its `@theme` block, so
+  `bg-destructive`-style custom color utilities actually resolve) against a
+  scratch HTML file containing this part's literal class strings, via
+  `npx @tailwindcss/cli`, and read the generated rules directly. This is
+  what the plan's own "derive by reading Tailwind output" guidance calls
+  for; worth doing again for Parts 3.3+, this file's largest by far.
+- **Re-confirmed the opaque-token `oklch(from …)` rule is still correct**
+  under 4.3.3, despite momentary doubt: the compiled output for
+  `bg-primary/80`, `ring-foreground/5`, etc. is actually `color-mix(in
+  oklab, var(--token) N%, transparent)` now, not the `oklch(from …)` text
+  the Handoff "Facts" section describes — looked like a contradiction until
+  a Playwright pixel-comparison (`ctx.fillStyle` + `getImageData` on a
+  canvas, not just comparing the two serialized color strings) confirmed
+  `color-mix(in oklab, X N%, transparent)` and `oklch(from X l c h / N%)`
+  render **byte-identical pixels** for an opaque `X` — they're
+  mathematically equivalent, and the codebase's chosen form is still exactly
+  right. Used it here too: `.dropdown-menu-content`'s ring
+  (`oklch(from var(--foreground) l c h / 10%)`, the dark `ring-foreground/10`
+  value, not light `/5`) and `.dropdown-menu-item`'s destructive-focus
+  background (`oklch(from var(--destructive) l c h / 20%)`, the dark value).
+  `--border`'s `bg-border/50` (the separator) still needed `color-mix`
+  specifically, per the existing embedded-alpha rule — confirmed still true
+  too.
+- **`ring-1 ring-foreground/N` + `shadow-lg` combine into one `box-shadow`,
+  ring layer first**: Tailwind's own var-chain
+  (`--tw-inset-shadow, --tw-inset-ring-shadow, --tw-ring-offset-shadow,
+  --tw-ring-shadow, --tw-shadow`) puts the ring before the drop shadow, so
+  `.dropdown-menu-content`'s `box-shadow` is `0 0 0 1px oklch(from
+  var(--foreground) l c h / 10%), var(--shadow-large)` in that order, not
+  the reverse.
+- **`outline-hidden` is not `outline: none`** — confirmed via the same
+  compiled-output check: it's `outline-style: none` unconditionally, plus
+  an `@media (forced-colors: active) { outline: 2px solid transparent;
+  outline-offset: 2px; }` block (a deliberate Windows-High-Contrast-mode
+  affordance). All five interactive item types (`item`, `sub-trigger`,
+  `checkbox-item`, `radio-item`) carry both declarations faithfully — this
+  is a real, easy-to-miss behavioral difference from the `outline-none`
+  Tailwind class already used elsewhere (`button`/`input`), not the same
+  utility with a different name.
+- **Two unplanned `stylelint.config.js` fixes, both structural and expected
+  to recur for every remaining multi-block Phase 3+ file** (`dialog`,
+  `alert-dialog`, `tabs`, `field`, `empty` all export several
+  independently-styled parts the same way):
+  1. `declaration-block-no-redundant-longhand-properties` flagged separate
+     `overflow-x`/`overflow-y` — collapsed to the two-value shorthand
+     `overflow: hidden auto` (no config change needed, just a fix).
+  2. `no-descending-specificity` (part of `stylelint-config-recommended`,
+     which `standard` extends — not something this project's config added)
+     flagged both same-block cases (a low-specificity `svg { }` sizing rule
+     after a higher-specificity `&[data-variant='destructive'] > svg { }`
+     color rule) and, more importantly, **cross-block** cases (one block's
+     `&:focus *` selector "descending" relative to a *different, unrelated*
+     block's higher-specificity focus selector earlier in the same file).
+     The rule assumes one shared, unscoped cascade; it has no notion that
+     `.dropdown-menu-item` and `.dropdown-menu-sub-trigger` are different
+     components that can never actually collide. Disabled project-wide
+     (`'no-descending-specificity': null`) rather than fought file-by-file —
+     BEM's whole point is that a modifier compound is *supposed* to
+     out-rank its own block regardless of source position, and every
+     remaining multi-part primitive will hit the cross-block version of
+     this the moment it has two sibling blocks with same-named states
+     (`:focus`, `:disabled`, …).
+- **Block naming, following Part 3.1's "independently-rendered part → own
+  block" pattern**: `DropdownMenuContent`'s two rendered pieces
+  (`Positioner`, `Popup`) are `.dropdown-menu-positioner` /
+  `.dropdown-menu-content`; every other independently-exported part
+  (`Label`, `Item`, `SubTrigger`, `CheckboxItem`, `RadioGroup`→`RadioItem`,
+  `Separator`, `Shortcut`) is its own top-level block. Only the pieces
+  genuinely written inline inside another part's own function — the
+  `CaretRightIcon` inside `SubTrigger`'s JSX, the indicator `<span>` inside
+  `CheckboxItem`/`RadioItem`'s JSX — became elements
+  (`.dropdown-menu-sub-trigger__caret`,
+  `.dropdown-menu-checkbox-item__indicator`,
+  `.dropdown-menu-radio-item__indicator`).
+- **Deviation from this part's plan text**: rather than giving
+  `.dropdown-menu-sub-content` its **own** `.popup` compose as drafted
+  above, it stays a plain override block (`width: auto; min-width: 9rem;`)
+  layered onto `.dropdown-menu-content` — `DropdownMenuSubContent` renders
+  *through* the `DropdownMenuContent` component itself (`<DropdownMenuContent
+  data-slot="dropdown-menu-sub-content" className={styles.dropdownMenuSubContent}
+  .../>`), so every submenu instance already carries `.dropdown-menu-content`
+  (and its `composes: popup`) as its own class, independently of the parent
+  menu's instance — same independent-animation outcome the plan called for,
+  reached through component composition already present in the `.tsx`
+  rather than a duplicated CSS `composes:` line. `data-closed:overflow-hidden`
+  lives once, on `.dropdown-menu-content`, and covers the sub-content for
+  the same reason.
+- **Cross-block reach for the focus→shortcut recolor**: `DropdownMenuItem`
+  and `DropdownMenuShortcut` are two separate blocks in one file, and
+  Tailwind's `group/dropdown-menu-item` + `group-focus/dropdown-menu-item:`
+  pair (needed in Tailwind only to disambiguate nested groups) collapses to
+  a plain native selector once both live in the same stylesheet — no
+  "group" naming trick needed at all:
+  `.dropdown-menu-item:not([data-variant='destructive']):focus *`. This is
+  the Conventions section's "parent block reaching into a child block it
+  composes" pattern, just within one file instead of across two.
+- **No `@layer base` needed this part** — grepped all three importers
+  (`OptionsMenu.tsx`, `EntityOptionsMenu.tsx`, `ImportExportBar.tsx`) and
+  confirmed none passes a `className` into any `DropdownMenu*` component, so
+  the "Cascade-layer watch" risk called out above doesn't apply here. Will
+  need rechecking per-consumer in later parts.
+- **`data-inset`, `data-variant`, `data-popup-open`, `data-disabled` all
+  stay plain attribute selectors**, not CVA-driven BEM modifiers — matches
+  the Handoff "Facts" note that `cva` is only used in 5 files
+  (`button`/`badge`/`tabs`/`field`/`empty`), none of them this one;
+  `DropdownMenuItem`'s `variant` prop drives a DOM attribute in the
+  original source, not a `cva()` call, so porting it as an attribute
+  selector is the faithful translation, not a missed BEM opportunity.
+
 **Browser verification (you):**
 - A link tile's kebab menu, a dashboard tab's kebab menu, and the
   import/export menu all open with the pop-in and close with the pop-out
@@ -911,6 +1023,9 @@ Notes:
 - Keyboard: arrows move between items, Escape closes, focus returns to the
   trigger
 - With OS "Reduce motion" on: fade only
+- The destructive "Delete" item reads in the destructive color, including
+  its icon if one is added later (no current call site passes one — this
+  is a faithfulness check on the CSS rule, not a visual regression check)
 
 ⏸ **PAUSE — review before Part 3.3.**
 
@@ -1615,10 +1730,13 @@ derivable from the repo alone; read it before starting a phase.
 `e33447d` phase 1, then five commits for phase 2 — `1df5240` through
 `0645caf`, the last three of which were corrections to phase 2 itself, not
 new work; see "Facts established executing Phases 0–2" below for why there
-were so many). **Part 3.1 (`tooltip`) is done** (`yarn check` passes, not
-yet committed — see its own Status note); the `composes:`/`property-no-unknown`
-stylelint fix it needed applies to every remaining Phase 3 part. **Resume at
-Part 3.2 (`dropdown-menu`)** — read that part, then this Handoff section in
+were so many). **Parts 3.1 (`tooltip`) and 3.2 (`dropdown-menu`) are done and committed**
+(see each part's own Status note). Two stylelint fixes from these parts
+apply to every remaining Phase 3+ part: the `composes:`/`property-no-unknown`
+exception (3.1), and disabling `no-descending-specificity` (3.2 — it doesn't
+understand BEM/CSS-Modules scoping and will false-positive on any file with
+more than one block, which every remaining Phase 3 primitive has). **Resume
+at Part 3.3 (`dialog`)** — read that part, then this Handoff section in
 full, then the Conventions section (materially different from what Phase 3
 was originally drafted against — see below) before writing any CSS.
 

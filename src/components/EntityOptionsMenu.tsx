@@ -4,7 +4,7 @@ import {
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
-} from './ui/dropdown-menu'
+} from './ui/dropdown-menu/dropdown-menu'
 
 interface EntityOptionsMenuProps {
   label: string

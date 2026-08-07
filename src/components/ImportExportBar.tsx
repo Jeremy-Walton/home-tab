@@ -3,7 +3,7 @@ import { useAppState } from '../context/useAppState'
 import { useClosingDialog } from '../hooks/useClosingDialog'
 import { cn } from '../lib/utils'
 import { OptionsMenu } from './OptionsMenu'
-import { DropdownMenuItem } from './ui/dropdown-menu'
+import { DropdownMenuItem } from './ui/dropdown-menu/dropdown-menu'
 import {
   AlertDialog,
   AlertDialogAction,

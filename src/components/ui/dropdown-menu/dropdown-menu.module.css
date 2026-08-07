@@ -1,0 +1,283 @@
+.dropdown-menu-positioner {
+  isolation: isolate;
+  z-index: var(--z-popup);
+  outline: none;
+}
+
+.dropdown-menu-content {
+  composes: popup from '../../../styles/motion.module.css';
+  z-index: var(--z-popup);
+  max-height: var(--available-height);
+  width: var(--anchor-width);
+  min-width: 12rem;
+  overflow: hidden auto;
+  border-radius: var(--radius-3x-large);
+  padding: var(--space-x-small);
+  color: var(--popover-foreground);
+  background: var(--popover);
+  box-shadow: 0 0 0 1px oklch(from var(--foreground) l c h / 10%), var(--shadow-large);
+  outline: none;
+  transform-origin: var(--transform-origin);
+
+  &[data-closed] {
+    overflow: hidden;
+  }
+}
+
+/* Reuses .dropdown-menu-content's own block (DropdownMenuSubContent renders
+   through DropdownMenuContent) — this rule only overrides the sizing that
+   differs for a submenu; everything else (animation, radius, colors,
+   shadow) comes from that shared class already being on the element. */
+.dropdown-menu-sub-content {
+  width: auto;
+  min-width: 9rem;
+}
+
+.dropdown-menu-label {
+  padding-inline: var(--space-small);
+  padding-block: var(--space-small);
+  color: var(--muted-foreground);
+  font-size: var(--text-x-small);
+  line-height: var(--text-x-small-line-height);
+
+  &[data-inset] {
+    padding-inline-start: 2.375rem;
+  }
+}
+
+.dropdown-menu-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-small);
+  border-radius: var(--radius-2x-large);
+  padding-inline: var(--space-small);
+  padding-block: var(--space-x-small);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--text-small);
+  line-height: var(--text-small-line-height);
+  outline-style: none;
+  user-select: none;
+  cursor: default;
+
+  @media (forced-colors: active) {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+  }
+
+  &:focus {
+    color: var(--accent-foreground);
+    background: var(--accent);
+  }
+
+  &:not([data-variant='destructive']):focus * {
+    color: var(--accent-foreground);
+  }
+
+  &[data-inset] {
+    padding-inline-start: 2.375rem;
+  }
+
+  &[data-variant='destructive'] {
+    color: var(--destructive);
+
+    &:focus {
+      color: var(--destructive);
+      background: oklch(from var(--destructive) l c h / 20%);
+    }
+
+    > svg {
+      color: var(--destructive);
+    }
+  }
+
+  &[data-disabled] {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  svg {
+    flex-shrink: 0;
+    width: var(--space-medium);
+    height: var(--space-medium);
+    pointer-events: none;
+  }
+}
+
+.dropdown-menu-sub-trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-x-small);
+  border-radius: var(--radius-2x-large);
+  padding-inline: var(--space-small);
+  padding-block: var(--space-x-small);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--text-small);
+  line-height: var(--text-small-line-height);
+  outline-style: none;
+  user-select: none;
+  cursor: default;
+
+  @media (forced-colors: active) {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+  }
+
+  &:focus {
+    color: var(--accent-foreground);
+    background: var(--accent);
+  }
+
+  &:focus * {
+    color: var(--accent-foreground);
+  }
+
+  &[data-inset] {
+    padding-inline-start: 2.375rem;
+  }
+
+  &[data-popup-open],
+  &[data-open] {
+    color: var(--accent-foreground);
+    background: var(--accent);
+  }
+
+  svg {
+    flex-shrink: 0;
+    width: var(--space-medium);
+    height: var(--space-medium);
+    pointer-events: none;
+  }
+
+  .dropdown-menu-sub-trigger__caret {
+    margin-left: auto;
+  }
+}
+
+.dropdown-menu-checkbox-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-small);
+  border-radius: var(--radius-2x-large);
+  padding-block: var(--space-x-small);
+  padding-inline: var(--space-small) var(--space-3x-large);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--text-small);
+  line-height: var(--text-small-line-height);
+  outline-style: none;
+  user-select: none;
+  cursor: default;
+
+  @media (forced-colors: active) {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+  }
+
+  &:focus {
+    color: var(--accent-foreground);
+    background: var(--accent);
+  }
+
+  &:focus * {
+    color: var(--accent-foreground);
+  }
+
+  &[data-inset] {
+    padding-inline-start: 2.375rem;
+  }
+
+  &[data-disabled] {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  svg {
+    flex-shrink: 0;
+    width: var(--space-medium);
+    height: var(--space-medium);
+    pointer-events: none;
+  }
+
+  .dropdown-menu-checkbox-item__indicator {
+    position: absolute;
+    right: var(--space-x-small);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+}
+
+.dropdown-menu-radio-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-small);
+  border-radius: var(--radius-2x-large);
+  padding-block: var(--space-x-small);
+  padding-inline: var(--space-small) var(--space-3x-large);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--text-small);
+  line-height: var(--text-small-line-height);
+  outline-style: none;
+  user-select: none;
+  cursor: default;
+
+  @media (forced-colors: active) {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+  }
+
+  &:focus {
+    color: var(--accent-foreground);
+    background: var(--accent);
+  }
+
+  &:focus * {
+    color: var(--accent-foreground);
+  }
+
+  &[data-inset] {
+    padding-inline-start: 2.375rem;
+  }
+
+  &[data-disabled] {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  svg {
+    flex-shrink: 0;
+    width: var(--space-medium);
+    height: var(--space-medium);
+    pointer-events: none;
+  }
+
+  .dropdown-menu-radio-item__indicator {
+    position: absolute;
+    right: var(--space-x-small);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+}
+
+/* The negative inline margin cancels .dropdown-menu-content's own
+   padding so the rule reaches the popup's edges — coupled to that
+   padding value, not independent geometry. */
+.dropdown-menu-separator {
+  margin-inline: calc(-1 * var(--space-x-small));
+  margin-block: var(--space-x-small);
+  height: 1px;
+  background: color-mix(in oklab, var(--border) 50%, transparent);
+}
+
+.dropdown-menu-shortcut {
+  margin-left: auto;
+  color: var(--muted-foreground);
+  font-size: var(--text-x-small);
+  line-height: var(--text-x-small-line-height);
+  letter-spacing: 0.1em;
+}

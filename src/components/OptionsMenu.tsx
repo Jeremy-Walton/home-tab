@@ -5,7 +5,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from './ui/dropdown-menu'
+} from './ui/dropdown-menu/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip/tooltip'
 
 interface OptionsMenuProps {
