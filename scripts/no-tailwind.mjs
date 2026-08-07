@@ -14,6 +14,7 @@ const MIGRATED = [
   'src/components/ui/aspect-ratio/**/*.tsx',
   'src/components/ui/tooltip/**/*.tsx',
   'src/components/ui/dropdown-menu/**/*.tsx',
+  'src/components/ui/dialog/**/*.tsx',
 ]
 
 const PATTERNS = [

@@ -504,10 +504,19 @@ imports `./ui/button|badge|kbd|input|label|separator|aspect-ratio`.
   scanned, only `.tsx`. (2) Lines matching `^\s*(import|export)\b.*\bfrom\b`
   are skipped — a converted file's own `import styles from
   './foo.module.css'` line trips the same collision. (3) Dropped bare
-  `sm|md|lg` from the variant-colon pattern — this app has no responsive
-  breakpoints post-migration (confirmed by grep), and bare `sm:`/`lg:` as a
-  CVA size key (`sm: styles.sizeSm`) is otherwise indistinguishable from a
-  Tailwind breakpoint variant. (4) `aspect-` now excludes the literal suffix
+  `sm|md|lg` from the variant-colon pattern — no *Phase 2* file used a real
+  `sm:`/`md:`/`lg:` breakpoint variant (confirmed by grep at the time), and
+  bare `sm:`/`lg:` as a CVA size key (`sm: styles.sizeSm`) is otherwise
+  indistinguishable from one. **Correction (Part 3.3):** this was true only
+  of the seven Phase 2 files, not the whole app — `dialog.tsx`/
+  `alert-dialog.tsx` do use real `sm:` breakpoints, ported as real
+  `@media (width >= 40rem)` rules in `dialog.module.css`/
+  `alert-dialog.module.css` (see Part 3.3's Status note). This doesn't
+  reopen the regex gap in practice, since `no-tailwind.mjs` only scans
+  `.tsx` files and these live in `.module.css`, but the original "this app
+  has no responsive breakpoints post-migration" framing was an overclaim
+  and is corrected here rather than left standing. (4) `aspect-` now
+  excludes the literal suffix
   `ratio` via a negative lookahead — `aspect-ratio` is the CSS property name
   and this project's own `data-slot` value, never a real Tailwind aspect
   utility (`aspect-auto/square/video/<number>/[value]`). None of these
@@ -1073,6 +1082,94 @@ Notes:
 - Headings: per Phase 1's reset deltas, `DialogTitle` keeps a UA font size
   unless the module sets one explicitly. Set it.
 
+**Status: done.** `yarn check` passes (81 tests, same count). Notes:
+- **Found and fixed a real, silent animation bug this part's own plan text
+  didn't anticipate**: writing a bare `animation-name: fadeIn;` /
+  `popIn;` in `dialog.module.css`, expecting it to resolve to
+  `motion.module.css`'s keyframes (as the plan's "must supply
+  `animation-name` itself" note assumed), **does not work** — confirmed by
+  reading the actual dev-server-served CSS, not by reasoning about it.
+  Vite's CSS Modules pipeline locally scopes (hashes) *every*
+  `animation-name` value against the *current file's own* hash namespace,
+  regardless of whether a matching local `@keyframes` exists — so the
+  reference compiled to a dangling name like `_fadeIn_8cxnz_1` with no
+  `@keyframes` anywhere defining it. `composes:` doesn't help either; it
+  only affects class-name concatenation, never property values. Confirmed
+  the failure mode with Playwright: without the fix, the dialog would have
+  opened/closed with a silent instant snap (no fade, no zoom) — no
+  lint/tsc/test failure, nothing visibly "broken" except the missing
+  motion. Tried (and confirmed working, then rejected in favor of the
+  simpler option below) the CSS-Modules-native escape hatch — declaring the
+  shared keyframes `@keyframes :global(fadeIn) { }` in `motion.module.css`
+  and referencing them as `animation-name: global(fadeIn);` at each call
+  site — but that would touch already-shipped, working `motion.module.css`
+  and every one of its existing internal references (`.popup[data-open]`,
+  the six `data-side` rules, the reduced-motion block), for a risk/reward
+  that didn't clear the bar. **Fixed instead by duplicating the four
+  `fadeIn`/`fadeOut`/`popIn`/`popOut` `@keyframes` blocks directly into
+  `dialog.module.css`** (not `slideInFrom*` — nothing in dialog needs
+  those) — same-file `animation-name` references are correctly scoped
+  automatically, zero risk to `motion.module.css`, and consistent with
+  Part 3.4's own already-decided "duplicate into `alert-dialog.module.css`
+  rather than compose across sibling files" philosophy. **Part 3.4 needs
+  the same duplication**, not a `composes:`/cross-file reference — this
+  updates that part's guidance below.
+- **Re-verified with Playwright, not just the compiled CSS text**: opened
+  the app for real, pressed `?` mid-animation and read
+  `getComputedStyle(overlay).animationName` (`_fadeIn_<hash>`, a real,
+  defined keyframe now) and caught the overlay/content mid-fade/mid-zoom
+  (`opacity: 0.176`, `scale: 0.959`), confirming the animation actually
+  runs frame-by-frame rather than only checking the final settled state.
+- **Close button position re-verified live, per this part's own callout**:
+  `getComputedStyle` on the real close button in a real opened dialog
+  reports `position: absolute; top: 16px; right: 16px; background:
+  oklch(0.274 0.006 286.033)` — the `@layer base` mechanism from Phase 2
+  still correctly lets this file's unlayered `.dialog-content__close` win
+  over `button.module.css`'s layered `position: relative`, now that the
+  close button's own className moved from a literal Tailwind `absolute`
+  string to a CSS Module class.
+- **`sm:max-w-md` / `sm:flex-row sm:justify-end` are real, and needed real
+  media queries** (`@media (width >= 40rem) { … }`, Tailwind's default `sm`
+  breakpoint, confirmed via compiled output) — **not** dropped. This
+  corrects an over-broad earlier claim: Phase 2's "this app has no
+  responsive breakpoints post-migration" note (Decisions/Facts, made to
+  justify a `no-tailwind.mjs` regex fix) was only ever true of the seven
+  Phase-2 files; `dialog.tsx`/`alert-dialog.tsx` do use `sm:`, and both
+  behaviors are now ported as real `@media` rules. Verified with
+  Playwright at both a wide (≥640px) and narrow (<640px) viewport: footer
+  is `row`/`flex-end` above the breakpoint, `column-reverse`/`normal`
+  below it; content `max-width` is `28rem` above, `calc(100% - 32px)`
+  below.
+- **`bg-black/30` (the overlay scrim) is a literal `rgb(0 0 0 / 30%)`**,
+  not a design token — confirmed via compiled Tailwind output that this
+  resolves through `--color-black` (`#000`), which has no equivalent in
+  `tokens.css` and isn't part of this app's actual color system; black is
+  achromatic, so `color-mix`/`oklch(from …)` and a plain `rgb()` alpha all
+  render identically here (no hue/chroma to interpolate) — used the
+  simplest literal form.
+- **`outline-hidden`, `shadow-xl`→`--shadow-x-large`, `ring-foreground/N`→
+  the dark (10%) `oklch(from …)` value, `rounded-4xl`→`--radius-4x-large`,
+  `p-6`/`gap-6`→`--space-x-large`** all verified against real compiled
+  Tailwind output the same way as Part 3.2, not from memory.
+- **Added a project-wide `.sr-only` utility to `src/styles/global.css`**
+  (verbatim Tailwind definition) rather than a per-component BEM element —
+  it's a genuine cross-cutting accessibility pattern already anticipated by
+  `field.tsx`'s still-Tailwind `[&>.sr-only]` selector (Part 3.6), not
+  component-specific styling. First new addition to `global.css` since
+  Phase 1.
+- **Block naming**: `DialogOverlay`/`DialogContent` (Positioner has no
+  direct dialog equivalent — Base UI's `Backdrop`/`Popup` are siblings
+  under `Portal`, not wrapped) are their own top-level blocks, matching the
+  plan's own named example. `DialogHeader`/`DialogFooter`/`DialogTitle`/
+  `DialogDescription` are each their own block too (independently exported,
+  not rendered inside another part's function body — same "Positioner vs.
+  Arrow" test as Parts 3.1/3.2). Only the close button
+  (`.dialog-content__close`) is a genuine element — it's written literally
+  inside `DialogContent`'s own JSX.
+- **`DialogDescription`'s child-`a` styling** (`*:[a]:underline` etc., a
+  *direct-child* combinator in the original Tailwind) ported as `> a { }`,
+  not a bare descendant `a { }` — matches original scope exactly.
+
 **Browser verification (you):**
 - Open and close the link edit dialog, the dashboard edit dialog, and the
   `?` shortcuts overlay
@@ -1084,6 +1181,9 @@ Notes:
 - Escape closes; Tab is trapped inside
 - With OS "Reduce motion" on: fades run, zoom does not, and the dialog is
   still centered and clickable
+- Narrow the browser window below ~640px with a dialog open: the footer
+  buttons stack (Cancel above Save) instead of sitting side by side, and
+  the dialog's max-width relaxes to fill more of the narrow viewport
 
 ⏸ **PAUSE — review before Part 3.4.**
 
@@ -1104,6 +1204,18 @@ Notes:
   blocks buys a few saved lines and costs a cascade-order coupling between
   two files that are free to diverge. `composes:` stays reserved for
   `motion.module.css`.
+  **This now includes the four `fadeIn`/`fadeOut`/`popIn`/`popOut`
+  `@keyframes` blocks themselves, not just the rules that reference
+  them** — Part 3.3 found (empirically, via the actual dev-server output,
+  not by reading the CSS) that Vite's CSS Modules pipeline locally scopes
+  every `animation-name` value against the *current file's own* hash
+  namespace regardless of whether a matching local `@keyframes` exists, so
+  a bare `animation-name: popIn;` in `alert-dialog.module.css` would
+  silently resolve to a dangling name and the animation just wouldn't
+  play — no error, no failed test. `dialog.module.css` already duplicates
+  these four keyframes (see its Status note) for exactly this reason;
+  `alert-dialog.module.css` needs its own copy too, not a reference to
+  either file's.
 - `AlertDialogAction` **does not auto-close** in Base UI (documented
   gotcha); both consumers close themselves in `onClick`. That's behavior —
   don't touch it while converting styling.
@@ -1730,13 +1842,21 @@ derivable from the repo alone; read it before starting a phase.
 `e33447d` phase 1, then five commits for phase 2 — `1df5240` through
 `0645caf`, the last three of which were corrections to phase 2 itself, not
 new work; see "Facts established executing Phases 0–2" below for why there
-were so many). **Parts 3.1 (`tooltip`) and 3.2 (`dropdown-menu`) are done and committed**
-(see each part's own Status note). Two stylelint fixes from these parts
-apply to every remaining Phase 3+ part: the `composes:`/`property-no-unknown`
-exception (3.1), and disabling `no-descending-specificity` (3.2 — it doesn't
-understand BEM/CSS-Modules scoping and will false-positive on any file with
-more than one block, which every remaining Phase 3 primitive has). **Resume
-at Part 3.3 (`dialog`)** — read that part, then this Handoff section in
+were so many). **Parts 3.1 (`tooltip`), 3.2 (`dropdown-menu`), and 3.3
+(`dialog`) are done and committed** (see each part's own Status note).
+Three fixes from these parts apply to every remaining Phase 3+ part: the
+`composes:`/`property-no-unknown` exception (3.1); disabling
+`no-descending-specificity` (3.2 — it doesn't understand BEM/CSS-Modules
+scoping and will false-positive on any file with more than one block, which
+every remaining Phase 3 primitive has); and **never reference a shared
+keyframe (`fadeIn`/`fadeOut`/`popIn`/`popOut`) by bare name across a CSS
+Modules file boundary** (3.3 — Vite locally scopes every `animation-name`
+value against the *current file's own* hash regardless of whether a
+matching local `@keyframes` exists, so a cross-file reference silently
+resolves to nothing; `dialog.module.css` duplicates the four keyframes
+itself rather than referencing `motion.module.css`'s, and Part 3.4
+(`alert-dialog`) needs to do the same — see its updated notes). **Resume at
+Part 3.4 (`alert-dialog`)** — read that part, then this Handoff section in
 full, then the Conventions section (materially different from what Phase 3
 was originally drafted against — see below) before writing any CSS.
 

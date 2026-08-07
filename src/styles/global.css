@@ -82,6 +82,22 @@ textarea:not([rows]) {
   scroll-margin-block: 5ex;
 }
 
+/* Visually hidden but still available to assistive tech — a genuine
+   cross-cutting accessibility pattern, not component styling, so it lives
+   here rather than duplicated as a BEM element per consumer (dialog.tsx's
+   close button, field.tsx's [&>.sr-only] selector). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  margin: -1px;
+  white-space: nowrap;
+  border-width: 0;
+}
+
 /* Every group (incl. implicit `root`) cross-fades old/new by default, even
    when they're pixel-identical -- causes a page-wide blink and tiles
    dimming mid-slide. Forcing `new` to paint fully opaque immediately hides

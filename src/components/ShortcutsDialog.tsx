@@ -1,5 +1,5 @@
 import { useClosingDialog } from '../hooks/useClosingDialog'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog/dialog'
 import { Kbd, KbdGroup } from './ui/kbd/kbd'
 import { SHORTCUTS } from '../lib/shortcuts'
 

@@ -6,7 +6,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from './ui/dialog'
+} from './ui/dialog/dialog'
 import { FieldGroup } from './ui/field'
 
 interface EditDialogProps {
