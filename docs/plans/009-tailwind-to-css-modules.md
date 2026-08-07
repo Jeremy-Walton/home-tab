@@ -29,7 +29,7 @@ registry component can still be pulled in and then converted to CSS Modules
 | Animations | One shared `src/styles/motion.module.css` holding the keyframes and the two tempo classes; popups pull them in with CSS Modules `composes:`. No global animation class names. |
 | CSS Module typing | Generated `.d.ts` per module via `typed-css-modules` (`tcm`), gitignored, regenerated before `tsc` in the mechanical check. |
 | Mechanical check | `css:types` → `lint` → `stylelint` → `tsc -b` → `test`, wrapped as `yarn check`, plus a Tailwind-residue grep. No `yarn build` (not selected). |
-| Phase granularity | Grouped by tier, 9 phases (0–8). |
+| Phase granularity | Grouped by tier, 9 phases (0–8). **Amended:** from Phase 3 on, a phase is *not* a unit of work — each phase is broken into **parts, one component per part**, and a part is the unit that gets its own `yarn check`, its own browser pass, its own ⏸ pause, and its own commit. Phase 2 already shipped this way (6 parts / 6 commits) before the plan said so; Phases 3–7 now say so up front. A phase is done when its last part is. |
 | Class structuring methodology | **BEM (Block/Element/Modifier), per `docs/BEM.md`, enforced by `@jeremywalton/stylelint-bem`.** **Supersedes the camelCase-adapted version below** — CSS source is now literal kebab-case BEM (`.button`, `.button--outline`, `.kbd-group`), the real `__`/`--` separators, not a camelCase-flattened stand-in. `tcm -c`/`--camelCase` (`css:types` script) and Vite's `css.modules.localsConvention: 'camelCaseOnly'` (`vite.config.ts`) convert every class to a camelCase JS property (`.button--size-icon-xs` → `styles.buttonSizeIconXs`), so `.tsx` call sites still read as camelCase even though the `.css` source doesn't. See Phase 2 status notes for why the plain-camelCase version didn't survive contact with a deterministic linter. |
 
 ## Conventions
@@ -177,7 +177,8 @@ containing-block gotcha in `TECHNICAL_DESIGN.md` becomes moot — nothing sets
 
 ## Mechanical check
 
-Added in Phase 1, run at the end of **every** phase:
+Added in Phase 1, run at the end of **every part** (see Decisions, "Phase
+granularity"):
 
 ```json
 "css:types":   "tcm src -p \"**/*.module.css\"",
@@ -190,7 +191,7 @@ Added in Phase 1, run at the end of **every** phase:
 make `styles.foo` type-check.
 
 `scripts/no-tailwind.mjs` holds a `MIGRATED` array of globs that grows one
-entry per phase. It scans those files for string literals containing tokens
+entry per **part**. It scans those files for string literals containing tokens
 matching Tailwind utility patterns and exits `1` with `file:line` on any hit:
 
 ```
@@ -452,9 +453,12 @@ check that button/input fonts and image sizing are unchanged.
 
 ---
 
-## Phase 2 — Leaf `ui/` primitives (7)
+## Phase 2 — Leaf `ui/` primitives (7 components, shipped in 6 parts)
 
-**Scope:** the primitives with no dependency on other `ui/` files.
+**Scope:** the primitives with no dependency on other `ui/` files. Landed as
+six commits (`1df5240`…`0645caf`), the last three being corrections rather
+than new components — the per-part cadence that Phases 3–7 now state
+explicitly started here, ad hoc.
 
 `button`, `badge`, `kbd`, `label`, `input`, `separator`, `aspect-ratio`
 
@@ -689,143 +693,518 @@ imports `./ui/button|badge|kbd|input|label|separator|aspect-ratio`.
 
 ---
 
-## Phase 3 — Composite `ui/` primitives (7)
+## Phase 3 — Composite `ui/` primitives (7 parts)
 
 **Scope:** the primitives that import other primitives and/or animate.
 
-`dialog`, `alert-dialog`, `dropdown-menu`, `tooltip`, `tabs`, `field`, `empty`
+`tooltip`, `dropdown-menu`, `dialog`, `alert-dialog`, `tabs`, `field`,
+`empty` — **one per part, in that order.**
 
-This is where `motion.module.css` gets exercised. Each popup's content and
-backdrop `composes:` the matching tempo class:
+### Why this order
+
+There is **no dependency constraint left inside this phase** — every
+`ui/` file these seven import (`button` → dialog/alert-dialog, `label` +
+`separator` → field) was already converted in Phase 2. So the order is
+purely a risk ordering, and it is riskiest-first:
+
+1. `tooltip` is the smallest file (64 lines) that consumes
+   `motion.module.css`'s `.popup`, so it is the cheapest place to find out
+   whether the `composes:` contract, the four-keyframe→six-`data-side`
+   mapping, and the reduced-motion override actually work.
+2. `dropdown-menu` (270 lines) is the same tempo class at full scale —
+   worth doing while `.popup` is freshly proven, not last.
+3. `dialog` is the first `.dialog` consumer, and carries the phase's single
+   most likely visual break (centering translate vs. zoom).
+4. `alert-dialog` is a near-clone of `dialog`; back-to-back keeps the
+   pattern fresh.
+5–7. `tabs`, `field`, `empty` don't animate at all — they're CVA and
+   layout work, and are the safest thing to be doing last.
+
+### Per-part rhythm (applies to all seven; not repeated below)
+
+1. Create `src/components/ui/<name>/<name>.tsx` + `<name>.module.css`;
+   delete the old flat `src/components/ui/<name>.tsx`.
+2. Update **only that component's** importers (listed per part).
+3. Add `src/components/ui/<name>/**/*.tsx` to `scripts/no-tailwind.mjs`'s
+   `MIGRATED`.
+4. `yarn check`.
+5. Update this plan file with a **Status** note for the part.
+6. Hand the part's browser-verification list to the user; ⏸ **stop.**
+
+**Housekeeping, do this once at the start of Part 3.1:** the folders
+`ui/{dialog,alert-dialog,dropdown-menu,tooltip,tabs,field,empty}/` already
+exist containing nothing but an orphaned generated `<name>.module.css.d.ts`
+with no `.module.css` beside it — leftovers from an earlier attempt, and
+gitignored so they don't show in `git status`. Delete all seven `.d.ts`
+files before starting, or `tsc` will type-check `styles.*` against class
+names that no longer exist. (`dialog.module.css.d.ts`'s keys —
+`dialogContent`, `dialogContentClose`, … — are the earlier attempt's naming
+and are **not** a specification for this one.)
+
+**Shared convention for this phase.** Each popup's content and backdrop
+`composes:` the matching tempo class:
 
 ```css
-.content {
+.tooltip-content {
   composes: popup from '../../../styles/motion.module.css';
-  background: var(--color-popover);
+  background: var(--foreground);
   /* … */
 }
 ```
 
-Per-component notes:
+**Color tokens have no `--color-` prefix** — `tokens.css` defines
+`--foreground`, `--popover`, `--muted-foreground`, not `--color-foreground`.
+(An earlier draft of this plan's example used `var(--color-popover)`; that
+token does not exist. No converted module uses the prefixed form —
+`grep -rn "var(--color-" src/` returns nothing, and it should stay that way.)
 
-- **dialog / alert-dialog** — backdrop uses `motion.dialog` + the
-  `supports-backdrop-filter:backdrop-blur-sm` translation
-  (`@supports (backdrop-filter: blur(1px))`). Content is centered with
-  `top/left 50%` + `translate(-50%, -50%)`; the zoom animation must compose
-  with that translate — use the `scale` property (not a `transform`
-  shorthand) in the keyframes so it doesn't clobber the centering translate.
-  This is the most likely visual break in the phase.
-- **dropdown-menu** — sizing off Base UI's `--anchor-width`,
-  `--available-height`, `--transform-origin` vars; `origin-(--transform-origin)`
-  becomes `transform-origin: var(--transform-origin)`. Submenu content
-  (line 140) has its own popup animation. `data-closed:overflow-hidden`
-  must survive.
-- **tooltip** — has a third state, `data-state="delayed-open"`, plus the
-  `**:data-[slot=kbd]:*` deep selectors → `.content [data-slot="kbd"] { … }`.
-- **tabs** — `tabsListVariants` CVA. **Do not** touch `activateOnFocus`
-  behavior; the roving-focus / ⌥←→ capture interaction is browser-verified
-  only and is a documented gotcha.
-- **field** — `fieldVariants` (orientation); imports label + separator, both
-  already converted.
-- **empty** — `emptyMediaVariants`; note this one calls
-  `cn(emptyMediaVariants({ variant, className }))` (className *inside* the
-  CVA call) rather than alongside it. Behavior is the same either way once
-  `tailwind-merge` is gone, but keep the call shape consistent across all
-  five CVA files while converting.
-
-`scripts/no-tailwind.mjs`: add the seven new folders.
-
-**Mechanical check:** `yarn check`.
-
-**Browser verification (you):** animations are the whole point here —
-- Open/close each of: link edit dialog, dashboard edit dialog, delete
-  confirm, `?` shortcuts overlay, import/export menu, a tile kebab menu, a
-  dashboard tab kebab menu, the "Move to…" submenu, a tooltip
-- Confirm **exit** animations actually play (they only work because dialogs
-  own their `open` state via `useClosingDialog` — a broken `data-closed`
-  selector makes them vanish instantly rather than error)
-- Tooltip on all four sides if reachable — the directional slide
-- Dialog stays perfectly centered *during* the zoom, not just after
-- Backdrop blur
-- With OS "Reduce motion" on: fades still run, movement/zoom does not, and
-  dialogs are still centered and clickable
-- Keyboard: Escape closes, Tab is trapped inside a dialog
-
-⏸ **PAUSE — review before Phase 4.**
+**Block naming for multi-part primitives.** These files each export many
+parts (`Dialog`, `DialogOverlay`, `DialogContent`, `DialogHeader`, …), and
+several of the parts that need styling have **no styled common ancestor**
+to hang a block off — `Dialog` (Root) renders no element of ours at all.
+Don't invent a phantom `.dialog` root just to make `.dialog__content` legal.
+Name each independently-rendered part as its **own block**
+(`.dialog-overlay`, `.dialog-content`, `.dialog-footer`), and use elements
+only for things that genuinely live inside another part's markup in the same
+file (`.dialog-content__close`). This is BEM.md's "a new block can be used
+in tandem with an element to represent a new concept" applied literally, and
+it keeps `stylelint-bem/no-orphaned-element` satisfiable without fiction.
 
 ---
 
-## Phase 4 — App components: the grid surface
+### Part 3.1 — `tooltip`
 
-**Scope:** `LinkTile`, `DashboardGrid`, `EmptyState`
+**Importers:** `App.tsx` (`TooltipProvider`), `DashboardTabs.tsx`,
+`OptionsMenu.tsx`.
 
-Each moves to `src/components/<Name>/<Name>.tsx` + `<Name>.module.css`.
+Notes:
 
-Per-component notes:
+- **First real consumer of `motion.module.css`.** Read that file before
+  starting — it was verified against this part's needs and it already
+  supplies **everything tooltip animates**, so `tooltip.module.css` should
+  declare **no** animation properties of its own, only appearance.
+  Specifically, confirmed present:
+  - `.popup[data-open]` / `[data-closed]` set duration, timing **and**
+    `animation-name` (`popIn` / `popOut`).
+  - Six `.popup[data-open][data-side='…']` rules layer a second keyframe on
+    top (`animation-name: popIn, slideInFrom<Opposite>`), covering
+    `top`/`bottom`/`left`/`right`/`inline-start`/`inline-end` with four
+    keyframes — `inline-start`/`inline-end` reuse right/left, RTL not
+    supported.
+  - `.popup[data-state='delayed-open']` exists for tooltip's third state.
+  - The `@media (prefers-reduced-motion: reduce)` block re-points **all** of
+    the above at `fadeIn`/`fadeOut`.
+  If you find yourself needing to re-declare one of these, stop — that's the
+  cascade-order risk biting, and the fix belongs in `motion.module.css`, not
+  here.
+- The slide distance is `var(--space-x-small)` (0.5rem), against Tailwind's
+  `slide-in-from-*-2` (0.5rem). Matches; no adjustment needed.
+- Deep selectors: `**:data-[slot=kbd]:*` → `.tooltip-content
+  [data-slot="kbd"] { … }`; `has-data-[slot=kbd]:pr-1.5` →
+  `&:has([data-slot="kbd"])`.
+- The `Arrow` is the bulk of the transcription: a base
+  `translate-y-[calc(-50%-2px)] rotate-45` plus six `data-[side=…]` blocks.
+  **Several carry Tailwind's `!` important** (`data-[side=left]:top-1/2!`
+  etc.) because Base UI's positioner writes `top` as an *inline* style on
+  the arrow — an inline style beats any class, layered or not, so these
+  need real `!important` in the module. Dropping them silently
+  mis-positions the arrow on the left/right/inline sides only, which a
+  top-side-only spot check won't catch.
+- Positioner's `isolate z-50` → its own `.tooltip-positioner` block using
+  `var(--z-popup)`.
 
-- **LinkTile** — the `group`/`group-hover:` translation described in
-  Conventions applies here (`.tile:hover .surface`), as does
-  `has-[a:active]:scale-[0.98]` → `.surface:has(a:active)` inside a
-  `prefers-reduced-motion: no-preference` block. **Leave the inline `style`
-  object alone** — `transform`, `transition`, `opacity` and
-  `viewTransitionName` there are dnd-kit's, and the combined
-  `transition` string is a documented fix (an inline style always beats a
-  class for the same property, so do not move opacity into the module).
-  The image cross-fade (`opacity-0`/`opacity-100` + `transition-opacity`)
-  becomes two module classes toggled by `cn()`.
-- **DashboardGrid** — CSS Grid + `closestCenter` collision detection are
-  load-bearing for reorder correctness (documented gotcha: a `flex flex-wrap`
-  container broke `rectSortingStrategy` for cross-row moves). Transcribe the
-  grid definition exactly; do not "simplify" it. The add-tile's dashed border
-  and press scale come along.
-- **EmptyState** — has an `animate-in fade-in-0 slide-in-from-bottom-1`
-  entrance; give it a local keyframe or compose from `motion.module.css`.
+**Browser verification (you):**
+- Hover the add-dashboard `+`, a kebab, and the import/export button — the
+  tooltip appears, fades/zooms in, and fades out on leave
+- Tooltip arrow points at the trigger on **every** side you can reach (the
+  top-bar ones are `top`; check at least one that flips)
+- The `?` hint / any tooltip containing a `kbd` chip still renders the chip
+  correctly with its extra right padding
+- With OS "Reduce motion" on: it still fades, it does not zoom or slide
 
-`scripts/no-tailwind.mjs`: add the three new folders.
+⏸ **PAUSE — review before Part 3.2.**
 
-**Mechanical check:** `yarn check`.
+---
 
-**Browser verification (you):** load
-`docs/fixtures/animation-test-data.json` via Import first, then —
+### Part 3.2 — `dropdown-menu`
+
+**Importers:** `OptionsMenu.tsx`, `EntityOptionsMenu.tsx`,
+`ImportExportBar.tsx`.
+
+Notes:
+
+- Largest file in the phase (270 lines, 16 exported parts). Positioner
+  sizing comes off Base UI's `--anchor-width` / `--available-height` /
+  `--transform-origin`; `origin-(--transform-origin)` →
+  `transform-origin: var(--transform-origin)`.
+- `DropdownMenuSubContent` gets its own `.popup` compose — the submenu
+  animates independently of its parent menu.
+- `data-closed:overflow-hidden` must survive; it's what stops the exit
+  animation from showing a scrollbar mid-collapse.
+- `DropdownMenuCheckboxItem` / `DropdownMenuRadioItem` /
+  `DropdownMenuShortcut` / `DropdownMenuLabel` have no call site in this app
+  — **port them faithfully and silently** (Decisions table).
+- **Cascade-layer watch.** All three importers are still Tailwind-classed
+  after this part and pass `className` into menu parts. Any property this
+  module sets that one of them overrides via a Tailwind utility needs the
+  `@layer base` treatment (see Handoff "Facts") — verify with
+  `getComputedStyle`, not by reading the CSS.
+
+**Browser verification (you):**
+- A link tile's kebab menu, a dashboard tab's kebab menu, and the
+  import/export menu all open with the pop-in and close with the pop-out
+- The "Move to…" **submenu** opens, animates on its own, and lists only
+  *other* dashboards
+- Menus flip/shift near the viewport edge without clipping (right-most
+  dashboard tab, bottom-row tile)
+- Keyboard: arrows move between items, Escape closes, focus returns to the
+  trigger
+- With OS "Reduce motion" on: fade only
+
+⏸ **PAUSE — review before Part 3.3.**
+
+---
+
+### Part 3.3 — `dialog`
+
+**Importers:** `EditDialog.tsx`, `ShortcutsDialog.tsx`.
+
+Notes:
+
+- **First `.dialog` tempo consumer, and this phase's likeliest visual
+  break.** Verified in `motion.module.css`: `.dialog[data-open]` /
+  `[data-closed]` supply **only** `animation-duration` /
+  `animation-timing-function` — no `animation-name` — because the overlay
+  (fade) and content (fade + zoom) need different keyframes. So
+  `dialog.module.css` *must* supply `animation-name` itself:
+  `fadeIn`/`fadeOut` on the overlay, `popIn`/`popOut` on the content.
+- **Consequence, and this is a concrete trap, not a vague risk: the shared
+  module's reduced-motion block cannot be relied on for `.dialog`.** That
+  block sets `animation-name: fadeIn` on `.dialog[data-open]` —
+  specificity (0,2,0). The consumer's own `.dialog-content[data-open] {
+  animation-name: popIn }` is *also* (0,2,0), and a media query adds no
+  specificity, so **source order alone decides**, and the consumer's
+  stylesheet plausibly emits after the module it composes from. If it does,
+  `popIn` wins even under reduced motion and the zoom ships to users who
+  asked for no motion — silently, and invisible to typecheck/lint/tests.
+  It's a one-sided failure (nothing breaks at normal motion either way), so
+  don't try to determine the emission order — just make it moot:
+  **`dialog.module.css` carries its own
+  `@media (prefers-reduced-motion: reduce)` block** re-pointing its overlay
+  and content at `fadeIn`/`fadeOut`. Same for Part 3.4. The `.popup`
+  consumers (3.1, 3.2) don't have this problem — the shared module owns
+  `animation-name` in both branches there, so there's nothing to tie with.
+- Content is centered with `top/left: 50%` + `translate(-50%, -50%)`. The
+  zoom **must** use the standalone `scale` property, never a `transform`
+  shorthand, or it clobbers the centering translate and the dialog flies to
+  the corner mid-animation.
+- Overlay: `supports-backdrop-filter:backdrop-blur-sm` →
+  `@supports (backdrop-filter: blur(1px)) { … }`.
+- `DialogContent`'s close button is a `Button` with a Tailwind `absolute`
+  — this is the exact case Phase 2's `@layer base` fix in `button.module.css`
+  exists for. Re-verify `getComputedStyle(closeBtn).position === 'absolute'`
+  after this part; the consumer side changing is what could disturb it.
+- Headings: per Phase 1's reset deltas, `DialogTitle` keeps a UA font size
+  unless the module sets one explicitly. Set it.
+
+**Browser verification (you):**
+- Open and close the link edit dialog, the dashboard edit dialog, and the
+  `?` shortcuts overlay
+- **Exit animations actually play** — a broken `data-closed` selector makes
+  a dialog vanish instantly rather than error, so "it closed" is not a pass
+- The dialog stays perfectly centered *during* the zoom, not just after
+- Backdrop blur is visible over the grid
+- Close button sits pinned top-right, not inline in the header
+- Escape closes; Tab is trapped inside
+- With OS "Reduce motion" on: fades run, zoom does not, and the dialog is
+  still centered and clickable
+
+⏸ **PAUSE — review before Part 3.4.**
+
+---
+
+### Part 3.4 — `alert-dialog`
+
+**Importers:** `ConfirmDialog.tsx`, `ImportExportBar.tsx` (its
+`FeedbackDialog`).
+
+Notes:
+
+- Structurally a near-clone of Part 3.3 (overlay + centered content + the
+  same animation split), plus `AlertDialogMedia`, `AlertDialogAction` and
+  `AlertDialogCancel`. **Duplicate the rules into
+  `alert-dialog.module.css` rather than `composes:`-ing them out of
+  `dialog.module.css`** — cross-module composition between two sibling
+  blocks buys a few saved lines and costs a cascade-order coupling between
+  two files that are free to diverge. `composes:` stays reserved for
+  `motion.module.css`.
+- `AlertDialogAction` **does not auto-close** in Base UI (documented
+  gotcha); both consumers close themselves in `onClick`. That's behavior —
+  don't touch it while converting styling.
+- `AlertDialogMedia` has no call site — port it faithfully and silently.
+
+**Browser verification (you):**
+- Delete confirmation for a link, and for a dashboard — open, cancel,
+  reopen, confirm
+- The destructive Delete button still reads as destructive next to Cancel
+- Import a good file and a deliberately malformed one — the feedback dialog
+  appears in both cases and its action button **closes it**
+- Same animation checks as Part 3.3 (exit plays, centered during zoom,
+  reduced-motion)
+
+⏸ **PAUSE — review before Part 3.5.**
+
+---
+
+### Part 3.5 — `tabs`
+
+**Importer:** `DashboardTabs.tsx`.
+
+Notes:
+
+- First non-animating part of the phase. `tabsListVariants` CVA
+  (`default` / `line`) → `.tabs-list--default` / `.tabs-list--line`.
+- The heavy lifting is Tailwind's `group/tabs` + `group/tabs-list`
+  cross-part styling: `TabsTrigger` restyles itself based on the *root's*
+  orientation and the *list's* variant. All three parts live in one module,
+  so these become plain descendant selectors within the file
+  (`.tabs--vertical .tabs-trigger { … }`) — the Conventions section's
+  cross-component `className`-passing dance is **not** needed here, that's
+  only for reaching into a different component's module.
+- Drive the modifier classes off the **props** (`orientation`, `variant`),
+  the way `separator` was done in Phase 2 — but **keep the
+  `data-orientation` / `data-variant` attributes on the DOM**; they're
+  written by our own code today and removing them is a behavior change, not
+  a styling one.
+- `dark:data-active:bg-input/30` → `color-mix(in oklab, var(--input) 30%,
+  transparent)`. This is one of the two spots the Handoff section calls out
+  by name — the `oklch(from …)` form is a real, visible bug here.
+- `border-transparent!` carries a Tailwind important; keep it as
+  `!important`.
+- The `after:` pseudo-element underline is only visible in the `line`
+  variant, which this app doesn't use — port it faithfully and silently.
+- `h-[calc(100%-1px)]` and `after:bottom-[-5px]` are one-off geometry;
+  literals are allowed (Conventions, "Token usage").
+- **Do not touch `activateOnFocus`.** The roving-focus / ⌥←→ capture
+  interaction is browser-verified only and is a documented gotcha.
+
+**Browser verification (you):**
+- Tab strip renders correctly with 1, 3, and 11+ dashboards; long names
+  truncate with an ellipsis
+- Active tab is visually distinct from inactive; hover state on an inactive
+  tab
+- Clicking a tab switches dashboards; ⌥1–⌥9 / ⌥0 still work
+- ⌥←/⌥→ still steps between dashboards **and wraps** (this is the
+  roving-focus interaction — if it only moves focus without switching, the
+  capture handler lost)
+- Focus ring on a tab via keyboard Tab
+
+⏸ **PAUSE — review before Part 3.6.**
+
+---
+
+### Part 3.6 — `field`
+
+**Importers:** `LinkEditModal.tsx`, `DashboardEditModal.tsx`,
+`EditDialog.tsx` (`FieldGroup`).
+
+Notes:
+
+- 236 lines, 11 exported parts, but shallow — mostly layout and typography.
+  `fieldVariants` (orientation) → `.field--horizontal` /
+  `.field--vertical` / `.field--responsive` as applicable.
+- Imports `label` and `separator`, both already converted in Phase 2 —
+  update those two import paths to the folder form while here.
+- `has-data-checked:bg-input/30` → `color-mix(in oklab, var(--input) 30%,
+  transparent)`. Second of the two spots the Handoff calls out by name.
+- `FieldSeparator` has no call site (Phase 2 established `Separator` itself
+  is unused in the app) — port it faithfully and silently.
+- `FieldError` is the one part with real logic; it's the inline URL
+  validation error surface. Styling only — don't touch its rendering.
+- `tests/components/LinkEditModal.test.tsx` asserts on that error. It
+  imports `LinkEditModal`, not `field`, so no test path changes here — but
+  it is the automated signal that this part didn't break validation
+  rendering, so read its failure carefully if it goes red.
+
+**Browser verification (you):**
+- Link edit dialog: all three fields labeled, stacked, and aligned; Title /
+  URL / Background image URL all save
+- Dashboard edit dialog: name + background URL
+- **Validation surface**: enter `not a url` → the inline error appears
+  under the right field, is legible, and blocks save
+- Enter `github.com` → saves as `https://github.com`
+- Clear the background field → the background actually clears
+- Keyboard Tab moves label→input→next field in order
+
+⏸ **PAUSE — review before Part 3.7.**
+
+---
+
+### Part 3.7 — `empty`
+
+**Importer:** `EmptyState.tsx`.
+
+Notes:
+
+- Smallest of the three CVA parts. `emptyMediaVariants` (`default` /
+  `icon`).
+- **Normalize the CVA call shape while converting.** `empty.tsx:52` is the
+  odd one out across all five CVA files — it calls
+  `cn(emptyMediaVariants({ variant, className }))` with `className` *inside*
+  the CVA call, where `button`, `badge`, `tabs` and `field` all use
+  `cn(variants({ … }), className)`. Change `empty` to match the other four.
+  Behavior is identical once `tailwind-merge` is inert for module classes;
+  this is purely so all five read the same way.
+- `EmptyTitle` / `EmptyDescription` keep UA heading sizing unless set
+  explicitly — see Phase 1's reset delta 3.
+- `EmptyState.tsx` itself is **not** converted here (that's Part 4.3); it
+  still passes Tailwind classes into `Empty`, so the cascade-layer watch
+  applies.
+
+**Browser verification (you):**
+- A dashboard with zero links shows the centered welcome card: title,
+  one-line instruction, "Add link" button
+- Its entrance animation still plays (`animate-in fade-in-0
+  slide-in-from-bottom-1` today — this part keeps whatever `EmptyState`
+  passes in; Part 4.3 owns converting it)
+- The "Add link" button creates a link and opens its edit dialog
+
+⏸ **PAUSE — Phase 3 complete; review before Phase 4.**
+
+---
+
+## Phase 4 — App components: the grid surface (3 parts)
+
+**Scope:** `DashboardGrid`, `LinkTile`, `EmptyState` — one per part, in that
+order. Each moves to `src/components/<Name>/<Name>.tsx` +
+`<Name>.module.css`, following Phase 3's per-part rhythm (own `yarn check`,
+own browser pass, own ⏸, own commit).
+
+**Why container-down.** Unlike Phase 3, these three nest
+(`DashboardGrid` renders both `LinkTile` and `EmptyState`), and the
+correctness-critical CSS is in the *container*. Converting the grid first
+isolates "did the CSS Grid definition survive" from "did the tile survive" —
+if a drag regresses in Part 4.2, the grid is already known-good. Phase 5
+and 6 use the same container-down principle.
+
+**Load `docs/fixtures/animation-test-data.json` via Import before the first
+browser pass of this phase** and keep it for every part after.
+
+---
+
+### Part 4.1 — `DashboardGrid`
+
+CSS Grid + `closestCenter` collision detection are **load-bearing for
+reorder correctness**, not styling: a `flex flex-wrap` container broke
+`rectSortingStrategy` for cross-row moves (documented gotcha). Transcribe
+the grid definition exactly; do not "simplify" it. The add-tile's dashed
+border and press scale come along. `LinkTile`/`EmptyState` are still
+Tailwind-classed after this part — cascade-layer watch applies.
+
+**Browser verification (you):**
 - Grid reflow at several window widths; the max-width cap on wide screens
-- Tile hover shadow lift; kebab fade-in on hover
+- The trailing dashed "+" add-tile matches a real tile's size; its press
+  feedback still fires
 - **Drag-and-drop reorder, many distances and directions, including
   multi-row.** Track tiles by their visible identity, not DOM index. Watch
-  for: a tile flying off-screen and sliding back, or landing correctly then
-  reverting. A single screenshot is not enough — these were only ever caught
-  frame-by-frame.
-- **Dragging a tile must not navigate.** Drop one and confirm the page
-  doesn't change.
-- Drag a tile onto a dashboard tab (tab highlights, link moves)
+  for a tile flying off-screen and sliding back, or landing correctly then
+  reverting. A single screenshot is not enough — these were only ever
+  caught frame-by-frame.
+- **Dragging a tile must not navigate.** Drop one, confirm the page doesn't
+  change.
 - Delete a link — the view-transition reflow animation
-- The broken-image URL in the fixture falls back to flat color, no broken
-  icon; a tile with no image likewise
-- The empty dashboard's welcome card and its entrance animation
 
-⏸ **PAUSE — review before Phase 5.**
+⏸ **PAUSE — review before Part 4.2.**
 
 ---
 
-## Phase 5 — App components: the top bar
+### Part 4.2 — `LinkTile`
+
+- The `group`/`group-hover:` translation from Conventions applies here
+  (`.tile:hover .tile__surface`), as does `has-[a:active]:scale-[0.98]` →
+  `:has(a:active)` inside a `prefers-reduced-motion: no-preference` block.
+- **Leave the inline `style` object alone.** `transform`, `transition`,
+  `opacity` and `viewTransitionName` are dnd-kit's, and the combined
+  `transition` string is a documented fix — an inline style always beats a
+  class for the same property, so moving opacity into the module silently
+  does nothing.
+- The image cross-fade (`opacity-0`/`opacity-100` + `transition-opacity`)
+  becomes two module classes toggled by `cn()`.
+- `LinkTile` passes `className` down into the already-converted
+  `AspectRatio` — that's the Conventions cross-component pattern, parent
+  block reaching into a child block.
+
+**Browser verification (you):**
+- Tile hover shadow lift; kebab fade-in on hover
+- Title badge over the bottom-left; `Untitled` on an empty title
+- 16:9 aspect ratio holds while resizing the window
+- The fixture's broken-image URL falls back to flat color, no broken icon;
+  a tile with no image likewise; the good images cross-fade in
+- **Re-run the full Part 4.1 drag checklist** — the tile is the dragged
+  element, so its conversion can reintroduce the positioning bugs
+  independently of the grid's
+- Drag a tile onto a dashboard tab (tab highlights, link moves)
+
+⏸ **PAUSE — review before Part 4.3.**
+
+---
+
+### Part 4.3 — `EmptyState`
+
+Has an `animate-in fade-in-0 slide-in-from-bottom-1` entrance — compose it
+from `motion.module.css` if a matching keyframe exists there, otherwise give
+it a local one rather than widening the shared module for a single consumer.
+It renders `Empty`/`EmptyContent`/`EmptyTitle`… converted in Part 3.7, so
+this is where the classes it passes down stop being Tailwind.
+
+**Browser verification (you):**
+- An empty dashboard's welcome card: title, one-line instruction, "Add
+  link" button — centered, correctly sized
+- Its entrance animation plays on switching to that dashboard
+- With OS "Reduce motion" on: it fades in without sliding
+- "Add link" creates a link and opens its edit dialog
+
+⏸ **PAUSE — Phase 4 complete; review before Phase 5.**
+
+---
+
+## Phase 5 — App components: the top bar (5 parts)
 
 **Scope:** `Navbar`, `DashboardTabs`, `ImportExportBar`, `LogoIcon`,
-`Wordmark`
+`Wordmark` — one per part, in that order (container-down, per Phase 4).
+Same per-part rhythm.
 
-Per-component notes:
+Parts 5.4 and 5.5 are minutes-long; run them back-to-back as two commits if
+you'd rather not pause twice, but keep them as separate parts.
 
-- **DashboardTabs** — the held-⌥ digit badges must not shift the tab strip's
-  layout (PRD requirement); whatever absolute-positioning trick does that
-  today needs to survive verbatim. Also holds the per-tab kebab hover reveal
-  and the drop-target highlight.
-- **ImportExportBar** — contains `FeedbackDialog`, which relies on
-  `AlertDialogAction` *not* auto-closing (Base UI difference); leave its
-  `onClick` close logic alone.
-- **LogoIcon / Wordmark** — likely inline SVG with a few classes; smallest
-  conversions in the plan.
+---
 
-`scripts/no-tailwind.mjs`: add the five new folders.
+### Part 5.1 — `Navbar`
 
-**Mechanical check:** `yarn check`.
+The top bar shell: full-width single row, logo → tab strip → flexible space
+→ import/export button. Its children are all still Tailwind-classed after
+this part — cascade-layer watch applies. Per BEM.md, the bar owns the
+*layout* of its slotted children; resist porting any `m-*` from a child onto
+that child's own root.
+
+**Browser verification (you):**
+- Top bar spans full width, one row, correct height at several window sizes
+- Logo left, tab strip beside it, import/export button hard right
+- The bar stays a plain surface — a dashboard background image must never
+  render behind it
+
+⏸ **PAUSE — review before Part 5.2.**
+
+---
+
+### Part 5.2 — `DashboardTabs`
+
+The riskiest part in the phase. The held-⌥ digit badges **must not shift the
+tab strip's layout** (PRD requirement) — whatever absolute-positioning trick
+does that today survives verbatim. Also holds the per-tab kebab hover reveal
+(styled against `OptionsMenu`, not converted until Part 6.1) and the
+drag-drop-target highlight. `Tabs`/`TabsList`/`TabsTrigger` are already
+converted (Part 3.5).
 
 **Browser verification (you):**
 - Tab strip layout with 1, 3, and 11+ dashboards; long names truncate with
@@ -835,65 +1214,201 @@ Per-component notes:
 - ⌥1–⌥9, ⌥0, ⌥←/⌥→, ⌥[/⌥] all switch correctly and wrap
 - Alt-tab away and back while holding ⌥ — badges must not stay stuck on
 - Per-tab kebab hover reveal; Delete disabled with one dashboard
-- Drag a tile over a tab — highlight state
-- Import/export menu opens, export downloads, import shows its feedback
-  dialog (both success and a deliberately malformed file)
-- Both footer overlays: bottom-right copyright/extension link stays
-  click-through except on the link itself; bottom-left `?` hint
+- Drag a tile over a tab — highlight state, and the link actually moves
 
-⏸ **PAUSE — review before Phase 6.**
+⏸ **PAUSE — review before Part 5.3.**
 
 ---
 
-## Phase 6 — App components: dialogs and menus
+### Part 5.3 — `ImportExportBar`
 
-**Scope:** `EditDialog`, `ConfirmDialog`, `ShortcutsDialog`, `OptionsMenu`,
-`EntityOptionsMenu`, `LinkEditModal`, `DashboardEditModal`
-
-These are compositions over the Phase 3 primitives, so most of them will be
-thin modules — layout and spacing only.
-
-Notes:
-
-- The `useClosingDialog` contract (local `open` state + deferring the
-  parent callback to `onOpenChangeComplete`) is behavioral, not styling.
-  Don't touch it.
-- `tests/components/LinkEditModal.test.tsx`'s import of the component
-  updates to the new folder path.
-- `OptionsMenu`/`EntityOptionsMenu` carry the `revealOnHover` behavior that
-  Phase 4/5 parents style against — confirm the hover-reveal still works
-  from both a tile and a tab after conversion.
-
-`scripts/no-tailwind.mjs`: add the seven new folders.
-
-**Mechanical check:** `yarn check`.
+Contains `FeedbackDialog`, which relies on `AlertDialogAction` *not*
+auto-closing (Base UI difference) — leave its `onClick` close logic alone.
 
 **Browser verification (you):**
-- Edit a link (all three fields save), edit a dashboard (name +
-  background URL)
-- URL validation: enter `not a url` → inline error, save blocked; enter
-  `github.com` → saves as `https://github.com`; clear the background field →
-  background actually clears
-- Cancel / click-outside / Escape all discard edits
-- Delete confirm for both a link and a dashboard (cascade: its links go too)
-- "Move to…" submenu lists only *other* dashboards
-- `?` overlay lists every shortcut, with ⌥ labels (⌥ on macOS)
-- Shortcuts are inert while a text field is focused or a dialog is open
+- Import/export menu opens and is positioned under its button
+- Export downloads `launch-tabs-export.json`
+- Import shows the feedback dialog for both a good file and a deliberately
+  malformed one, and its action button closes it
 
-⏸ **PAUSE — review before Phase 7.**
+⏸ **PAUSE — review before Part 5.4.**
 
 ---
 
-## Phase 7 — App shell and global CSS
+### Part 5.4 — `LogoIcon`
 
-**Scope:** `src/App.tsx`, `src/index.css`
+Inline SVG with a few classes; the smallest conversion in the plan. Watch
+for `currentColor` inheritance — the reset does not set `color` on every
+element the way preflight's cascade implied.
 
-1. Convert `App.tsx`'s layout shell to `src/App/App.tsx` +
-   `App.module.css` (or keep `App.tsx` at `src/` root with an adjacent
-   `App.module.css` — it isn't a component folder peer; **pick this** unless
-   you'd rather it match). Includes the top-bar/content-area split, the
-   dashboard background layer, and both footer overlays.
-2. `src/index.css` → **`src/styles/tailwind-scratch.css`**, not deleted.
+**Browser verification (you):** the logo renders at the right size and
+color in the top bar; nothing shifted beside it.
+
+⏸ **PAUSE — review before Part 5.5.**
+
+---
+
+### Part 5.5 — `Wordmark`
+
+Same shape as 5.4. Uses the heading font — per Phase 1's reset delta 3, set
+its size/weight explicitly rather than relying on a UA default.
+
+**Browser verification (you):**
+- Wordmark renders in Figtree at the right size/weight, baseline-aligned
+  with the logo
+- Both footer overlays still positioned and click-through: bottom-right
+  copyright/extension link is click-through except on the link itself,
+  bottom-left `?` hint is visible
+
+⏸ **PAUSE — Phase 5 complete; review before Phase 6.**
+
+---
+
+## Phase 6 — App components: dialogs and menus (7 parts)
+
+**Scope:** `OptionsMenu`, `EntityOptionsMenu`, `EditDialog`,
+`LinkEditModal`, `DashboardEditModal`, `ConfirmDialog`, `ShortcutsDialog` —
+one per part, in that order. Same per-part rhythm.
+
+**Why this order.** These are compositions over the Phase 3 primitives, so
+most are thin modules — layout and spacing only. The menus go first because
+they're the only genuinely risky pair: they carry the hover-reveal behavior
+that the Phase 4/5 parents (already converted by now) style *against*, so
+this is the first point where both halves of that cross-block relationship
+are real CSS Modules and can actually be verified. The dialog shell then
+precedes the two modals built on it.
+
+Behavioral rule for the whole phase: the `useClosingDialog` contract (local
+`open` state + deferring the parent callback to `onOpenChangeComplete`) is
+what makes exit animations play at all. It is behavior, not styling —
+don't touch it in any part.
+
+---
+
+### Part 6.1 — `OptionsMenu`
+
+The shared three-dot/kebab trigger (tooltip'd dropdown-menu button, callers
+pass items as children). Carries the `revealOnHover` behavior that
+`LinkTile` (Part 4.2) and `DashboardTabs` (Part 5.2) style against — both
+are converted modules now, so verify the reveal from *both* parents.
+
+**Browser verification (you):** kebab hidden at rest and fading in on hover,
+from a link tile **and** from a dashboard tab; its enlarged hit area still
+works (click 4–6px outside the visible button); its tooltip still appears.
+
+⏸ **PAUSE — review before Part 6.2.**
+
+---
+
+### Part 6.2 — `EntityOptionsMenu`
+
+`OptionsMenu` + the Edit/Move/Delete item set shared by dashboards and
+links.
+
+**Browser verification (you):** both menus open with the right items;
+"Move to…" submenu lists only *other* dashboards and moving works; Delete
+is disabled/greyed when only one dashboard exists.
+
+⏸ **PAUSE — review before Part 6.3.**
+
+---
+
+### Part 6.3 — `EditDialog`
+
+The shared edit-modal shell (title, stacked fields, Cancel/Save footer) over
+the Part 3.3 `dialog` primitive and the Part 3.6 `FieldGroup`.
+
+**Browser verification (you):** open from a link and from a dashboard —
+title, field stack and footer laid out correctly; Cancel / click-outside /
+Escape all close **with the exit animation** and discard edits.
+
+⏸ **PAUSE — review before Part 6.4.**
+
+---
+
+### Part 6.4 — `LinkEditModal`
+
+Field set over `EditDialog`. **`tests/components/LinkEditModal.test.tsx`
+updates its import to the new folder path** — the only test path this phase
+touches, and the automated signal that URL validation still renders.
+
+**Browser verification (you):**
+- All three fields save (Title, URL, Background image URL)
+- `not a url` → inline error, save blocked; `github.com` → saves as
+  `https://github.com`; clearing the background field actually clears it
+
+⏸ **PAUSE — review before Part 6.5.**
+
+---
+
+### Part 6.5 — `DashboardEditModal`
+
+Name + background image URL over `EditDialog`.
+
+**Browser verification (you):** rename persists to the tab strip; setting a
+background URL changes the grid background; clearing it removes it; an
+invalid URL is blocked with an inline error.
+
+⏸ **PAUSE — review before Part 6.6.**
+
+---
+
+### Part 6.6 — `ConfirmDialog`
+
+Shared delete confirmation over the Part 3.4 `alert-dialog`. Its
+`useClosingDialog` variant is the one that needs to know *which* outcome
+closed it — behavior, don't touch.
+
+**Browser verification (you):** delete confirm for a link and for a
+dashboard (cascade: its links go too); Cancel discards; both close with
+their exit animation.
+
+⏸ **PAUSE — review before Part 6.7.**
+
+---
+
+### Part 6.7 — `ShortcutsDialog`
+
+The `?` overlay rendering `SHORTCUTS`, over `dialog` + the already-converted
+`kbd`.
+
+**Browser verification (you):**
+- `?` opens it; it lists every shortcut with ⌥ labels (⌥ on macOS)
+- The `kbd` chips render correctly in their rows
+- Shortcuts are inert while it's open, and while a text field is focused
+
+⏸ **PAUSE — Phase 6 complete; review before Phase 7.**
+
+---
+
+## Phase 7 — App shell and global CSS (2 parts)
+
+**Scope:** `src/App.tsx`, `src/index.css` — two parts. These aren't
+components, but the split is the same principle: the shell conversion and
+the global-CSS teardown are independently reviewable and shouldn't share a
+browser pass.
+
+### Part 7.1 — the app shell
+
+Convert `App.tsx`'s layout shell to `src/App/App.tsx` +
+`App.module.css` (or keep `App.tsx` at `src/` root with an adjacent
+`App.module.css` — it isn't a component folder peer; **pick this** unless
+you'd rather it match). Includes the top-bar/content-area split, the
+dashboard background layer, and both footer overlays.
+
+`scripts/no-tailwind.mjs`: add `src/App.tsx` (or the new path).
+
+**Browser verification (you):**
+- Top bar / content split at several window sizes
+- A dashboard background image renders behind the grid only, never behind
+  the top bar; a broken dashboard background falls back to flat color
+- Both footer overlays positioned and click-through except on the link
+
+⏸ **PAUSE — review before Part 7.2.**
+
+### Part 7.2 — global CSS teardown
+
+1. `src/index.css` → **`src/styles/tailwind-scratch.css`**, not deleted.
    Everything of ours has already moved to
    `tokens.css`/`global.css`/`motion.module.css`; what remains is the
    Tailwind-only layer (`@import "tailwindcss"`, `@import "tw-animate-css"`,
@@ -906,22 +1421,19 @@ Notes:
 3. `main.tsx`: drop the `index.css` import; `global.css` only. Nothing
    imports `tailwind-scratch.css`, so Tailwind emits no CSS into the bundle.
 
-`scripts/no-tailwind.mjs`: add `src/App.tsx` (or the new path) and
-`src/main.tsx`.
+`scripts/no-tailwind.mjs`: add `src/main.tsx`.
 
 **Mechanical check:** `yarn check`. At this point `src/**/*.tsx` should be
 fully migrated — grep manually for any stragglers before moving on.
 
 **Browser verification (you):** a full sweep, since the global layer just
 changed underneath everything —
-- Top bar / content split at several window sizes
-- A dashboard background image renders behind the grid only, never behind
-  the top bar; a broken dashboard background falls back to flat color
-- Both footer overlays still positioned and click-through
 - Body font is Space Grotesk, headings Figtree
 - Re-run a spot check of one dialog, one menu, one drag
+- Re-run Part 7.1's list — the background layer and footers now have no
+  Tailwind underneath them
 
-⏸ **PAUSE — review before Phase 8.**
+⏸ **PAUSE — Phase 7 complete; review before Phase 8.**
 
 ---
 
@@ -1052,14 +1564,17 @@ derivable from the repo alone; read it before starting a phase.
 `e33447d` phase 1, then five commits for phase 2 — `1df5240` through
 `0645caf`, the last three of which were corrections to phase 2 itself, not
 new work; see "Facts established executing Phases 0–2" below for why there
-were so many). Working tree is clean. **Resume at Phase 3** — read that
-phase's scope, then this Handoff section in full, then the Conventions
-section (materially different from what Phase 3 was originally drafted
-against — see below) before writing any CSS.
+were so many). Working tree is clean. **Resume at Part 3.1 (`tooltip`)** —
+read Phase 3's preamble and that part, then this Handoff section in full,
+then the Conventions section (materially different from what Phase 3 was
+originally drafted against — see below) before writing any CSS.
 
-Each phase lands as its own commit; the plan file is updated in-place as
-phases complete (per `~/.claude/CLAUDE.md`: update the plan file after each
-step before moving on).
+**A part, not a phase, is the unit of work** (Decisions table, "Phase
+granularity"). One component per part: convert it, `yarn check`, write the
+part's Status note into this plan file, hand the user its browser list, stop
+at the ⏸. Each part lands as its own commit — *by the user*, not by you.
+Phase 2 already worked this way in practice (6 commits); Phases 3–7 now say
+so explicitly and list their parts in order.
 
 ### Working agreements for this repo and user
 
@@ -1107,6 +1622,33 @@ step before moving on).
 - The user prefers options over a single recommendation, and interview-style
   questions one at a time.
 - Run typecheck, lint **and** tests — none catches the others' failures.
+
+### Checked while re-planning Phase 3 into parts (don't re-derive)
+
+Everything below was read out of the actual files, not inferred. The Phase 3
+part notes already carry the consequences; this is the provenance.
+
+- `src/styles/motion.module.css` **read in full.** `.popup` owns
+  `animation-name` in both the normal and reduced-motion branches;
+  `.dialog` owns it in *neither* at normal motion but *does* in the
+  reduced-motion branch — that asymmetry is the trap written up in Part 3.3.
+  Four `slideInFrom*` keyframes, six `data-side` rules, `delayed-open`
+  present, slide distance `var(--space-x-small)` (matches Tailwind's
+  `slide-in-from-*-2`).
+- **Color tokens are unprefixed** (`--foreground`, `--popover`), not
+  `--color-foreground`. Two earlier examples in this plan used the prefixed
+  form for a token that doesn't exist; both fixed. `--z-popup: 50` exists.
+- **The seven Phase 3 folders already exist containing only an orphaned
+  generated `.d.ts`** with no `.module.css` beside it — gitignored, so
+  invisible in `git status`. Delete before Part 3.1.
+- **Importer map per component** is recorded inline in each part; it was
+  grepped, not guessed. Note `App.tsx` imports `TooltipProvider` (Part 3.1
+  touches `App.tsx` even though `App.tsx` isn't converted until Phase 7).
+- **No intra-Phase-3 dependency remains** — `dialog`/`alert-dialog` need
+  only `button`, `field` needs only `label` + `separator`, all three
+  converted in Phase 2. That's what made a pure risk-ordering possible.
+- `empty.tsx:52` is the *only* CVA call site passing `className` inside the
+  call — see the corrected bullet below.
 
 ### Facts established executing Phases 0–2 (a later session — don't re-derive)
 
@@ -1193,9 +1735,14 @@ step before moving on).
 - **`--sidebar-*` and `--chart-*` tokens have zero references** in any `.tsx`.
   Pruning them was offered and explicitly declined — keep them.
 - **`cva` is used in exactly 5 files**: `button`, `badge`, `tabs`, `field`,
-  `empty`. `cn()` is used in 20 files. Three call sites pass `className`
-  *inside* the CVA call rather than alongside it (`field.tsx:80`,
-  `tabs.tsx:48`, `empty.tsx:52`) — `empty.tsx` is the odd one out.
+  `empty`. `cn()` is used in 20 files. **Corrected:** an earlier version of
+  this bullet claimed three call sites pass `className` *inside* the CVA
+  call (`field.tsx:80`, `tabs.tsx:48`, `empty.tsx:52`) while also calling
+  `empty.tsx` the odd one out — self-contradictory, and wrong. Re-checked
+  against the files: `field.tsx:80` and `tabs.tsx:48` both use the
+  *alongside* form, `cn(variants({ … }), className)`. **`empty.tsx:52` is
+  the only inside-the-call site**, `cn(emptyMediaVariants({ variant,
+  className }))`, and Part 3.7 normalizes it to match the other four.
 - **`buttonVariants`/`badgeVariants` are not imported anywhere outside their
   own files** — no external consumer to keep compatible.
 - **There is no `src/vite-env.d.ts`**, but `tsconfig.app.json` sets
