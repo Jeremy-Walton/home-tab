@@ -7,7 +7,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogTitle,
-} from './ui/alert-dialog'
+} from './ui/alert-dialog/alert-dialog'
 
 interface ConfirmDialogProps {
   message: string

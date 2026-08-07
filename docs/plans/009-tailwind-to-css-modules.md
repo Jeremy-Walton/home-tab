@@ -1221,10 +1221,78 @@ Notes:
   don't touch it while converting styling.
 - `AlertDialogMedia` has no call site — port it faithfully and silently.
 
+**Status: done.** `yarn check` passes (81 tests, same count). Notes:
+- **A real, live `@layer base` cascade-layer case, the first one in Phase
+  3** (Parts 3.1–3.3 all checked and found none). `ConfirmDialog.tsx`
+  (not yet converted, Part 6.6) passes `className="text-foreground"`
+  straight onto `AlertDialogDescription`, expecting it to override the
+  component's own muted color for the delete-confirmation message.
+  `text-foreground` is still a real, layered Tailwind utility; a plain
+  unlayered `.alert-dialog-description { color: var(--muted-foreground) }`
+  would otherwise win unconditionally (per the documented Cascade Layers
+  fact) and the message would stay muted. Fixed the same way as `button`'s
+  `sizeIconXs`/`sizeIconSm` fix: moved just the `color` declaration into
+  `@layer base`, reusing Tailwind's own layer name. **Verified live with
+  Playwright, not by reading the CSS** — opened the real delete-confirmation
+  dialog and read `getComputedStyle(description).color`: `oklch(0.987
+  0.002 197.1)`, an exact match for `--foreground`, confirming the override
+  actually wins in the browser. (`className="sr-only"` on
+  `AlertDialogTitle`, the same consumer's other override, needed no such
+  fix — `sr-only`'s properties don't overlap anything `alert-dialog-title`
+  itself sets, so there's nothing to lose a cascade-layer fight over.)
+- **Duplicated the four `fadeIn`/`fadeOut`/`popIn`/`popOut` keyframes**
+  into this file too, per Part 3.3's finding — verified live with
+  Playwright (`getComputedStyle` on a real, opened delete-confirmation
+  dialog mid-animation) that `animationName` resolves to this file's own
+  hash and the animation genuinely runs, not just that the CSS text looks
+  right.
+- **The `size="sm"` → 2-column footer grid is real, live behavior** — both
+  current call sites (`ConfirmDialog`, `ImportExportBar`'s
+  `FeedbackDialog`) always pass `size="sm"`, so this is the one part of
+  this component that isn't speculative faithfulness. Verified with
+  Playwright: `display: grid; grid-template-columns: 132px 132px` on the
+  real footer.
+- **`size="default"`'s whole two-column media/title layout has zero current
+  call site** (both consumers hardcode `size="sm"`) — ported faithfully and
+  silently per the Decisions table, verified only by reading compiled
+  Tailwind output (not live, since nothing in the app renders it today).
+- **Verified every non-trivial utility against real compiled Tailwind
+  output** (`grid-rows-[auto_1fr]`, the `has-data-[slot=…]`/
+  `group-data-[size=…]/name:` chains, `text-balance`/`text-pretty`,
+  `size-16`, `rounded-full`, `mb-2`, `max-w-xs`), same discipline as
+  Parts 3.2/3.3. `md:` is a real, distinct breakpoint from `sm:`
+  (`width >= 48rem` vs `40rem`) — `AlertDialogDescription`'s
+  `md:text-pretty` needed its own media query, not reuse of the `sm:` one.
+- **`mb-2` on `AlertDialogMedia`'s own root moved to its parent** —
+  `.alert-dialog-header`'s `:has([data-slot='alert-dialog-media'])` block
+  now sets `margin-block-end` on the media child from the outside, rather
+  than `alert-dialog-media` setting its own bottom margin. Straightforward
+  application of `docs/BEM.md`'s "no margin on a block's own root class":
+  the spacing is about the media's position among its grid siblings, which
+  is the parent's call, not the media block's own. This is a case Parts
+  3.1–3.3 didn't have an instance of (none of tooltip/dropdown-menu/dialog
+  had a same-file block using an independent sibling block's own margin
+  utility this way).
+- **Group/ancestor-context selectors resolved to plain local-class
+  ancestor selectors, no `:global()` needed** — `.alert-dialog-content`
+  and `.alert-dialog-header`/`-footer`/`-media`/`-title` are all local
+  classes in the *same* file, so `.alert-dialog-content[data-size='sm'] &`
+  works directly (same pattern as Part 3.2's
+  `.dropdown-menu-item:focus .dropdown-menu-shortcut`). `:global()` stays
+  reserved for the case Phase 2's `kbd` actually needs it: an ancestor
+  class defined in a *different* file.
+- **No importer passes a `className` onto `AlertDialogAction`/
+  `AlertDialogCancel`** beyond `variant`/`onClick` props (both are plain
+  `Button` passthroughs with zero component-owned styling, matching the
+  original source), so neither needed a CSS block at all.
+
 **Browser verification (you):**
 - Delete confirmation for a link, and for a dashboard — open, cancel,
   reopen, confirm
 - The destructive Delete button still reads as destructive next to Cancel
+- The confirmation message reads in the full foreground color, not the
+  dimmer muted-foreground tone
+- Cancel/Delete sit side by side as two equal-width columns, not stacked
 - Import a good file and a deliberately malformed one — the feedback dialog
   appears in both cases and its action button **closes it**
 - Same animation checks as Part 3.3 (exit plays, centered during zoom,
@@ -1842,21 +1910,24 @@ derivable from the repo alone; read it before starting a phase.
 `e33447d` phase 1, then five commits for phase 2 — `1df5240` through
 `0645caf`, the last three of which were corrections to phase 2 itself, not
 new work; see "Facts established executing Phases 0–2" below for why there
-were so many). **Parts 3.1 (`tooltip`), 3.2 (`dropdown-menu`), and 3.3
-(`dialog`) are done and committed** (see each part's own Status note).
-Three fixes from these parts apply to every remaining Phase 3+ part: the
-`composes:`/`property-no-unknown` exception (3.1); disabling
-`no-descending-specificity` (3.2 — it doesn't understand BEM/CSS-Modules
-scoping and will false-positive on any file with more than one block, which
-every remaining Phase 3 primitive has); and **never reference a shared
-keyframe (`fadeIn`/`fadeOut`/`popIn`/`popOut`) by bare name across a CSS
-Modules file boundary** (3.3 — Vite locally scopes every `animation-name`
+were so many). **Parts 3.1 (`tooltip`), 3.2 (`dropdown-menu`), 3.3
+(`dialog`), and 3.4 (`alert-dialog`) are done and committed** (see each
+part's own Status note). Fixes from these parts apply to every remaining
+Phase 3+ part: the `composes:`/`property-no-unknown` exception (3.1);
+disabling `no-descending-specificity` (3.2 — it doesn't understand
+BEM/CSS-Modules scoping and will false-positive on any file with more than
+one block, which every remaining Phase 3 primitive has); never reference a
+shared keyframe (`fadeIn`/`fadeOut`/`popIn`/`popOut`) by bare name across a
+CSS Modules file boundary (3.3 — Vite locally scopes every `animation-name`
 value against the *current file's own* hash regardless of whether a
 matching local `@keyframes` exists, so a cross-file reference silently
-resolves to nothing; `dialog.module.css` duplicates the four keyframes
-itself rather than referencing `motion.module.css`'s, and Part 3.4
-(`alert-dialog`) needs to do the same — see its updated notes). **Resume at
-Part 3.4 (`alert-dialog`)** — read that part, then this Handoff section in
+resolves to nothing; `dialog.module.css` and `alert-dialog.module.css` each
+duplicate the four keyframes themselves); and check every not-yet-converted
+importer for a `className` passed onto a part whose module now sets that
+same property — 3.4 was the first part with a real instance
+(`ConfirmDialog.tsx`'s `text-foreground` on `AlertDialogDescription`),
+fixed with the same `@layer base` technique as Phase 2's `button`. **Resume
+at Part 3.5 (`tabs`)** — read that part, then this Handoff section in
 full, then the Conventions section (materially different from what Phase 3
 was originally drafted against — see below) before writing any CSS.
 
