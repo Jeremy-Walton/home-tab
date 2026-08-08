@@ -10,7 +10,7 @@ import { DashboardEditModal } from './DashboardEditModal'
 import { EntityOptionsMenu } from './EntityOptionsMenu'
 import { Badge } from './ui/badge/badge'
 import { Button } from './ui/button/button'
-import { Tabs, TabsList, TabsTrigger } from './ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from './ui/tabs/tabs'
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip/tooltip'
 import type { Dashboard } from '../types'
 
@@ -36,7 +36,8 @@ function DashboardTabItem({
     >
       <TabsTrigger
         value={dashboard.id}
-        className="max-w-40 pr-6"
+        className="max-w-40"
+        hasOptionsMenu
         aria-keyshortcuts={
           index < MAX_DASHBOARD_SHORTCUTS ? `Alt+${dashboardShortcutDigit(index)}` : undefined
         }

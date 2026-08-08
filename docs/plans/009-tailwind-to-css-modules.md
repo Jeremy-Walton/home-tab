@@ -1358,6 +1358,95 @@ Notes:
 - **Do not touch `activateOnFocus`.** The roving-focus / ⌥←→ capture
   interaction is browser-verified only and is a documented gotcha.
 
+**Status: done.** `yarn check` passes (81 tests, same count). Notes:
+- **Block naming**: `Tabs`/`TabsList`/`TabsTrigger`/`TabsContent` each render
+  their own DOM node and aren't JSX-nested inside one another *within this
+  file* (they're composed by the consumer), so per the Phase 3 preamble each
+  became its own block — `.tabs`, `.tabs-list`, `.tabs-trigger`,
+  `.tabs-content` — not a block/element chain.
+- **`orientation` and `variant` are now real `cva()`s** (`tabsVariants`,
+  `tabsListVariants`) driven by the component's own props, same pattern as
+  Phase 2's `separator`, per the part's own instruction. `data-orientation`/
+  `data-variant` stay on the DOM unchanged — still written by our code, nothing
+  reads them for styling anymore.
+- **The `group/tabs` + `group/tabs-list` cross-part styling became nested
+  descendant selectors inside `.tabs`'s own modifier rules** (`.tabs-list`/
+  `.tabs-trigger` reached from `&.tabs--horizontal`/`&.tabs--vertical`), per
+  the part's own instruction — no `className`-passing needed since all three
+  blocks live in one file already.
+- **`data-active` stays a plain attribute selector** (`&[data-active]`), not
+  a BEM modifier — it's written by Base UI itself, not our code, matching
+  the "Base UI state selectors" convention and `dropdown-menu`'s existing
+  `data-open`/`data-disabled`/etc. precedent. Same reasoning for
+  `aria-disabled`, wrapped `:global()` per `button`/`badge`/`input`'s existing
+  `aria-invalid`/`aria-expanded` precedent.
+- **Two real bugs-that-aren't-bugs found by checking real computed styles
+  against the compiled Tailwind, not just reading it** — both change what a
+  literal utility-by-utility transcription would have produced:
+  1. `border border-transparent!` is `border-color: transparent !important`
+     unconditionally. Both `dark:data-active:border-input` and
+     `focus-visible:border-ring` try to set `border-color` on top of it, but
+     neither is `!important`, so neither can ever win — confirmed live with
+     Playwright (`getComputedStyle` on an active tab and a keyboard-focused
+     tab both read `borderColor: rgba(0, 0, 0, 0)`). Ported as: no
+     `border-color` in `&[data-active]`, and a one-line comment in
+     `&:focus-visible` explaining the omission rather than a dead
+     declaration. The ring shadow and 1px outline are what actually carry the
+     focus indication.
+  2. `text-foreground/60 … dark:text-muted-foreground` — the dark-mode
+     override *replaces* the translucent-foreground color with the opaque
+     `--muted-foreground` token for the same `color` property (same
+     specificity, later in source), it doesn't layer on top of it. Confirmed
+     live: an inactive trigger computes `color: oklch(0.723 0.014 214.4)`,
+     exactly `--muted-foreground`, not a 60%-alpha foreground. Ported as
+     `color: var(--muted-foreground)` on the base rule, `var(--foreground)`
+     on `:hover` and `&[data-active]` (both dark overrides already agreed
+     with their light base value, so no cascade surprise there).
+- **`rounded-full` → literal `9999px`**, matching the existing `badge`/
+  `alert-dialog` precedent, not Tailwind's own `calc(infinity * 1px)` — confirmed
+  visually and computationally identical (`getComputedStyle` before/after:
+  `3.35544e+07px` → `9999px`, same rendered pill shape).
+- **Verified every non-trivial utility against the real compiled Tailwind
+  output** (`@tailwindcss/cli` against a scratch file with this component's
+  literal class strings, same discipline as Parts 3.2–3.4): `h-9` → `var(--space-4x-large)`
+  (`9 × 0.25rem = 2.25rem`, matching `button`'s own `size-9`), the
+  `focus-visible:ring-[3px] ring-ring/50` → `box-shadow: 0 0 0 3px oklch(from
+  var(--ring) l c h / 50%)` (opaque token, standard translation),
+  `dark:data-active:bg-input/30` → `color-mix(in oklab, var(--input) 30%,
+  transparent)` (the translucent-token rule, exactly the case the part's own
+  notes called out by name), `py-1.5` snapped up to `--space-x-small` per the
+  established rounding rule.
+- **The `line` variant's underline (`after:` pseudo-element) and
+  `size="default"`-equivalent vertical-orientation layout have zero current
+  call site** (`DashboardTabs.tsx` only ever renders the default horizontal/
+  default-variant combination) — ported faithfully and silently per the
+  Decisions table, verified only against compiled Tailwind output, not live.
+- **`DashboardTabs.tsx`'s own Tailwind classNames on `TabsList`/
+  `TabsTrigger`** (`className="gap-1"`, `className="max-w-40 pr-6"`) were
+  left untouched at first, on the assumption that plain source-order/
+  specificity would keep `pr-6` winning like it did pre-conversion — **wrong,
+  caught by the user in the browser, not by `yarn check`.** Same cascade-layers
+  class of bug as Phase 2's `button` position fix and Part 3.4's
+  `alert-dialog` color fix: `pr-6` is a real, still-layered Tailwind utility
+  (this consumer doesn't convert until Part 5.2), and `tabsTrigger`'s own
+  `padding-inline: var(--space-small)` is unlayered plain CSS, so the module
+  rule always won regardless of order, silently keeping the kebab's reserved
+  gutter at `0.75rem` instead of `pr-6`'s `1.5rem` — the options-menu kebab
+  visibly overlapped the tab's text. Confirmed live with Playwright before
+  and after the fix: `paddingRight` read `12px`, not `24px`, and a screenshot
+  matched the bug report exactly. Fixed the same way as the two precedents —
+  a real component prop instead of fighting the layer: `TabsTrigger` now
+  takes a `hasOptionsMenu` boolean, mapping to `.tabs-trigger--has-options-menu
+  { padding-inline-end: var(--space-x-large) }` (`pr-6`'s exact value, no
+  snapping needed), and `DashboardTabs.tsx` passes `hasOptionsMenu` instead of
+  the dead `pr-6` (its `max-w-40` className is untouched — that one has no
+  competing module rule to lose to). Re-verified live: `paddingRight: 24px`,
+  and a screenshot of the tab strip matches the intended "text, gap, kebab"
+  layout. **Lesson, same as Phase 2's**: don't assume an unconverted
+  consumer's override still wins just because nothing in *this* part's own
+  module conflicts with it on paper — check every property the unconverted
+  call sites override, not just the ones this part's own notes anticipated.
+
 **Browser verification (you):**
 - Tab strip renders correctly with 1, 3, and 11+ dashboards; long names
   truncate with an ellipsis

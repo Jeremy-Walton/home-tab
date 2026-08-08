@@ -16,6 +16,7 @@ const MIGRATED = [
   'src/components/ui/dropdown-menu/**/*.tsx',
   'src/components/ui/dialog/**/*.tsx',
   'src/components/ui/alert-dialog/**/*.tsx',
+  'src/components/ui/tabs/**/*.tsx',
 ]
 
 const PATTERNS = [
