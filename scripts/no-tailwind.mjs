@@ -22,6 +22,7 @@ const MIGRATED = [
   'src/components/DashboardGrid/**/*.tsx',
   'src/components/LinkTile/**/*.tsx',
   'src/components/EmptyState/**/*.tsx',
+  'src/components/Navbar/**/*.tsx',
 ]
 
 const PATTERNS = [
@@ -54,6 +55,14 @@ for (const pattern of MIGRATED) {
     const content = await readFile(file, 'utf8')
     content.split('\n').forEach((line, index) => {
       if (/^\s*(import|export)\b.*\bfrom\b/.test(line)) return
+      // A converted file can still forward a literal Tailwind className to a
+      // child component that hasn't been converted yet (its own part is
+      // still ahead) — that's real, intentional, temporary Tailwind, not a
+      // leftover on *this* file's own elements. Marked per-line with a
+      // trailing `{/* tailwind-passthrough: … */}` JSX comment rather than
+      // widening a pattern, since it's about where the class lands, not
+      // what it says.
+      if (/\btailwind-passthrough\b/.test(line)) return
       if (PATTERNS.some((regex) => regex.test(line))) {
         console.error(`${file}:${index + 1}: ${line.trim()}`)
         hasHits = true

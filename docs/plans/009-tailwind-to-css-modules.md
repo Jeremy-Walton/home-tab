@@ -1997,6 +1997,51 @@ this part — cascade-layer watch applies. Per BEM.md, the bar owns the
 *layout* of its slotted children; resist porting any `m-*` from a child onto
 that child's own root.
 
+**Status: done.** `yarn check` passes (81 tests, same count). Notes:
+- **Block naming**: `.navbar` (the `<nav>` root) with one true element,
+  `.navbar__brand` (the logo/wordmark wrapper — genuinely native, JSX-nested
+  in this file). `DashboardTabs`/`ImportExportBar`/`LogoIcon`/`Wordmark` are
+  all foreign, unconverted components rendered as-is; none needed a passed-
+  down class from this file's own module.
+- **`border-bottom-style`/`-width`/`-color` written as three longhands
+  first, caught by `stylelint`'s `declaration-block-no-redundant-longhand-
+  properties`** — collapsed to the `border-bottom` shorthand. Went back and
+  did the same cleanup on `field`/`empty`'s own `border-style`/`-width`/
+  `-color` trios from Parts 3.6/4.3 (the *non-directional* longhand form,
+  which stylelint's rule apparently doesn't flag the same way, confirmed by
+  running it directly against both — but collapsible all the same, so
+  simplified for consistency with `DashboardGrid`'s existing `border: 2px
+  dashed var(--border)` shorthand). `empty.module.css`'s `.empty` stays two
+  longhands (`border-style`/`border-color`, no `border-width`) since it
+  intentionally has no explicit width of its own — collapsing would require
+  inventing one.
+- **A new, recurring category of `no-tailwind.mjs` false positive**: this
+  is the first part where a *converted* file forwards a literal Tailwind
+  `className` to a child component that's still Tailwind (its own part is
+  later in the plan) — `LogoIcon`/`Wordmark`/`ImportExportBar` all receive
+  one here. That's real, intentional, temporary Tailwind on *their*
+  eventual elements, not a leftover on `Navbar`'s own — but the script
+  can't tell the difference from a bare line scan. Added a per-line escape
+  hatch, a trailing `{/* tailwind-passthrough: … */}` JSX comment the
+  script recognizes and skips, rather than trying to special-case the
+  pattern generically (the script has no way to know which JSX tags are
+  "still Tailwind" without effectively reimplementing `MIGRATED` per-tag).
+  Marked all three forwarding lines, not just the two the current PATTERNS
+  actually catch (`size-9`/`h-5`; `ml-auto` isn't caught today, since none
+  of the existing patterns cover directional margin/padding utilities like
+  `ml-`/`pr-` — a pre-existing gap, not introduced here) — future-proofs
+  against that gap being closed later without silently re-flagging this
+  line. This will recur through the rest of Phase 5 and 6 wherever a
+  just-converted container still renders not-yet-converted children with
+  explicit styling handed down.
+- **Live-verified against the running dev server**: `display: flex`,
+  `gap: 16px`, `border-bottom: 1px solid oklch(1 0 0 / 10%)` (`var(--border)`),
+  padding matching `--space-medium`/`--space-x-small`, full viewport width.
+  Confirmed the bar's own `background-image` stays `none` even while a
+  dashboard with a real background image is active (switched to the
+  fixture's "Backgrounds" dashboard and re-checked) — the layout owns no
+  background of its own, exactly as the checklist requires.
+
 **Browser verification (you):**
 - Top bar spans full width, one row, correct height at several window sizes
 - Logo left, tab strip beside it, import/export button hard right
