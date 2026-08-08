@@ -1,8 +1,14 @@
 import { cn } from '@/lib/utils'
+import styles from './LogoIcon.module.css'
 
 export function LogoIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 512 512" role="img" aria-label="LaunchTabs" className={cn('size-6', className)}>
+    <svg
+      viewBox="0 0 512 512"
+      role="img"
+      aria-label="LaunchTabs"
+      className={cn(styles.logoIcon, className)}
+    >
       <rect x="32" y="32" width="448" height="448" rx="96" fill="#f1f3f3" />
       <polygon points="256,90 170,199 342,199" fill="#007a55" />
       <rect x="218" y="180" width="76" height="174" fill="#007a55" />

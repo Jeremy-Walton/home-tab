@@ -2171,6 +2171,37 @@ Inline SVG with a few classes; the smallest conversion in the plan. Watch
 for `currentColor` inheritance — the reset does not set `color` on every
 element the way preflight's cascade implied.
 
+**Status: done.** `yarn check` passes (81 tests, same count). Notes:
+- **No `currentColor` concern in practice**: every fill on this SVG is a
+  literal brand hex value baked into the artwork itself (`#f1f3f3`,
+  `#007a55`, …), not a CSS color inherited via `fill: currentColor` — so
+  the reset's lighter `color` inheritance (flagged as a watch-item in this
+  part's own notes) doesn't apply here. Confirmed by reading the source,
+  not assumed: no `fill="currentColor"` anywhere in this file. (`Wordmark`,
+  Part 5.5, is the one that actually uses `currentColor` — noted for that
+  part.)
+- **`Navbar`'s `size-9` override first became a real controlled `size`
+  prop** (`default`/`large`, CVA-driven), avoiding a same-specificity,
+  import-order-dependent conflict between two independent CSS Modules
+  files (the same trap avoided for `Empty`'s `fluid` prop) — the standard
+  fix for this class of problem throughout the migration. **Superseded on
+  review**: `LogoIcon`'s `default` size (`size-6`/1.5rem) had *zero*
+  exercised call site (`LogoIcon` is only ever rendered by `Navbar`, which
+  always overrides it) and, unlike `Empty`/`Field`/other `ui/` primitives,
+  this isn't a reusable design-system component with a documented "port
+  every variant faithfully" obligation — it's a single-purpose app
+  component with exactly one real caller. Per direct instruction, dropped
+  the variant entirely: `LogoIcon` now has one fixed size
+  (`--space-4x-large`, `36px`, what `Navbar` always wanted), no `cva`, no
+  `size` prop, `Navbar` back to a bare `<LogoIcon />`. The "avoid the
+  cascade-order trap" lesson still holds generally; what changed is that a
+  never-used variant on a non-reusable component isn't worth keeping
+  faithful just to have somewhere to hang that fix — collapsing to the one
+  real size sidesteps the conflict entirely rather than arbitrating it.
+- **Live-verified**: computed `width`/`height` still read `36px` after the
+  simplification, matching the old `size-9`, and a screenshot confirms the
+  logo's colors, size, and position beside the wordmark are unchanged.
+
 **Browser verification (you):** the logo renders at the right size and
 color in the top bar; nothing shifted beside it.
 
