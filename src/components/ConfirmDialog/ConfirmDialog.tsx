@@ -1,4 +1,4 @@
-import { useClosingDialog } from '../hooks/useClosingDialog'
+import { useClosingDialog } from '../../hooks/useClosingDialog'
 import {
   AlertDialog,
   AlertDialogAction,

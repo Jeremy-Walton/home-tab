@@ -469,12 +469,18 @@ invalid URL is blocked with an inline error.
 
 ---
 
-### Part 6.6 — `ConfirmDialog`
+### Part 6.6 — `ConfirmDialog` (done)
 
-Shared delete confirmation over the Part 3.4 `alert-dialog`. Its
-`useClosingDialog` variant is the one that needs to know *which* outcome
-closed it — behavior, don't touch. Uses `AlertDialogDescription`'s
-`emphasis` prop (Part 3.4) — no raw Tailwind className needed here.
+Relocated to `ConfirmDialog/ConfirmDialog.tsx` (no `.module.css` — pure
+composition over the Part 3.4 `alert-dialog`). Shared delete confirmation.
+Its `useClosingDialog` variant is the one that needs to know *which*
+outcome closed it — behavior, untouched. Uses `AlertDialogDescription`'s
+`emphasis` prop (Part 3.4). The one literal className, `"sr-only"` on the
+visually-hidden title, isn't Tailwind residue — it's `global.css`'s own
+`.sr-only` utility (Part 3.3), referenced the same literal way `ui/dialog`'s
+close button already does; `scripts/no-tailwind.mjs` doesn't flag it.
+`LinkTile.tsx`/`DashboardTabs.tsx` import paths updated to
+`@/components/ConfirmDialog/ConfirmDialog`.
 
 **Browser verification (you):** delete confirm for a link and for a
 dashboard (cascade: its links go too); Cancel discards; both close with
@@ -676,7 +682,7 @@ Anything the registry adds to `components.json`'s `css` target lands in
 
 ## Resuming this plan in a fresh session
 
-**Resume at Part 6.6 (`ConfirmDialog`).** Phases 0–5 and Parts 6.1–6.5 are
+**Resume at Part 6.7 (`ShortcutsDialog`).** Phases 0–5 and Parts 6.1–6.6 are
 done.
 Read "Progress so far" above (the facts that carry forward) and the
 Conventions section before writing any CSS. Each remaining part lists its
