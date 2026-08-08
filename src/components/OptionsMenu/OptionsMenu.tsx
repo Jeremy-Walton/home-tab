@@ -1,12 +1,12 @@
 import { DotsThreeVerticalIcon } from '@phosphor-icons/react'
 import { cn } from '../../lib/utils'
-import { Button } from '../ui/button/button'
+import { Button } from '@/components/ui/button/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from '../ui/dropdown-menu/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip/tooltip'
+} from '@/components/ui/dropdown-menu/dropdown-menu'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip/tooltip'
 import styles from './OptionsMenu.module.css'
 
 interface OptionsMenuProps {

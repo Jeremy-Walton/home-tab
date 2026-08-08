@@ -1,6 +1,12 @@
 import { PlusIcon } from '@phosphor-icons/react'
-import { Button } from '../ui/button/button'
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from '../ui/empty/empty'
+import { Button } from '@/components/ui/button/button'
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from '@/components/ui/empty/empty'
 import styles from './EmptyState.module.css'
 
 export function EmptyState({ onAddLink }: { onAddLink: () => void }) {

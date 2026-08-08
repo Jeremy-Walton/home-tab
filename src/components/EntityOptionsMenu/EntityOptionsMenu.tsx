@@ -1,10 +1,10 @@
-import { OptionsMenu } from '../OptionsMenu/OptionsMenu'
+import { OptionsMenu } from '@/components/OptionsMenu/OptionsMenu'
 import {
   DropdownMenuItem,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
-} from '../ui/dropdown-menu/dropdown-menu'
+} from '@/components/ui/dropdown-menu/dropdown-menu'
 
 interface EntityOptionsMenuProps {
   label: string

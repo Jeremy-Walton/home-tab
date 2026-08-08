@@ -2,8 +2,8 @@ import { useRef, useState } from 'react'
 import { useAppState } from '../../context/useAppState'
 import { useClosingDialog } from '../../hooks/useClosingDialog'
 import { cn } from '../../lib/utils'
-import { OptionsMenu } from '../OptionsMenu/OptionsMenu'
-import { DropdownMenuItem } from '../ui/dropdown-menu/dropdown-menu'
+import { OptionsMenu } from '@/components/OptionsMenu/OptionsMenu'
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu/dropdown-menu'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,7 +11,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogTitle,
-} from '../ui/alert-dialog/alert-dialog'
+} from '@/components/ui/alert-dialog/alert-dialog'
 import styles from './ImportExportBar.module.css'
 
 function FeedbackDialog({

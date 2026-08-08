@@ -29,6 +29,7 @@ const MIGRATED = [
   'src/components/Wordmark/**/*.tsx',
   'src/components/OptionsMenu/**/*.tsx',
   'src/components/EntityOptionsMenu/**/*.tsx',
+  'src/components/EditDialog/**/*.tsx',
 ]
 
 const PATTERNS = [

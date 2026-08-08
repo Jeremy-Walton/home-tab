@@ -1,13 +1,13 @@
-import { useClosingDialog } from '../hooks/useClosingDialog'
-import { Button } from './ui/button/button'
+import { useClosingDialog } from '../../hooks/useClosingDialog'
+import { Button } from '@/components/ui/button/button'
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from './ui/dialog/dialog'
-import { FieldGroup } from './ui/field/field'
+} from '@/components/ui/dialog/dialog'
+import { FieldGroup } from '@/components/ui/field/field'
 
 interface EditDialogProps {
   title: string

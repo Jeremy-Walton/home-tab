@@ -418,10 +418,13 @@ lists the other dashboard by name.
 
 ---
 
-### Part 6.3 — `EditDialog`
+### Part 6.3 — `EditDialog` (done)
 
-The shared edit-modal shell (title, stacked fields, Cancel/Save footer) over
-the Part 3.3 `dialog` primitive and the Part 3.6 `FieldGroup`.
+Relocated to `EditDialog/EditDialog.tsx` (no `.module.css` — like
+`EntityOptionsMenu`, it's pure composition over the Part 3.3 `dialog`
+primitive and the Part 3.6 `FieldGroup`, no styled elements of its own to
+convert). `LinkEditModal.tsx`/`DashboardEditModal.tsx` import paths updated
+to `./EditDialog/EditDialog`.
 
 **Browser verification (you):** open from a link and from a dashboard —
 title, field stack and footer laid out correctly; Cancel / click-outside /
@@ -665,7 +668,7 @@ Anything the registry adds to `components.json`'s `css` target lands in
 
 ## Resuming this plan in a fresh session
 
-**Resume at Part 6.3 (`EditDialog`).** Phases 0–5 and Parts 6.1–6.2 are done.
+**Resume at Part 6.4 (`LinkEditModal`).** Phases 0–5 and Parts 6.1–6.3 are done.
 Read "Progress so far" above (the facts that carry forward) and the
 Conventions section before writing any CSS. Each remaining part lists its
 own importers/notes/browser-verification inline; nothing else needs to be

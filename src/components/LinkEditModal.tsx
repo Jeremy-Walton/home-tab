@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useAppState } from '../context/useAppState'
-import { EditDialog } from './EditDialog'
-import { Input } from './ui/input/input'
-import { Field, FieldLabel, FieldError } from './ui/field/field'
+import { EditDialog } from '@/components/EditDialog/EditDialog'
+import { Input } from '@/components/ui/input/input'
+import { Field, FieldLabel, FieldError } from '@/components/ui/field/field'
 import { normalizeUrl, isSafeHref } from '../lib/url'
 import type { Link } from '../types'
 

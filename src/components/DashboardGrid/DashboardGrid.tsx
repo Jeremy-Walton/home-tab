@@ -1,6 +1,6 @@
 import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable'
-import { LinkTile } from '../LinkTile/LinkTile'
-import { EmptyState } from '../EmptyState/EmptyState'
+import { LinkTile } from '@/components/LinkTile/LinkTile'
+import { EmptyState } from '@/components/EmptyState/EmptyState'
 import type { Link } from '../../types'
 import styles from './DashboardGrid.module.css'
 
