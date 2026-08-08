@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { AppStateProvider } from '@/context/AppStateContext'
 import { createTestDatabase } from '../support/testDb'
-import { LinkEditModal } from '@/components/LinkEditModal'
+import { LinkEditModal } from '@/components/LinkEditModal/LinkEditModal'
 import type { AppDatabase } from '@/storage/db'
 import type { Link } from '@/types'
 

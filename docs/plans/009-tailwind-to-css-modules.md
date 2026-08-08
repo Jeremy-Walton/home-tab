@@ -434,11 +434,16 @@ Escape all close **with the exit animation** and discard edits.
 
 ---
 
-### Part 6.4 — `LinkEditModal`
+### Part 6.4 — `LinkEditModal` (done)
 
-Field set over `EditDialog`. **`tests/components/LinkEditModal.test.tsx`
-updates its import to the new folder path** — the only test path this phase
-touches, and the automated signal that URL validation still renders.
+Relocated to `LinkEditModal/LinkEditModal.tsx` (no `.module.css` — same
+composition-only shape as `EditDialog`/`EntityOptionsMenu`: a field set over
+`EditDialog` and the already-converted `Input`/`Field`/`FieldLabel`/
+`FieldError`, nothing styled of its own). `App.tsx` and `LinkTile.tsx`
+import paths updated to `@/components/LinkEditModal/LinkEditModal`.
+**`tests/components/LinkEditModal.test.tsx` updates its import to the new
+folder path** — the only test path this phase touches, and the automated
+signal that URL validation still renders.
 
 **Browser verification (you):**
 - All three fields save (Title, URL, Background image URL)
@@ -668,7 +673,8 @@ Anything the registry adds to `components.json`'s `css` target lands in
 
 ## Resuming this plan in a fresh session
 
-**Resume at Part 6.4 (`LinkEditModal`).** Phases 0–5 and Parts 6.1–6.3 are done.
+**Resume at Part 6.5 (`DashboardEditModal`).** Phases 0–5 and Parts 6.1–6.4 are
+done.
 Read "Progress so far" above (the facts that carry forward) and the
 Conventions section before writing any CSS. Each remaining part lists its
 own importers/notes/browser-verification inline; nothing else needs to be

@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { useAppState } from '../context/useAppState'
+import { useAppState } from '../../context/useAppState'
 import { EditDialog } from '@/components/EditDialog/EditDialog'
 import { Input } from '@/components/ui/input/input'
 import { Field, FieldLabel, FieldError } from '@/components/ui/field/field'
-import { normalizeUrl, isSafeHref } from '../lib/url'
-import type { Link } from '../types'
+import { normalizeUrl, isSafeHref } from '../../lib/url'
+import type { Link } from '../../types'
 
 export function LinkEditModal({ link, onClose }: { link: Link; onClose: () => void }) {
   const { updateLink } = useAppState()
