@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import styles from './Wordmark.module.css'
 
 export function Wordmark({ className }: { className?: string }) {
   return (
@@ -6,7 +7,7 @@ export function Wordmark({ className }: { className?: string }) {
       viewBox="0 0 537 100"
       role="img"
       aria-label="LaunchTabs"
-      className={cn('h-5 w-auto', className)}
+      className={cn(styles.wordmark, className)}
     >
       <text
         x="0"

@@ -1,7 +1,7 @@
 import { DashboardTabs } from '../DashboardTabs/DashboardTabs'
 import { ImportExportBar } from '../ImportExportBar/ImportExportBar'
 import { LogoIcon } from '../LogoIcon/LogoIcon'
-import { Wordmark } from '../Wordmark'
+import { Wordmark } from '../Wordmark/Wordmark'
 import styles from './Navbar.module.css'
 
 export function Navbar() {
@@ -9,7 +9,7 @@ export function Navbar() {
     <nav className={styles.navbar}>
       <div className={styles.navbarBrand}>
         <LogoIcon />
-        <Wordmark className="h-5" /> {/* tailwind-passthrough: Wordmark converts in Part 5.5 */}
+        <Wordmark />
       </div>
       <DashboardTabs />
       <ImportExportBar className={styles.actions} />

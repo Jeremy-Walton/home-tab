@@ -302,19 +302,24 @@ shipped): none needed yet — the substantive doc updates land in Phase 8.
 
 ---
 
-### Part 5.5 — `Wordmark`
+### Part 5.5 — `Wordmark` (done)
 
-Same shape as 5.4. Uses the heading font — per Phase 1's reset delta 3, set
-its size/weight explicitly rather than relying on a UA default. Check
-whether it needs the same app-component variant-dropping treatment as
-`LogoIcon` (Part 5.4) before porting any unused variant faithfully.
-
-**Browser verification (you):**
-- Wordmark renders in Figtree at the right size/weight, baseline-aligned
-  with the logo
-- Both footer overlays still positioned and click-through: bottom-right
-  copyright/extension link is click-through except on the link itself,
-  bottom-left `?` hint is visible
+Converted to `Wordmark/{Wordmark.tsx,Wordmark.module.css}`. The component's
+only real Tailwind was its sizing (`h-5 w-auto`) — the `<text>`'s
+`fontFamily`/`fontSize`/`fontWeight`/`letterSpacing`/`fill` were already
+literal SVG presentation attributes, not Tailwind classes, so they carried
+over unchanged (same treatment as `LogoIcon`'s literal `fill` hex values —
+brand-specific marks stay as-is, not ported into token `var()`s). Correction
+to this part's own earlier text: the wordmark uses Space Grotesk (the body
+font), not Figtree (the heading font) — it was never a semantic heading
+element, so Phase 1's reset delta 3 doesn't apply to it either; both fields
+in the original note were wrong. Confirmed via Playwright: `.wordmark`
+computes to `height: 20px; width: auto`, `<text>` still computes
+`Space Grotesk Variable`, and the logo/wordmark pair are vertically centered
+(0px delta) in the flex navbar. `className` prop kept (matches `LogoIcon`'s
+precedent — a plain passthrough escape hatch isn't a "variant"), but the
+Navbar call site no longer needs to pass one since its default already
+matches what `h-5` used to force.
 
 ⏸ **PAUSE — Phase 5 complete; review before Phase 6.**
 
@@ -621,11 +626,12 @@ Anything the registry adds to `components.json`'s `css` target lands in
 
 ## Resuming this plan in a fresh session
 
-**Resume at Part 5.5 (`Wordmark`).** Phases 0–4 and Parts 5.1–5.4 are done
-and committed — read "Progress so far" above (the facts that carry forward)
-and the Conventions section before writing any CSS. Each remaining part
-lists its own importers/notes/browser-verification inline; nothing else
-needs to be re-derived.
+**Resume at Part 6.1 (`OptionsMenu`).** Phases 0–5 (through Part 5.5,
+`Wordmark`) are done — Phase 5 is complete, pending only the user's own
+commit. Read "Progress so far" above (the facts that carry forward) and the
+Conventions section before writing any CSS. Each remaining part lists its
+own importers/notes/browser-verification inline; nothing else needs to be
+re-derived.
 
 **Working agreements:**
 - A part, not a phase, is the unit of work: convert it, `yarn check`,
