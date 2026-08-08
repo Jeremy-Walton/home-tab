@@ -1590,6 +1590,56 @@ Notes:
   still passes Tailwind classes into `Empty`, so the cascade-layer watch
   applies.
 
+**Status: done.** `yarn check` passes (81 tests, same count). Notes:
+- **Block naming**: `Empty`/`EmptyHeader`/`EmptyMedia`/`EmptyTitle`/
+  `EmptyDescription`/`EmptyContent` each render their own root and aren't
+  JSX-nested inside one another in this file, so each became its own block
+  (`.empty`, `.empty-header`, …), per the Phase 3 preamble.
+  `EmptyMedia`'s `variant` is a real controlled prop, so it got a `cva()`
+  modifier (`.empty-media--default`/`--icon`), same pattern as
+  `separator`/`tabs`/`field`'s controlled variants.
+- **New tokens**: `--space-6x-large: 3rem` (`p-12`, exceeding the scale's
+  previous top tier, `5x-large`/`2.5rem` — extended the same way Phase 2
+  extended it for `button`'s `h-9`/`h-10`) and `--leading-relaxed: 1.625`
+  (`EmptyDescription`'s `text-sm/relaxed`, a standalone line-height not
+  paired with `text-sm`'s own token, same situation as Part 3.6's
+  `--leading-snug`/`--leading-normal`). `EmptyTitle`'s `tracking-tight`
+  (`-0.025em`) stayed a literal — a single, non-recurring use, not a scale
+  the app has established elsewhere.
+- **The cascade-layer watch the part's own notes called out did fire, live,
+  before shipping** — caught by checking `getComputedStyle` against the
+  running dev server, not by reading the CSS. `EmptyState.tsx`'s
+  `w-80 flex-none` (still real, layered Tailwind — that file converts in
+  Part 4.3) tried to override `Empty`'s own faithfully-ported `w-full
+  flex-1`, and the unlayered module rule won unconditionally as usual: the
+  welcome card rendered at `852px` wide and `flex-grow: 1`, stretching to
+  fill its wrapper instead of sitting as a compact centered card. Screenshot
+  confirmed the visible symptom, not just the computed values. Fixed the
+  same way as `tabs`/`alert-dialog`: a real, reusable prop instead of
+  fighting the layer — `Empty` now takes a `fluid` boolean (default `true`,
+  preserving the original always-stretch behavior faithfully), and
+  `fluid={false}` maps to `.empty--fixed { width: auto; flex: none }`.
+  Deliberately generic ("don't stretch to fill the parent"), not
+  `w-80`'s specific `20rem` baked into the `ui/` primitive — `EmptyState.tsx`
+  keeps owning that specific measurement via its own (still-Tailwind, for
+  now) `w-80` className, which now applies cleanly since nothing unlayered
+  competes for `width` once `fluid={false}` drops the module's own
+  `width: 100%`. Dropped the now-redundant `flex-none` from `EmptyState.tsx`
+  (the modifier already sets `flex: none`); `border`/`bg-card/90`/the
+  `animate-in` classes needed no change, no unlayered module rule competes
+  with any of those properties. Re-verified live: width `320.8px`
+  (`w-80`), `flex-grow: 0`/`flex-shrink: 0`, and a screenshot matching the
+  original compact-card design.
+- **`no-tailwind.mjs` flagged my own doc comment**, not application code —
+  the `fluid` prop's JSDoc used the words "flex" and "fixed" in prose,
+  which the script's regexes match on any line of a migrated `.tsx` file,
+  comments included. Reworded the comment rather than special-casing the
+  script; a reminder that the check's false-positive surface extends to
+  comments, not just class strings.
+- Confirmed `EmptyTitle`/`EmptyDescription` keep UA heading/paragraph
+  sizing unless set explicitly, per Phase 1's reset delta 3 — neither sets
+  its own `font-size` beyond what's listed above, matching the original.
+
 **Browser verification (you):**
 - A dashboard with zero links shows the centered welcome card: title,
   one-line instruction, "Add link" button

@@ -18,6 +18,7 @@ const MIGRATED = [
   'src/components/ui/alert-dialog/**/*.tsx',
   'src/components/ui/tabs/**/*.tsx',
   'src/components/ui/field/**/*.tsx',
+  'src/components/ui/empty/**/*.tsx',
 ]
 
 const PATTERNS = [
