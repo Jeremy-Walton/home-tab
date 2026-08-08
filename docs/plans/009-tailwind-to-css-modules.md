@@ -1777,6 +1777,92 @@ Tailwind-classed after this part — cascade-layer watch applies.
   `AspectRatio` — that's the Conventions cross-component pattern, parent
   block reaching into a child block.
 
+**Status: done.** `yarn check` passes (81 tests, same count). Notes:
+- **Block naming**: single-component file, same shape as `DashboardGrid` —
+  root wrapper is the block (`.tile`), and every genuinely-JSX-nested child
+  (the passed-down surface, the image, the link, the options wrapper) is a
+  flat element (`.tile__surface`, `.tile__image`, `.tile__link`,
+  `.tile__options`).
+- **The inline `style` object is untouched**, exactly per the part's own
+  instruction — `transform`/`transition`/`opacity`/`viewTransitionName`
+  still come from dnd-kit and the documented combined-transition fix,
+  nothing moved into the module.
+- **A real, live cross-file dependency found and deliberately preserved,
+  not converted**: `OptionsMenu.tsx` (Part 6.1, not yet converted) drives
+  the kebab's reveal-on-hover with a raw `group-hover:opacity-100`
+  Tailwind class on the `Button` it renders — which only matches an
+  ancestor carrying the *literal* Tailwind marker class `group`, not any
+  scoped CSS-Modules class. Converting `.tile` to a pure BEM class here
+  would have silently broken that (the kebab would never reveal, since
+  `Button`'s own module sets no competing base opacity to lose a cascade
+  fight over — the rule just wouldn't match its ancestor selector at all,
+  no fallback). Kept `group` as a second, literal, unstyled className
+  alongside `styles.tile` (`cn('group', styles.tile)`), with a one-line
+  comment explaining why a seemingly-stray Tailwind-looking class survives
+  the conversion. This is the reverse direction of every previous cascade-
+  layer fix this phase — here *I* own the block, and a *different*
+  unconverted file depends on a marker *I* must keep providing, not the
+  other way round. Revisit when Part 6.1 converts `OptionsMenu.tsx`: it
+  should get a real prop-driven reveal-on-hover class of its own (the same
+  pattern as `tabs`'s `hasOptionsMenu`), at which point `group` can go.
+- **`AspectRatio`'s own `group-hover:shadow-xl` is a *different* case,
+  fully converted here** (not preserved as Tailwind) — since `LinkTile`
+  passes a real scoped className into `AspectRatio` (already-converted,
+  Phase 2) via the Conventions cross-component pattern, the hover-shadow
+  relationship is entirely local to this one file now: `&:hover
+  .tile__surface { box-shadow: … var(--shadow-x-large) }`, no `group`
+  dependency needed for this specific rule.
+- **New color usage**: `ring-black/10` (light, discarded) /
+  `dark:ring-white/10` (the winning dark value) has no existing token —
+  `--color-white`/`#fff` isn't one of this project's semantic tokens, so
+  used the literal `white` keyword in `color-mix(in oklab, white 10%,
+  transparent)`, matching `badge`'s existing precedent (`color: white`) for
+  a genuine one-off literal color with no semantic-token equivalent.
+  `shadow-lg`/`shadow-xl` reused `--shadow-large`/`--shadow-x-large`
+  directly — their compiled values are exact matches, confirmed against the
+  real Tailwind output, not assumed from the names.
+- **`no-tailwind.mjs` needed two real fixes**, both found by running it
+  against this file's actual (unchanged) pre-existing code, not by
+  anything I introduced stylistically:
+  1. `useSortable`'s destructured `transition` return value (dnd-kit's own
+     API, present in the file before this conversion and left untouched
+     per the "leave the style object alone" instruction) tripped the bare
+     `\btransition\b` alternative in the transition/duration/ease pattern.
+     Every other alternative in that group already required a `-suffix`
+     (`duration-\d+`, `ease-[\w-]+`); bare `transition` was the one
+     inconsistent entry, clearly meant to catch Tailwind's *bare*
+     `transition` utility class — which this app has never actually used
+     anywhere (grepped the full not-yet-converted source to confirm).
+     Changed it to `transition-[\w.,[\]-]+`, requiring the same suffix
+     discipline as its neighbors.
+  2. The inline `style` object's `var(--ease-out-strong)` (a real CSS
+     custom-property reference, the *value* half of the documented
+     combined-transition fix) tripped the `ease-[\w-]+` alternative, since
+     `\b` matches at the hyphen inside `--ease-out-strong` same as it would
+     at the start of a bare `ease-out-strong` Tailwind class. Grepped the
+     whole `.tsx` tree for `var(--` and found this is the *only* inline
+     CSS-variable reference in any `.tsx` file (everywhere else `var()`
+     lives in `.module.css`, which this script never scans) — narrow
+     enough to fix generally rather than special-case: added a `(?<!--)`
+     negative-lookbehind guard to every prefix-word pattern in the script
+     (space/text/shadow/etc., not just `ease`), so a future `var(--token)`
+     inlined in a `.tsx` file's `style` prop won't collide with any
+     same-named token again. Verified with small standalone regex tests
+     that real Tailwind classes still match and only the `--`-prefixed
+     custom-property form is excluded — not just skimmed by eye.
+- **Live-verified with Playwright** against the fixture dashboard: kebab
+  opacity `0 → 1` on hover (confirming the preserved `group` class actually
+  works, not just compiles), `box-shadow` reading exactly
+  `--shadow-large`'s values at rest and `--shadow-x-large`'s on hover (with
+  the ring layer unchanged in both), the broken-image tile rendering zero
+  `<img>` elements and falling back to `var(--muted)`, and **re-ran the
+  full Part 4.1 drag checklist plus the drag-onto-tab move** — three
+  sequential reorders (same-row, cross-row down, cross-row up) all landed
+  correctly with no off-screen flight or reversion, a fourth drag onto the
+  "Backgrounds" tab moved the tile there and appended it to the end of that
+  dashboard's order, and no drag ever navigated while a genuine click still
+  did.
+
 **Browser verification (you):**
 - Tile hover shadow lift; kebab fade-in on hover
 - Title badge over the bottom-left; `Untitled` on an empty title

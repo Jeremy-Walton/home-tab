@@ -1,15 +1,16 @@
 import { useState } from 'react'
 import { defaultAnimateLayoutChanges, useSortable, type AnimateLayoutChanges } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { useAppState } from '../context/useAppState'
-import { ConfirmDialog } from './ConfirmDialog'
-import { EntityOptionsMenu } from './EntityOptionsMenu'
-import { LinkEditModal } from './LinkEditModal'
-import { AspectRatio } from './ui/aspect-ratio/aspect-ratio'
-import { Badge } from './ui/badge/badge'
-import { cn } from '../lib/utils'
-import { isSafeHref } from '../lib/url'
-import type { Link } from '../types'
+import { useAppState } from '../../context/useAppState'
+import { ConfirmDialog } from '../ConfirmDialog'
+import { EntityOptionsMenu } from '../EntityOptionsMenu'
+import { LinkEditModal } from '../LinkEditModal'
+import { AspectRatio } from '../ui/aspect-ratio/aspect-ratio'
+import { Badge } from '../ui/badge/badge'
+import { cn } from '../../lib/utils'
+import { isSafeHref } from '../../lib/url'
+import type { Link } from '../../types'
+import styles from './LinkTile.module.css'
 
 const animateLayoutChanges: AnimateLayoutChanges = (args) =>
   args.wasDragging ? false : defaultAnimateLayoutChanges(args)
@@ -46,13 +47,19 @@ export function LinkTile({ link }: { link: Link }) {
   }
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="group relative w-56">
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      // `group` is a literal Tailwind marker, not a styled class of ours —
+      // OptionsMenu.tsx (not yet converted) keys its kebab's reveal-on-hover
+      // off this exact literal ancestor class name.
+      className={cn('group', styles.tile)}
+    >
       {/* Press feedback keys off the full-bleed <a>: the kebab is painted over
           it, not inside it, so pressing the kebab can't match. */}
-      <AspectRatio
-        ratio={16 / 9}
-        className="flex flex-col items-center justify-end overflow-hidden rounded-2xl bg-muted shadow-lg ring-1 ring-black/10 transition-[box-shadow,scale] duration-150 ease-out-strong group-hover:shadow-xl motion-safe:has-[a:active]:scale-[0.98] dark:ring-white/10"
-      >
+      <AspectRatio ratio={16 / 9} className={styles.tileSurface}>
         {showImage && (
           <img
             ref={(node) => {
@@ -62,24 +69,17 @@ export function LinkTile({ link }: { link: Link }) {
             src={imageUrl}
             alt=""
             draggable={false}
-            className={cn(
-              'absolute inset-0 size-full object-cover transition-opacity duration-200 ease-out-strong',
-              imageLoaded ? 'opacity-100' : 'opacity-0',
-            )}
+            className={cn(styles.tileImage, imageLoaded && styles.tileImageLoaded)}
             onLoad={() => setLoadedUrl(imageUrl)}
             onError={() => setFailedUrl(imageUrl)}
           />
         )}
 
-        <a
-          href={isSafeHref(link.url) ? link.url : undefined}
-          draggable={false}
-          className="absolute inset-0 flex items-end p-2"
-        >
+        <a href={isSafeHref(link.url) ? link.url : undefined} draggable={false} className={styles.tileLink}>
           <Badge variant="overlay">{link.title || 'Untitled'}</Badge>
         </a>
 
-        <div className="absolute right-1 top-1">
+        <div className={styles.tileOptions}>
           <EntityOptionsMenu
             label="Link options"
             variant="secondary"

@@ -20,17 +20,27 @@ const MIGRATED = [
   'src/components/ui/field/**/*.tsx',
   'src/components/ui/empty/**/*.tsx',
   'src/components/DashboardGrid/**/*.tsx',
+  'src/components/LinkTile/**/*.tsx',
 ]
 
 const PATTERNS = [
   /\b(flex|grid|block|hidden|inline-flex|absolute|relative|fixed|sticky)\b/,
-  /\b-?(p|m|w|h|gap|size|inset|top|right|bottom|left|space|min-w|max-w)-[\w./[\]-]+/,
+  // `(?<!--)` on the prefix-word patterns below guards against a design
+  // token reference (`var(--space-x-large)`, `var(--ease-out-strong)`, …)
+  // inlined in a .tsx file (rare — usually lives in .module.css, which this
+  // script never scans — but the `style` prop is a real exception) being
+  // misread as the same-named Tailwind utility class.
+  /(?<!--)\b-?(p|m|w|h|gap|size|inset|top|right|bottom|left|space|min-w|max-w)-[\w./[\]-]+/,
   // `aspect-ratio` is excluded: it's the CSS property name (and this
   // project's own data-slot value), never a real Tailwind aspect-* utility
   // (those are aspect-auto/square/video/<number>/[value]).
-  /\b(text|bg|border|ring|shadow|rounded|font|opacity|z|order)-[\w./[\]-]+|\baspect-(?!ratio\b)[\w./[\]-]+/,
+  /(?<!--)\b(text|bg|border|ring|shadow|rounded|font|opacity|z|order)-[\w./[\]-]+|\baspect-(?!ratio\b)[\w./[\]-]+/,
   /\b(hover|focus|focus-visible|active|disabled|group-hover|motion-safe|dark|data-\[[^\]]+\]|data-open|data-closed|has|supports|\*\*):/,
-  /\b(animate-in|animate-out|fade-in-0|fade-out-0|zoom-in-95|zoom-out-95|slide-in-from-\w+-\d|motion-dialog|motion-popup|transition|duration-\d+|ease-[\w-]+)\b/,
+  // `transition` requires a `-suffix` (like `duration-\d+`/`ease-[\w-]+`
+  // below it) rather than matching bare — dnd-kit's `useSortable` return
+  // value is itself named `transition`, so a bare match flags ordinary,
+  // unrelated JS identifier usage in any file that touches drag-and-drop.
+  /(?<!--)\b(animate-in|animate-out|fade-in-0|fade-out-0|zoom-in-95|zoom-out-95|slide-in-from-\w+-\d|motion-dialog|motion-popup|transition-[\w.,[\]-]+|duration-\d+|ease-[\w-]+)\b/,
 ]
 
 let hasHits = false
