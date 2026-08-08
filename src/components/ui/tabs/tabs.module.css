@@ -46,7 +46,7 @@
   width: fit-content;
   align-items: center;
   justify-content: center;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   padding: var(--space-2x-small);
   color: var(--muted-foreground);
 
@@ -77,7 +77,7 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-x-small);
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   border-style: solid;
   border-width: 1px;
   border-color: transparent !important;

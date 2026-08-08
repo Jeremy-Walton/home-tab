@@ -1,6 +1,6 @@
 .dashboard-tab {
   position: relative;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   transition-property: box-shadow;
   transition-duration: 100ms;
   transition-timing-function: var(--ease-out-strong);
@@ -49,5 +49,5 @@
 
 .add-button {
   margin-left: var(--space-2x-small);
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
 }

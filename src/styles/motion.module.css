@@ -125,18 +125,12 @@
   animation-name: popIn, slideInFromTop;
 }
 
-.popup[data-open][data-side='left'] {
-  animation-name: popIn, slideInFromRight;
-}
-
-.popup[data-open][data-side='right'] {
-  animation-name: popIn, slideInFromLeft;
-}
-
+.popup[data-open][data-side='left'],
 .popup[data-open][data-side='inline-start'] {
   animation-name: popIn, slideInFromRight;
 }
 
+.popup[data-open][data-side='right'],
 .popup[data-open][data-side='inline-end'] {
   animation-name: popIn, slideInFromLeft;
 }

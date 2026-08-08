@@ -51,24 +51,14 @@
       top: var(--space-2x-small);
     }
 
-    &[data-side='left'] {
-      top: 50% !important;
-      right: calc(-1 * var(--space-2x-small));
-      translate: -1.5px -50%;
-    }
-
-    &[data-side='right'] {
-      top: 50% !important;
-      left: calc(-1 * var(--space-2x-small));
-      translate: 1.5px -50%;
-    }
-
+    &[data-side='left'],
     &[data-side='inline-start'] {
       top: 50% !important;
       right: calc(-1 * var(--space-2x-small));
       translate: -1.5px -50%;
     }
 
+    &[data-side='right'],
     &[data-side='inline-end'] {
       top: 50% !important;
       left: calc(-1 * var(--space-2x-small));

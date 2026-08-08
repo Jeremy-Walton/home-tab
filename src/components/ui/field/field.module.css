@@ -3,10 +3,7 @@
   flex-direction: column;
   gap: var(--space-x-large);
 
-  &:has(> [data-slot='checkbox-group']) {
-    gap: var(--space-small);
-  }
-
+  &:has(> [data-slot='checkbox-group']),
   &:has(> [data-slot='radio-group']) {
     gap: var(--space-small);
   }

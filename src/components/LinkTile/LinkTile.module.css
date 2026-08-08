@@ -4,7 +4,7 @@
 
   &:hover .surface {
     box-shadow:
-      0 0 0 1px color-mix(in oklab, white 10%, transparent),
+      0 0 0 1px oklch(from var(--foreground) l c h / 10%),
       var(--shadow-x-large);
   }
 
@@ -55,7 +55,7 @@
   border-radius: var(--radius-2x-large);
   background: var(--muted);
   box-shadow:
-    0 0 0 1px color-mix(in oklab, white 10%, transparent),
+    0 0 0 1px oklch(from var(--foreground) l c h / 10%),
     var(--shadow-large);
   transition-property: box-shadow, scale;
   transition-duration: 150ms;

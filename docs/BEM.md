@@ -136,20 +136,38 @@ In the following example, `.card__body` cannot be used outside of `.card`. Likew
 ## Applying this to this project's CSS Modules
 
 This project's CSS Modules convention (`docs/plans/009-tailwind-to-css-modules.md`)
-writes class names in `camelCase`, one file per component, rather than the
-literal kebab-case `block__element--modifier` strings shown above. Treat BEM
-here as the *structural* methodology — how to think about what's a block vs.
-an element vs. a modifier, and the common-mistakes checklist — not the
-literal separator syntax:
+writes real, literal kebab-case BEM in the `.css` source — actual `__`/`--`
+separators, not a camelCase stand-in — one file per component, enforced
+mechanically by `@jeremywalton/stylelint-bem`:
 
-- **Block** → the component's root class, e.g. `.tile`.
-- **Element** → a child class scoped to that block, flattened (not nested
-  per-ancestor), e.g. `.tileHeader`, not `.tile__tileHeader`. CSS Modules'
-  file-scoping already gives you the collision-safety BEM's `__` prefix is
-  for, so the separator is dropped, not renamed.
-- **Modifier** → either a sibling class combined with the base
-  (`className={cn(styles.tile, isActive && styles.active)}`) or a CVA
-  variant key, per the module's own convention — not a literal `--` suffix.
+- **Block** → the module's root class, generally matching the component's
+  own name (`LinkTile.module.css`'s `.tile`, `dialog.module.css`'s
+  `.dialog`).
+- **Element** → a child class nested inside its block via native CSS
+  nesting, one level flat (`.tile__header`, never `.tile__header__title` —
+  flatten to `.tile__title`). Only applies to *native* JSX children the
+  block renders itself — a foreign component rendered as a child (a
+  different component this file composes) is never an element; it's styled
+  via the cross-component pattern instead (a bare, top-level class passed
+  down as a `className` prop).
+- **Modifier** → always compounded with its block or element, either as
+  `&.block--modifier` nested inside the block's own rule, or
+  `.block.block--modifier` written directly — never a bare `&.modifier {}`.
+  A CVA variant's class value is a modifier by this same rule
+  (`variant: { outline: styles.buttonOutline }` maps to `&.button--outline`
+  in the CSS).
+- **No orphaned elements/modifiers** — `stylelint-bem/no-orphaned-element`
+  and `stylelint-bem/no-orphaned-modifier` enforce this mechanically.
+
+Keeping JS ergonomic despite kebab-case CSS: `package.json`'s `css:types`
+script runs `tcm` with `-c`/`--camelCase`, and `vite.config.ts` sets
+`css.modules.localsConvention: 'camelCaseOnly'` — both convert
+`.button--size-icon-xs` to the single JS property `buttonSizeIconXs`, so
+`.tsx` files reference `styles.buttonSizeIconXs`, never bracket-notation
+kebab-case. The two settings must change together — see
+`docs/plans/009-tailwind-to-css-modules.md`'s "Conventions" section for the
+full detail (native nesting, token usage, the cross-component styling
+pattern, reduced motion).
 
 The rest of this doc — block/element/modifier responsibilities, avoiding
 margin for external layout, and the "Common mistakes" checklist — applies

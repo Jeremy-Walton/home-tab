@@ -115,7 +115,7 @@
     min-width: var(--space-medium);
     height: var(--space-medium);
     border: none;
-    border-radius: 9999px;
+    border-radius: var(--radius-full);
     padding-inline: var(--space-2x-small);
     color: var(--background);
     font-weight: var(--font-weight-semibold);

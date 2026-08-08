@@ -45,6 +45,18 @@
   }
 }
 
+/* Shared across every menu-row block below (item, sub-trigger,
+   checkbox-item, radio-item) — one media query instead of one per block. */
+@media (forced-colors: active) {
+  .dropdown-menu-item,
+  .dropdown-menu-sub-trigger,
+  .dropdown-menu-checkbox-item,
+  .dropdown-menu-radio-item {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+  }
+}
+
 .dropdown-menu-item {
   position: relative;
   display: flex;
@@ -59,11 +71,6 @@
   outline-style: none;
   user-select: none;
   cursor: default;
-
-  @media (forced-colors: active) {
-    outline: 2px solid transparent;
-    outline-offset: 2px;
-  }
 
   &:focus {
     color: var(--accent-foreground);
@@ -118,11 +125,6 @@
   user-select: none;
   cursor: default;
 
-  @media (forced-colors: active) {
-    outline: 2px solid transparent;
-    outline-offset: 2px;
-  }
-
   &:focus {
     color: var(--accent-foreground);
     background: var(--accent);
@@ -168,11 +170,6 @@
   outline-style: none;
   user-select: none;
   cursor: default;
-
-  @media (forced-colors: active) {
-    outline: 2px solid transparent;
-    outline-offset: 2px;
-  }
 
   &:focus {
     color: var(--accent-foreground);
@@ -223,11 +220,6 @@
   outline-style: none;
   user-select: none;
   cursor: default;
-
-  @media (forced-colors: active) {
-    outline: 2px solid transparent;
-    outline-offset: 2px;
-  }
 
   &:focus {
     color: var(--accent-foreground);
