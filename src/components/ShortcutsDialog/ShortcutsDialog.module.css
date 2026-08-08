@@ -1,0 +1,22 @@
+.shortcut-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-x-small);
+
+  .shortcut-list__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-medium);
+  }
+
+  .shortcut-list__description {
+    color: var(--muted-foreground);
+  }
+}
+
+/* Foreign component (Kbd), already converted — styled from here via a
+   passed-down className, per the Conventions cross-component pattern. */
+.kbd-chip {
+  white-space: nowrap;
+}

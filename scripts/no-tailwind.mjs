@@ -33,6 +33,7 @@ const MIGRATED = [
   'src/components/LinkEditModal/**/*.tsx',
   'src/components/DashboardEditModal/**/*.tsx',
   'src/components/ConfirmDialog/**/*.tsx',
+  'src/components/ShortcutsDialog/**/*.tsx',
 ]
 
 const PATTERNS = [

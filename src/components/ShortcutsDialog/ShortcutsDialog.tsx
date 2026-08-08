@@ -1,7 +1,8 @@
-import { useClosingDialog } from '../hooks/useClosingDialog'
+import { useClosingDialog } from '../../hooks/useClosingDialog'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog/dialog'
 import { Kbd, KbdGroup } from '@/components/ui/kbd/kbd'
-import { SHORTCUTS } from '../lib/shortcuts'
+import { SHORTCUTS } from '../../lib/shortcuts'
+import styles from './ShortcutsDialog.module.css'
 
 export function ShortcutsDialog({ onClose }: { onClose: () => void }) {
   const { dialogProps } = useClosingDialog(onClose)
@@ -13,13 +14,13 @@ export function ShortcutsDialog({ onClose }: { onClose: () => void }) {
           <DialogTitle>Keyboard shortcuts</DialogTitle>
         </DialogHeader>
 
-        <ul className="flex flex-col gap-2">
+        <ul className={styles.shortcutList}>
           {SHORTCUTS.map((shortcut) => (
-            <li key={shortcut.description} className="flex items-center justify-between gap-4">
-              <span className="text-muted-foreground">{shortcut.description}</span>
+            <li key={shortcut.description} className={styles.shortcutListItem}>
+              <span className={styles.shortcutListDescription}>{shortcut.description}</span>
               <KbdGroup>
                 {shortcut.keys.map((key) => (
-                  <Kbd key={key} className="whitespace-nowrap">
+                  <Kbd key={key} className={styles.kbdChip}>
                     {key}
                   </Kbd>
                 ))}

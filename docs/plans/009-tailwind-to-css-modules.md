@@ -490,10 +490,25 @@ their exit animation.
 
 ---
 
-### Part 6.7 — `ShortcutsDialog`
+### Part 6.7 — `ShortcutsDialog` (done)
 
-The `?` overlay rendering `SHORTCUTS`, over `dialog` + the already-converted
-`kbd`.
+Relocated to `ShortcutsDialog/{ShortcutsDialog.tsx,ShortcutsDialog.module.css}`
+— the `?` overlay rendering `SHORTCUTS`, over `dialog` + the already-converted
+`kbd`. First Phase 6 part with real styling of its own (6.3–6.6 were pure
+composition, no `.module.css`). Block `.shortcut-list` (the `<ul>`, `flex
+flex-direction: column`, `gap: var(--space-x-small)`) with elements
+`.shortcut-list__item` (`flex`, `align-items: center`, `justify-content:
+space-between`, `gap: var(--space-medium)`) and
+`.shortcut-list__description` (`color: var(--muted-foreground)`). `Kbd` is a
+foreign component, so its `whitespace-nowrap` became a bare top-level
+`.kbd-chip` class passed via `className`, per the Conventions
+cross-component pattern (same shape as `Navbar.module.css`'s `.actions`).
+`App.tsx`'s import path updated to `@/components/ShortcutsDialog/ShortcutsDialog`.
+Playwright-verified computed styles against a scratch dev server (`flex`/
+`column`/`8px` gap on the list, `flex`/`center`/`space-between`/`16px` gap
+on each item, description color resolves to the `--muted-foreground` oklch
+value, `kbd` computes `white-space: nowrap`, all 4 `SHORTCUTS` entries
+render).
 
 **Browser verification (you):**
 - `?` opens it; it lists every shortcut with ⌥ labels (⌥ on macOS)
@@ -682,8 +697,7 @@ Anything the registry adds to `components.json`'s `css` target lands in
 
 ## Resuming this plan in a fresh session
 
-**Resume at Part 6.7 (`ShortcutsDialog`).** Phases 0–5 and Parts 6.1–6.6 are
-done.
+**Resume at Part 7.1 (the app shell).** Phases 0–6 are done.
 Read "Progress so far" above (the facts that carry forward) and the
 Conventions section before writing any CSS. Each remaining part lists its
 own importers/notes/browser-verification inline; nothing else needs to be

@@ -7,7 +7,7 @@ import { useLinkDragAndDrop } from './hooks/useLinkDragAndDrop'
 import { DashboardGrid } from '@/components/DashboardGrid/DashboardGrid'
 import { LinkEditModal } from '@/components/LinkEditModal/LinkEditModal'
 import { Navbar } from '@/components/Navbar/Navbar'
-import { ShortcutsDialog } from '@/components/ShortcutsDialog'
+import { ShortcutsDialog } from '@/components/ShortcutsDialog/ShortcutsDialog'
 import { Kbd } from '@/components/ui/kbd/kbd'
 import { TooltipProvider } from '@/components/ui/tooltip/tooltip'
 
