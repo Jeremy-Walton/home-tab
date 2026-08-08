@@ -2061,6 +2061,50 @@ does that today survives verbatim. Also holds the per-tab kebab hover reveal
 drag-drop-target highlight. `Tabs`/`TabsList`/`TabsTrigger` are already
 converted (Part 3.5).
 
+**Status: done.** `yarn check` passes (81 tests, same count). Notes:
+- **Block naming**: `DashboardTabItem`'s wrapper div is the only native
+  element this file renders itself, so it's the sole block (`.dashboard-tab`,
+  with the `isOver`-driven ring as a real modifier, `.dashboard-tab--over`,
+  and the inner `<span>` as a true element, `.dashboard-tab__label` — a
+  native child, not a foreign one). `TabsTrigger`/`Badge`/`TabsList`/`Button`
+  are all already-converted foreign components — `.trigger`/
+  `.shortcut-badge`/`.list`/`.add-button` are bare, top-level cross-component
+  classes passed down to them, per the Conventions pattern (correctly from
+  the start this time, following the `LinkTile` correction).
+- **`group` preserved again, same reasoning as `LinkTile`**: this wrapper
+  is the hover ancestor for its own kebab (`EntityOptionsMenu` →
+  `OptionsMenu.tsx`, not converted until Part 6.1/6.2), which still keys
+  its reveal-on-hover off the literal Tailwind `group` marker.
+- **First real use of the `tailwind-passthrough` escape hatch added in
+  Part 5.1** — `EntityOptionsMenu`'s `triggerClassName` prop, which
+  `OptionsMenu.tsx` forwards straight onto an already-converted `Button`.
+  Surfaced two more gaps in the mechanism itself while using it for real,
+  both fixed in the script rather than worked around in this file:
+  1. The marker comment didn't fit on the same line as the long
+     `triggerClassName="…"` prop, so it went on the line above — which the
+     script didn't check at all. Added a look-at-the-previous-line
+     fallback.
+  2. `<Badge … aria-hidden className={…}>` tripped `hidden` in the
+     display-utility pattern — `aria-hidden` is a real ARIA attribute, not
+     Tailwind's `hidden` class, but the word-boundary match doesn't know
+     that. Added an `(?<!aria-)` guard, same shape as the earlier `(?<!--)`
+     token-reference guard.
+- **Live-verified every item on this part's own risk list**, not just the
+  generic checklist, since this was flagged as the riskiest part in the
+  phase: imported the fixture (4 dashboards) and confirmed with Playwright —
+  tab strip `getBoundingClientRect()` is **pixel-identical** before and
+  during a held Alt (`455.9×36` both times — the digit badges genuinely do
+  not reflow the strip), 4 digit badges appear while held and drop to 0 on
+  release *and* on a simulated blur-while-held (alt-tab-away), `Alt+2`/
+  `Alt+→` switch to the right tab, and stepping `Alt+→` six times from
+  index 2 in a 4-tab strip lands back on index 0 (wraps correctly). Kebab
+  opacity reads `0` then `1` across a hover (the preserved `group` class
+  actually works, not just compiles). The target tab's `box-shadow` reads
+  exactly `0 0 0 2px var(--ring)` *while* a tile is being dragged over it,
+  and the tile is actually present on that dashboard after drop. Delete's
+  `aria-disabled` reads `null` with 4 dashboards and `true` on a fresh
+  single-dashboard app load.
+
 **Browser verification (you):**
 - Tab strip layout with 1, 3, and 11+ dashboards; long names truncate with
   an ellipsis

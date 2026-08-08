@@ -23,10 +23,14 @@ const MIGRATED = [
   'src/components/LinkTile/**/*.tsx',
   'src/components/EmptyState/**/*.tsx',
   'src/components/Navbar/**/*.tsx',
+  'src/components/DashboardTabs/**/*.tsx',
 ]
 
 const PATTERNS = [
-  /\b(flex|grid|block|hidden|inline-flex|absolute|relative|fixed|sticky)\b/,
+  // `(?<!aria-)` on `hidden` guards against the real `aria-hidden` attribute
+  // — the other words here don't collide with any aria-*/data-* attribute
+  // name, so only `hidden` needs the guard.
+  /\b(flex|grid|block|inline-flex|absolute|relative|fixed|sticky)\b|(?<!aria-)\bhidden\b/,
   // `(?<!--)` on the prefix-word patterns below guards against a design
   // token reference (`var(--space-x-large)`, `var(--ease-out-strong)`, …)
   // inlined in a .tsx file (rare — usually lives in .module.css, which this
@@ -53,16 +57,19 @@ for (const pattern of MIGRATED) {
     const file = path.join(entry.parentPath, entry.name)
     if (file.endsWith('.d.ts')) continue
     const content = await readFile(file, 'utf8')
-    content.split('\n').forEach((line, index) => {
+    const lines = content.split('\n')
+    lines.forEach((line, index) => {
       if (/^\s*(import|export)\b.*\bfrom\b/.test(line)) return
       // A converted file can still forward a literal Tailwind className to a
       // child component that hasn't been converted yet (its own part is
       // still ahead) — that's real, intentional, temporary Tailwind, not a
-      // leftover on *this* file's own elements. Marked per-line with a
-      // trailing `{/* tailwind-passthrough: … */}` JSX comment rather than
-      // widening a pattern, since it's about where the class lands, not
-      // what it says.
-      if (/\btailwind-passthrough\b/.test(line)) return
+      // leftover on *this* file's own elements. Marked with a
+      // `{/* tailwind-passthrough: … */}` JSX comment, either trailing on
+      // the same line or alone on the line directly above (a long prop line
+      // often can't fit both), rather than widening a pattern, since it's
+      // about where the class lands, not what it says.
+      const marker = /\btailwind-passthrough\b/
+      if (marker.test(line) || (index > 0 && marker.test(lines[index - 1]))) return
       if (PATTERNS.some((regex) => regex.test(line))) {
         console.error(`${file}:${index + 1}: ${line.trim()}`)
         hasHits = true

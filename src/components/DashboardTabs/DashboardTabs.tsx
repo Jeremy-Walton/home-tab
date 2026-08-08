@@ -1,18 +1,20 @@
 import { useState } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { PlusIcon } from '@phosphor-icons/react'
-import { useAppState } from '../context/useAppState'
-import { useAltHeld } from '../hooks/useAltHeld'
-import { dashboardDropId } from '../lib/dashboardDropId'
-import { dashboardShortcutDigit, MAX_DASHBOARD_SHORTCUTS } from '../lib/keyboard'
-import { ConfirmDialog } from './ConfirmDialog'
-import { DashboardEditModal } from './DashboardEditModal'
-import { EntityOptionsMenu } from './EntityOptionsMenu'
-import { Badge } from './ui/badge/badge'
-import { Button } from './ui/button/button'
-import { Tabs, TabsList, TabsTrigger } from './ui/tabs/tabs'
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip/tooltip'
-import type { Dashboard } from '../types'
+import { useAppState } from '../../context/useAppState'
+import { useAltHeld } from '../../hooks/useAltHeld'
+import { dashboardDropId } from '../../lib/dashboardDropId'
+import { dashboardShortcutDigit, MAX_DASHBOARD_SHORTCUTS } from '../../lib/keyboard'
+import { cn } from '../../lib/utils'
+import { ConfirmDialog } from '../ConfirmDialog'
+import { DashboardEditModal } from '../DashboardEditModal'
+import { EntityOptionsMenu } from '../EntityOptionsMenu'
+import { Badge } from '../ui/badge/badge'
+import { Button } from '../ui/button/button'
+import { Tabs, TabsList, TabsTrigger } from '../ui/tabs/tabs'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip/tooltip'
+import type { Dashboard } from '../../types'
+import styles from './DashboardTabs.module.css'
 
 function DashboardTabItem({
   dashboard,
@@ -32,25 +34,24 @@ function DashboardTabItem({
   return (
     <div
       ref={setNodeRef}
-      className={`group relative rounded-full transition-shadow duration-100 ease-out-strong ${isOver ? 'ring-2 ring-ring' : ''}`}
+      // `group` is a literal Tailwind marker, not a styled class of ours —
+      // OptionsMenu.tsx (not yet converted) keys its kebab's reveal-on-hover
+      // off this exact literal ancestor class name.
+      className={cn('group', styles.dashboardTab, isOver && styles.dashboardTabOver)}
     >
       <TabsTrigger
         value={dashboard.id}
-        className="max-w-40"
+        className={styles.trigger}
         hasOptionsMenu
         aria-keyshortcuts={
           index < MAX_DASHBOARD_SHORTCUTS ? `Alt+${dashboardShortcutDigit(index)}` : undefined
         }
       >
-        <span className="truncate">{dashboard.name}</span>
+        <span className={styles.dashboardTabLabel}>{dashboard.name}</span>
       </TabsTrigger>
 
       {showShortcut && index < MAX_DASHBOARD_SHORTCUTS && (
-        <Badge
-          variant="shortcut"
-          aria-hidden
-          className="pointer-events-none absolute -left-1 -top-1"
-        >
+        <Badge variant="shortcut" aria-hidden className={styles.shortcutBadge}>
           {dashboardShortcutDigit(index)}
         </Badge>
       )}
@@ -58,6 +59,7 @@ function DashboardTabItem({
       <EntityOptionsMenu
         label="Dashboard options"
         variant="ghost"
+        // tailwind-passthrough: EntityOptionsMenu/OptionsMenu convert in Part 6.1/6.2
         triggerClassName="right-0.5 top-1/2 -translate-y-1/2"
         triggerPositioned
         revealOnHover
@@ -89,7 +91,7 @@ export function DashboardTabs() {
 
   return (
     <Tabs value={activeDashboardId ?? ''} onValueChange={setActiveDashboardId}>
-      <TabsList className="gap-1">
+      <TabsList className={styles.list}>
         {dashboards.map((dashboard, index) => (
           <DashboardTabItem
             key={dashboard.id}
@@ -104,7 +106,7 @@ export function DashboardTabs() {
               <Button
                 variant="ghost"
                 size="icon-xs"
-                className="ml-1 rounded-full"
+                className={styles.addButton}
                 aria-label="Add dashboard"
                 onClick={() => void addDashboard('New dashboard')}
               >

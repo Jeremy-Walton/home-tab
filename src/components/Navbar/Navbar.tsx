@@ -1,4 +1,4 @@
-import { DashboardTabs } from '../DashboardTabs'
+import { DashboardTabs } from '../DashboardTabs/DashboardTabs'
 import { ImportExportBar } from '../ImportExportBar'
 import { LogoIcon } from '../LogoIcon'
 import { Wordmark } from '../Wordmark'
