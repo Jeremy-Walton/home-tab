@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from './ui/dialog/dialog'
-import { FieldGroup } from './ui/field'
+import { FieldGroup } from './ui/field/field'
 
 interface EditDialogProps {
   title: string

@@ -1485,6 +1485,76 @@ Notes:
   it is the automated signal that this part didn't break validation
   rendering, so read its failure carefully if it goes red.
 
+**Status: done.** `yarn check` passes (81 tests, same count). Notes:
+- **Block naming**: none of `FieldSet`/`FieldLegend`/`FieldGroup`/`Field`/
+  `FieldContent`/`FieldLabel`/`FieldTitle`/`FieldDescription`/
+  `FieldSeparator`/`FieldError` are JSX-nested inside one another within this
+  file (each renders its own root, composed by consumers), so each became its
+  own block (`.field-set`, `.field-legend`, …), per the Phase 3 preamble.
+  `FieldSeparator`'s inner `<span>` and `FieldError`'s inner `<ul>` genuinely
+  *are* JSX children of their own component's render, so those became real
+  BEM elements (`.field-separator__content`, `.field-error__list`).
+  `FieldSeparator`'s `<Separator>` child is a **different, foreign**
+  component, so it got the cross-component pass-down pattern instead — a
+  bare `.field-separator-line` class kept in `field.module.css`, passed as
+  `className`, per the Conventions' `LinkTile`/`AspectRatio` example (not yet
+  implemented anywhere else in the codebase; this is its first real use).
+- **`FieldLegend`'s `variant` prop is a real controlled prop** (`legend` |
+  `label`, defaulting `legend`), so it got a proper `cva()`-driven BEM
+  modifier (`.field-legend--legend` / `.field-legend--label`), same pattern
+  as `separator`/`tabs`'s `orientation` — not a bare `[data-variant]`
+  attribute selector. `data-variant` itself stays on the DOM unchanged.
+  `Field`'s `data-invalid`/`data-disabled` and `FieldGroup`'s `data-variant`/
+  `data-slot` are **not** controlled props (only reachable via each
+  component's `...props` spread, i.e. a raw consumer override) — those
+  stayed plain attribute selectors, matching `Field`'s real call site
+  (`<Field data-invalid={urlError ? true : undefined}>` in `LinkEditModal`).
+- **New tokens**: `--leading-snug: 1.375` and `--leading-normal: 1.5` added
+  to `tokens.css`. `field.tsx`'s `leading-snug`/`leading-normal` utilities
+  are applied *standalone* (no paired font-size utility on the same
+  element), so they don't correspond to any of the existing `--text-*-
+  line-height` tokens (those are each tied to a specific paired font size).
+  `--text-base`'s own line-height (`calc(1.5/1)` = `1.5`) happens to equal
+  `--text-medium-line-height` exactly, so `FieldLegend`'s `text-base` reused
+  that existing token rather than needing a third addition.
+- **A CSS Modules trap caught before it shipped**: `.field--vertical`/
+  `.field--responsive`'s `[&>.sr-only]:w-auto` was first written as a bare
+  `& > .sr-only`, which CSS Modules scopes/hashes like any other local
+  class — it would never have matched a real `sr-only` className from an
+  unconverted consumer (`ConfirmDialog.tsx`'s `<AlertDialogTitle
+  className="sr-only">`, still Tailwind's own global utility until Phase 6).
+  Caught by reading the generated `.d.ts` (an unexpected `srOnly` key showed
+  up) rather than by a live symptom. Fixed with `:global(.sr-only)`, same
+  precedent as `label.module.css`'s existing `:global(.group[...])`/
+  `:global(.peer)`. No current call site actually nests a `.sr-only` inside
+  a `Field`, so this was a latent bug, not a visible one — worth calling out
+  since `srOnly` in a generated `.d.ts` is exactly the kind of signal to
+  check for on any future part with a bare non-BEM class selector.
+- **Verified every non-trivial utility against the real compiled Tailwind
+  output** (`@tailwindcss/cli`, same discipline as the rest of Phase 3),
+  including the `@container/field-group` responsive-orientation branch
+  (zero call site, ported faithfully) and the `has-[>[data-slot=field]]:`/
+  `has-data-checked:`/`nth-last-2:` selectors on `FieldLabel`/
+  `FieldDescription` (also zero call site).
+- **Live-verified the real call sites** (`Field`/`FieldLabel`/`FieldError`/
+  `FieldGroup`, as rendered by `LinkEditModal`/`DashboardEditModal`) with
+  Playwright against the running dev server: field stacking/gap, the
+  destructive-red invalid state on both the field's label text and its error
+  message (`getComputedStyle` matched `--destructive`/`--text-small`/
+  `--font-weight-normal` exactly), and label/field layout in both dialogs.
+  **One dead end along the way, not a bug in this part**: triggering the
+  validation error with an obviously-malformed string like `not a url` or
+  the project's own `ht tp://broken` test fixture silently *succeeded* in a
+  real Chromium tab — `new URL('https://not a url')` throws in Node/jsdom but
+  Chromium's own URL parser is more lenient and percent-encodes the spaces
+  into a valid (if nonsensical) hostname instead of throwing. This is a
+  pre-existing gap between `lib/url.ts`'s test-suite behavior and real-browser
+  behavior, unrelated to this part (`FieldError`'s rendering was explicitly
+  not touched, per the part's own instruction) — not investigated further,
+  out of scope here. Verified the error path instead with a string that
+  fails identically in both environments (`isSafeHref('')`, i.e. an
+  all-whitespace field, which trims to empty and always throws).
+
 **Browser verification (you):**
 - Link edit dialog: all three fields labeled, stacked, and aligned; Title /
   URL / Background image URL all save

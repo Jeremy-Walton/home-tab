@@ -65,6 +65,8 @@
   --text-medium-line-height: 1.5;
   --text-large: 1.125rem;
   --text-large-line-height: 1.5556;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
