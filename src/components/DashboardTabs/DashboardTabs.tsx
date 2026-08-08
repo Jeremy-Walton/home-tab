@@ -34,10 +34,7 @@ function DashboardTabItem({
   return (
     <div
       ref={setNodeRef}
-      // `group` is a literal Tailwind marker, not a styled class of ours —
-      // OptionsMenu.tsx (not yet converted) keys its kebab's reveal-on-hover
-      // off this exact literal ancestor class name.
-      className={cn('group', styles.dashboardTab, isOver && styles.dashboardTabOver)}
+      className={cn(styles.dashboardTab, isOver && styles.dashboardTabOver)}
     >
       <TabsTrigger
         value={dashboard.id}
@@ -59,8 +56,7 @@ function DashboardTabItem({
       <EntityOptionsMenu
         label="Dashboard options"
         variant="ghost"
-        // tailwind-passthrough: EntityOptionsMenu/OptionsMenu convert in Part 6.1/6.2
-        triggerClassName="right-0.5 top-1/2 -translate-y-1/2"
+        triggerClassName={styles.optionsTrigger}
         triggerPositioned
         revealOnHover
         onTriggerClick={(e) => e.stopPropagation()}

@@ -1,4 +1,4 @@
-import { OptionsMenu } from './OptionsMenu'
+import { OptionsMenu } from './OptionsMenu/OptionsMenu'
 import {
   DropdownMenuItem,
   DropdownMenuSub,

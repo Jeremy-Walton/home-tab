@@ -8,6 +8,10 @@
       var(--shadow-x-large);
   }
 
+  &:hover .options-trigger {
+    opacity: 1;
+  }
+
   .tile__image {
     position: absolute;
     inset: 0;

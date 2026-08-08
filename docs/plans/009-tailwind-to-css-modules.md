@@ -348,19 +348,44 @@ don't touch it in any part.
 
 ---
 
-### Part 6.1 — `OptionsMenu`
+### Part 6.1 — `OptionsMenu` (done)
 
-The shared three-dot/kebab trigger (tooltip'd dropdown-menu button, callers
-pass items as children). Carries the `revealOnHover` behavior that
-`LinkTile` (Part 4.2) and `DashboardTabs` (Part 5.2) style against — both
-are converted modules now, so verify the reveal from *both* parents, and
-remove the literal `group` classes those two files carry once this part's
-own reveal-on-hover mechanism is real CSS Modules (a prop-driven modifier,
-not a Tailwind `group-hover:` class — same pattern as `Button.positioned`).
+Converted to `OptionsMenu/{OptionsMenu.tsx,OptionsMenu.module.css}`. Confirmed
+3 real callers, not 2 — `ImportExportBar` uses `OptionsMenu` directly (always
+visible, no `revealOnHover`), alongside the two via `EntityOptionsMenu`
+(`LinkTile`, `DashboardTabs`) — so this stayed a fully faithful port, no
+variant-dropping (unlike `LogoIcon`/`Wordmark`'s single-caller case).
 
-**Browser verification (you):** kebab hidden at rest and fading in on hover,
-from a link tile **and** from a dashboard tab; its enlarged hit area still
-works (click 4–6px outside the visible button); its tooltip still appears.
+The `revealOnHover` → `.trigger--reveal-on-hover` modifier landed exactly
+like `Button.positioned`: it only supplies the *mechanism* (`opacity: 0` +
+transition) inside `OptionsMenu.module.css`, same as `.button--positioned`
+only supplies `position: absolute`. The actual **reveal condition** — "on
+hover of an ancestor outside this component's own subtree" — can't live in
+`OptionsMenu.module.css` at all (no selector there can reach an ancestor two
+components up), so it's the Cross-component styling convention verbatim:
+each parent (`LinkTile.module.css`, `DashboardTabs.module.css`) defines its
+own bare `.options-trigger` hook class and a `&:hover .options-trigger {
+opacity: 1; }` rule nested in its own block, and passes that class down via
+the existing `triggerClassName` prop. `DashboardTabs` additionally overloads
+the same class with the specific position it needs (`top: 50%; right:
+var(--space-3x-small); translate: 0 -50%;`, replacing the old raw
+`triggerClassName="right-0.5 top-1/2 -translate-y-1/2"` passthrough —
+`right-0.5` = `0.125rem`, an exact match for `--space-3x-small`) since
+`triggerPositioned` only supplies `position: absolute`, same division of
+labor as `Button.positioned` itself. `LinkTile` doesn't need any positioning
+on its own hook class — that's still handled by its existing `.tile__options`
+wrapper div — so its `.options-trigger` carries no declarations of its own,
+referenced only inside the nested `:hover` rule; confirmed `tcm` still
+extracts and types a class used only in a nested selector, no separate
+top-level rule required. The literal `group` marker is gone from both
+`LinkTile.tsx` and `DashboardTabs.tsx`.
+
+Browser-verified with Playwright: kebab opacity 0 at rest / 1 on hover for
+both the link tile and the dashboard tab; `ImportExportBar`'s kebab stays at
+opacity 1 always; the dashboard tab kebab's computed position/translate
+matches exactly; a click 4–6px outside the dashboard tab kebab's visible
+bounds still opens it (enlarged hit area intact); its tooltip still appears;
+the link tile's options menu still opens with the right items.
 
 ⏸ **PAUSE — review before Part 6.2.**
 
@@ -626,12 +651,11 @@ Anything the registry adds to `components.json`'s `css` target lands in
 
 ## Resuming this plan in a fresh session
 
-**Resume at Part 6.1 (`OptionsMenu`).** Phases 0–5 (through Part 5.5,
-`Wordmark`) are done — Phase 5 is complete, pending only the user's own
-commit. Read "Progress so far" above (the facts that carry forward) and the
-Conventions section before writing any CSS. Each remaining part lists its
-own importers/notes/browser-verification inline; nothing else needs to be
-re-derived.
+**Resume at Part 6.2 (`EntityOptionsMenu`).** Phases 0–5 and Part 6.1
+(`OptionsMenu`) are done. Read "Progress so far" above (the facts that carry
+forward) and the Conventions section before writing any CSS. Each remaining
+part lists its own importers/notes/browser-verification inline; nothing else
+needs to be re-derived.
 
 **Working agreements:**
 - A part, not a phase, is the unit of work: convert it, `yarn check`,

@@ -27,6 +27,7 @@ const MIGRATED = [
   'src/components/ImportExportBar/**/*.tsx',
   'src/components/LogoIcon/**/*.tsx',
   'src/components/Wordmark/**/*.tsx',
+  'src/components/OptionsMenu/**/*.tsx',
 ]
 
 const PATTERNS = [

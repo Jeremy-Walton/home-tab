@@ -52,10 +52,7 @@ export function LinkTile({ link }: { link: Link }) {
       style={style}
       {...attributes}
       {...listeners}
-      // `group` is a literal Tailwind marker, not a styled class of ours —
-      // OptionsMenu.tsx (not yet converted) keys its kebab's reveal-on-hover
-      // off this exact literal ancestor class name.
-      className={cn('group', styles.tile)}
+      className={styles.tile}
     >
       {/* Press feedback keys off the full-bleed <a>: the kebab is painted over
           it, not inside it, so pressing the kebab can't match. */}
@@ -83,6 +80,7 @@ export function LinkTile({ link }: { link: Link }) {
           <EntityOptionsMenu
             label="Link options"
             variant="secondary"
+            triggerClassName={styles.optionsTrigger}
             revealOnHover
             onTriggerClick={(e) => e.preventDefault()}
             onEdit={() => setEditing(true)}

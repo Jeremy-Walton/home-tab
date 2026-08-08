@@ -1,0 +1,8 @@
+.trigger {
+  &.trigger--reveal-on-hover {
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 150ms;
+    transition-timing-function: var(--ease-out-strong);
+  }
+}

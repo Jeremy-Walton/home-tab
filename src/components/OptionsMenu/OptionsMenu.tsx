@@ -1,12 +1,13 @@
 import { DotsThreeVerticalIcon } from '@phosphor-icons/react'
-import { cn } from '../lib/utils'
-import { Button } from './ui/button/button'
+import { cn } from '../../lib/utils'
+import { Button } from '../ui/button/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from './ui/dropdown-menu/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip/tooltip'
+} from '../ui/dropdown-menu/dropdown-menu'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip/tooltip'
+import styles from './OptionsMenu.module.css'
 
 interface OptionsMenuProps {
   label: string
@@ -48,8 +49,8 @@ export function OptionsMenu({
                   positioned={triggerPositioned}
                   aria-label={label}
                   className={cn(
-                    revealOnHover &&
-                      'opacity-0 transition-opacity group-hover:opacity-100',
+                    styles.trigger,
+                    revealOnHover && styles.triggerRevealOnHover,
                     triggerClassName,
                   )}
                   onClick={onTriggerClick}

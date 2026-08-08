@@ -9,11 +9,24 @@
     box-shadow: 0 0 0 2px var(--ring);
   }
 
+  &:hover .options-trigger {
+    opacity: 1;
+  }
+
   .dashboard-tab__label {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+}
+
+/* Foreign component (EntityOptionsMenu's trigger Button), already converted
+   — positioned and hover-revealed from here via a passed-down className,
+   per the Conventions section's cross-component pattern. */
+.options-trigger {
+  top: 50%;
+  right: var(--space-3x-small);
+  translate: 0 -50%;
 }
 
 /* Foreign components (TabsTrigger/Badge/TabsList/Button), all already
