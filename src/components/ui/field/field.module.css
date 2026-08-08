@@ -147,6 +147,7 @@
     flex-direction: column;
     border-style: solid;
     border-width: 1px;
+    border-color: var(--border);
     border-radius: var(--radius-2x-large);
   }
 

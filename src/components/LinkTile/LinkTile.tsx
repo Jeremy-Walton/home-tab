@@ -59,7 +59,7 @@ export function LinkTile({ link }: { link: Link }) {
     >
       {/* Press feedback keys off the full-bleed <a>: the kebab is painted over
           it, not inside it, so pressing the kebab can't match. */}
-      <AspectRatio ratio={16 / 9} className={styles.tileSurface}>
+      <AspectRatio ratio={16 / 9} className={styles.surface}>
         {showImage && (
           <img
             ref={(node) => {

@@ -21,6 +21,7 @@ const MIGRATED = [
   'src/components/ui/empty/**/*.tsx',
   'src/components/DashboardGrid/**/*.tsx',
   'src/components/LinkTile/**/*.tsx',
+  'src/components/EmptyState/**/*.tsx',
 ]
 
 const PATTERNS = [

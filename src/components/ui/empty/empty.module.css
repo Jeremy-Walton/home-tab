@@ -9,6 +9,7 @@
   gap: var(--space-medium);
   border-radius: var(--radius-2x-large);
   border-style: dashed;
+  border-color: var(--border);
   padding: var(--space-6x-large);
   text-align: center;
   text-wrap: balance;

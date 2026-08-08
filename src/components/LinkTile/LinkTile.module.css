@@ -2,29 +2,7 @@
   position: relative;
   width: 14rem;
 
-  .tile__surface {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
-    overflow: hidden;
-    border-radius: var(--radius-2x-large);
-    background: var(--muted);
-    box-shadow:
-      0 0 0 1px color-mix(in oklab, white 10%, transparent),
-      var(--shadow-large);
-    transition-property: box-shadow, scale;
-    transition-duration: 150ms;
-    transition-timing-function: var(--ease-out-strong);
-
-    @media (prefers-reduced-motion: no-preference) {
-      &:has(a:active) {
-        scale: 0.98;
-      }
-    }
-  }
-
-  &:hover .tile__surface {
+  &:hover .surface {
     box-shadow:
       0 0 0 1px color-mix(in oklab, white 10%, transparent),
       var(--shadow-x-large);
@@ -58,5 +36,30 @@
     position: absolute;
     top: var(--space-2x-small);
     right: var(--space-2x-small);
+  }
+}
+
+/* Foreign component (AspectRatio) styled from here via a passed-down
+   className, per the Conventions section's cross-component pattern — a
+   separate block, not an element of .tile. */
+.surface {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  overflow: hidden;
+  border-radius: var(--radius-2x-large);
+  background: var(--muted);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, white 10%, transparent),
+    var(--shadow-large);
+  transition-property: box-shadow, scale;
+  transition-duration: 150ms;
+  transition-timing-function: var(--ease-out-strong);
+
+  @media (prefers-reduced-motion: no-preference) {
+    &:has(a:active) {
+      scale: 0.98;
+    }
   }
 }

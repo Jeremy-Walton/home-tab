@@ -1764,7 +1764,7 @@ Tailwind-classed after this part — cascade-layer watch applies.
 ### Part 4.2 — `LinkTile`
 
 - The `group`/`group-hover:` translation from Conventions applies here
-  (`.tile:hover .tile__surface`), as does `has-[a:active]:scale-[0.98]` →
+  (`.tile:hover .surface`), as does `has-[a:active]:scale-[0.98]` →
   `:has(a:active)` inside a `prefers-reduced-motion: no-preference` block.
 - **Leave the inline `style` object alone.** `transform`, `transition`,
   `opacity` and `viewTransitionName` are dnd-kit's, and the combined
@@ -1779,10 +1779,21 @@ Tailwind-classed after this part — cascade-layer watch applies.
 
 **Status: done.** `yarn check` passes (81 tests, same count). Notes:
 - **Block naming**: single-component file, same shape as `DashboardGrid` —
-  root wrapper is the block (`.tile`), and every genuinely-JSX-nested child
-  (the passed-down surface, the image, the link, the options wrapper) is a
-  flat element (`.tile__surface`, `.tile__image`, `.tile__link`,
-  `.tile__options`).
+  root wrapper is the block (`.tile`), and every genuinely-JSX-nested *native*
+  child (the image, the link, the options wrapper) is a flat element
+  (`.tile__image`, `.tile__link`, `.tile__options`).
+  **Correction, applied before Part 4.3 started**: the class passed down to
+  `AspectRatio` was first written as `.tile__surface` — wrong, caught by
+  re-reading the Conventions section, whose cross-component-styling example
+  names *this exact file* (`LinkTile`'s `AspectRatio`) and shows the passed
+  class as bare `.surface`, top-level, not a `.tile__`-prefixed element —
+  `AspectRatio` is a foreign block, not an element of `.tile`, matching
+  `field`'s own `.field-separator-line` precedent for the same pattern.
+  Renamed to `.surface`, moved to its own top-level rule (only the
+  `.tile:hover .surface` cross-reach stays nested inside `.tile`, per
+  "reaching into a different block … rooted at the reaching block's own
+  `&`"); re-verified live with Playwright that the hover shadow-lift still
+  reads identical `box-shadow` values before and after the rename.
 - **The inline `style` object is untouched**, exactly per the part's own
   instruction — `transform`/`transition`/`opacity`/`viewTransitionName`
   still come from dnd-kit and the documented combined-transition fix,
@@ -1810,7 +1821,7 @@ Tailwind-classed after this part — cascade-layer watch applies.
   passes a real scoped className into `AspectRatio` (already-converted,
   Phase 2) via the Conventions cross-component pattern, the hover-shadow
   relationship is entirely local to this one file now: `&:hover
-  .tile__surface { box-shadow: … var(--shadow-x-large) }`, no `group`
+  .surface { box-shadow: … var(--shadow-x-large) }`, no `group`
   dependency needed for this specific rule.
 - **New color usage**: `ring-black/10` (light, discarded) /
   `dark:ring-white/10` (the winning dark value) has no existing token —
@@ -1885,6 +1896,76 @@ from `motion.module.css` if a matching keyframe exists there, otherwise give
 it a local one rather than widening the shared module for a single consumer.
 It renders `Empty`/`EmptyContent`/`EmptyTitle`… converted in Part 3.7, so
 this is where the classes it passes down stop being Tailwind.
+
+**Status: done.** `yarn check` passes (81 tests, same count). Notes:
+- **Block naming**: `EmptyState` renders no native elements of its own
+  besides the centering wrapper (`.empty-state`, the block) — `Empty` and
+  `Button` are both foreign, already-converted components, so the classes
+  passed into them (`.card`, `.action`) are bare, top-level, per the
+  Conventions cross-component pattern (same correction just applied to
+  `LinkTile`'s `.surface`, applied correctly here from the start).
+- **No matching keyframe existed in `motion.module.css`** (its
+  `slideInFromBottom` is tuned for popups at `var(--space-x-small)`/0.5rem;
+  Tailwind's `slide-in-from-bottom-1` here is `1 × --spacing` = 0.25rem, a
+  different distance) — gave it a local `enter`/`fadeIn` keyframe pair
+  instead of widening the shared module for this one consumer, exactly per
+  the part's own instruction. `fadeIn` is a fresh local copy (not a
+  reference to the shared module's own `fadeIn`) for the same reason
+  Part 3.3 established: Vite's CSS Modules scopes `animation-name` per file
+  regardless of a same-named `@keyframes` existing elsewhere.
+- **This part is where the app-wide reduced-motion mechanism actually
+  changes**, not just this one component — until now, `EmptyState`'s
+  entrance rode on a *global* Tailwind mechanism (`src/index.css`'s
+  `@media (prefers-reduced-motion: reduce)` block zeroing tw-animate-css's
+  `--tw-enter-*` vars for every `animate-in` usage app-wide, per
+  `TECHNICAL_DESIGN.md`'s Known Gotchas). Converting this file's own
+  classes away means it no longer benefits from that global hack, so it
+  needed its own explicit `@media (prefers-reduced-motion: reduce) {
+  animation-name: fadeIn }` override — the same per-module pattern already
+  used throughout `motion.module.css`, now implemented locally for the
+  first time outside that shared file. Verified live with Playwright's
+  `reducedMotion: 'reduce'` context option: normal load resolves
+  `animationName` to the scoped `enter` keyframe, reduced-motion resolves
+  it to the scoped `fadeIn` keyframe, both confirmed by reading the actual
+  hashed name, not assumed from the CSS text.
+- **A real, previously-invisible gap found and fixed in two already-shipped
+  files, not just this one**: neither `empty.module.css`'s `.empty`
+  (Part 3.7) nor `field.module.css`'s `.field-label:has(> [data-slot=
+  'field'])` (Part 3.6) ever set their own `border-color`. Both currently
+  render correctly anyway — but only because Tailwind is still active and
+  `src/index.css` carries a *universal* base-layer rule, `* { @apply
+  border-border outline-ring/50; }`, silently supplying `border-color:
+  var(--border)` to every element in the app that doesn't set its own.
+  That rule disappears entirely at Phase 8. Caught here specifically
+  because `EmptyState`'s card needed its exact current border color to
+  write a faithful `.card` rule, and checking it live (`getComputedStyle`,
+  not reading Tailwind's classes in isolation) showed `oklch(1 0 0 / 10%)`
+  — exactly `--border`'s value — with no rule in either file accounting
+  for it. Fixed both at the source (`border-color: var(--border)` added to
+  each), rather than papering over it in `EmptyState`'s own module, since
+  the gap belongs to the components that own the border, not this
+  consumer. **This is a systemic risk, not a one-off**: any future part
+  that adds a border without an explicit color and happens to currently
+  render "correctly" may be silently relying on this same global default;
+  grepped every already-converted module's `border`/`border-style`/
+  `border-width` declarations for the same gap and found exactly these
+  two — `button`/`badge`/`input`/`tabs`/`DashboardGrid` all already set an
+  explicit color (even if `transparent`) on every border they declare, so
+  no further gaps existed at this point in the migration. Worth re-checking
+  again before Phase 8 removes the global rule for real.
+- **`EmptyState`'s card needed only `border-width: 1px`** of its own —
+  `border-style: dashed` and (now) `border-color: var(--border)` both
+  already come from `Empty`'s own default, so the "faithful port" here
+  wasn't "solid border" as the bare Tailwind `border` utility name might
+  suggest read in isolation, it's dashed, confirmed unchanged before and
+  after this conversion by comparing live `getComputedStyle` snapshots
+  taken pre- and post-conversion.
+- **Live-verified the whole card against a pre-conversion baseline
+  snapshot**, not just checked in isolation: `borderStyle`/`borderWidth`/
+  `borderColor`/`backgroundColor`/`width` all read identically before and
+  after (`dashed`/`1px`/`oklch(1 0 0 / 10%)`/`color-mix(…, var(--card) 90%,
+  …)`/`320.8px`), and a screenshot comparison confirmed no visible change.
+  "Add link" still creates a link and opens its edit dialog.
 
 **Browser verification (you):**
 - An empty dashboard's welcome card: title, one-line instruction, "Add
