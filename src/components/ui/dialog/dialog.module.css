@@ -1,0 +1,171 @@
+/* Duplicated from src/styles/motion.module.css rather than referenced by
+   name: CSS Modules locally scopes (hashes) every `animation-name` value,
+   including ones with no matching local `@keyframes` — a bare `fadeIn`
+   written here would silently resolve to a dangling, file-scoped name that
+   doesn't match motion.module.css's own hashed keyframe, so the animation
+   would just never play (no error). Confirmed via the actual dev-server
+   output, not by reading the CSS. `composes:` only affects class names, not
+   property values, so it can't bridge this. */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    scale: 0.95;
+  }
+
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes popOut {
+  from {
+    opacity: 1;
+    scale: 1;
+  }
+
+  to {
+    opacity: 0;
+    scale: 0.95;
+  }
+}
+
+.dialog-overlay {
+  composes: dialog from '../../../styles/motion.module.css';
+  position: fixed;
+  inset: 0;
+  isolation: isolate;
+  z-index: var(--z-dialog-backdrop);
+  background: rgb(0 0 0 / 30%);
+
+  @supports (backdrop-filter: blur(1px)) {
+    backdrop-filter: blur(8px);
+  }
+
+  &[data-open] {
+    animation-name: fadeIn;
+  }
+
+  &[data-closed] {
+    animation-name: fadeOut;
+  }
+}
+
+.dialog-content {
+  composes: dialog from '../../../styles/motion.module.css';
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: var(--z-dialog-content);
+  display: grid;
+  width: 100%;
+  max-width: calc(100% - 2rem);
+  gap: var(--space-x-large);
+  border-radius: var(--radius-4x-large);
+  padding: var(--space-x-large);
+  color: var(--popover-foreground);
+  font-size: var(--text-small);
+  line-height: var(--text-small-line-height);
+  background: var(--popover);
+  box-shadow: 0 0 0 var(--border-width) oklch(from var(--foreground) l c h / 10%), var(--shadow-x-large);
+  outline: none;
+  translate: -50% -50%;
+
+  @media (width >= 40rem) {
+    max-width: 28rem;
+  }
+
+  &[data-open] {
+    animation-name: popIn;
+  }
+
+  &[data-closed] {
+    animation-name: popOut;
+  }
+
+  .dialog-content__close {
+    top: var(--space-medium);
+    right: var(--space-medium);
+    background: var(--secondary);
+  }
+}
+
+.dialog-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-x-small);
+}
+
+.dialog-footer {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-x-small);
+
+  @media (width >= 40rem) {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+}
+
+.dialog-title {
+  font-family: var(--font-heading);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--text-medium);
+  line-height: 1;
+}
+
+.dialog-description {
+  color: var(--muted-foreground);
+  font-size: var(--text-small);
+  line-height: var(--text-small-line-height);
+
+  > a {
+    text-underline-offset: 3px;
+    text-decoration-line: underline;
+
+    @media (hover: hover) {
+      &:hover {
+        color: var(--foreground);
+      }
+    }
+  }
+}
+
+/* .dialog covers `data-open`/`data-closed` duration/timing but never
+   `animation-name` at normal motion (overlay fades, content zooms — see
+   docs/plans/009-tailwind-to-css-modules.md Part 3.3), so its reduced-motion
+   branch re-pointing both to fadeIn/fadeOut can lose a same-specificity
+   source-order tie against this file's own `animation-name` declarations
+   above. Repeating the override here at this file's own end makes the
+   result deterministic instead of relying on stylesheet emission order. */
+@media (prefers-reduced-motion: reduce) {
+  .dialog-overlay[data-open],
+  .dialog-content[data-open] {
+    animation-name: fadeIn;
+  }
+
+  .dialog-overlay[data-closed],
+  .dialog-content[data-closed] {
+    animation-name: fadeOut;
+  }
+}

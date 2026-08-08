@@ -1,0 +1,101 @@
+/* Design tokens. Colors are the dark theme's values only, flattened into
+   :root — the app is dark-only (see docs/plans/009-tailwind-to-css-modules.md
+   Decisions), so the light :root block from the old Tailwind config is not
+   ported here. */
+:root {
+  --background: oklch(14.8% 0.004 228.8deg);
+  --foreground: oklch(98.7% 0.002 197.1deg);
+  --card: oklch(21.8% 0.008 223.9deg);
+  --card-foreground: oklch(98.7% 0.002 197.1deg);
+  --popover: oklch(21.8% 0.008 223.9deg);
+  --popover-foreground: oklch(98.7% 0.002 197.1deg);
+  --primary: oklch(43.2% 0.095 166.913deg);
+  --primary-foreground: oklch(97.9% 0.021 166.113deg);
+  --secondary: oklch(27.4% 0.006 286.033deg);
+  --secondary-foreground: oklch(98.5% 0 0deg);
+  --muted: oklch(27.5% 0.011 216.9deg);
+  --muted-foreground: oklch(72.3% 0.014 214.4deg);
+  --accent: oklch(27.5% 0.011 216.9deg);
+  --accent-foreground: oklch(98.7% 0.002 197.1deg);
+  --destructive: oklch(70.4% 0.191 22.216deg);
+  --border: oklch(100% 0 0deg / 10%);
+  --input: oklch(100% 0 0deg / 15%);
+  --ring: oklch(56% 0.021 213.5deg);
+  --chart-1: oklch(78.5% 0.115 274.713deg);
+  --chart-2: oklch(58.5% 0.233 277.117deg);
+  --chart-3: oklch(51.1% 0.262 276.966deg);
+  --chart-4: oklch(45.7% 0.24 277.023deg);
+  --chart-5: oklch(39.8% 0.195 277.366deg);
+  --sidebar: oklch(21.8% 0.008 223.9deg);
+  --sidebar-foreground: oklch(98.7% 0.002 197.1deg);
+  --sidebar-primary: oklch(69.6% 0.17 162.48deg);
+  --sidebar-primary-foreground: oklch(26.2% 0.051 172.552deg);
+  --sidebar-accent: oklch(27.5% 0.011 216.9deg);
+  --sidebar-accent-foreground: oklch(98.7% 0.002 197.1deg);
+  --sidebar-border: oklch(100% 0 0deg / 10%);
+  --sidebar-ring: oklch(56% 0.021 213.5deg);
+  --radius: 0.625rem;
+  --radius-small: calc(var(--radius) * 0.6);
+  --radius-medium: calc(var(--radius) * 0.8);
+  --radius-large: var(--radius);
+  --radius-x-large: calc(var(--radius) * 1.4);
+  --radius-2x-large: calc(var(--radius) * 1.8);
+  --radius-3x-large: calc(var(--radius) * 2.2);
+  --radius-4x-large: calc(var(--radius) * 2.6);
+
+  /* Fully round (pill/circle) — a distinct shape, not another magnitude
+     tier, so it sits outside the small…4x-large scale above. */
+  --radius-full: 9999px;
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
+  --font-sans: 'Space Grotesk Variable', sans-serif;
+  --font-heading: 'Figtree Variable', sans-serif;
+  --space-3x-small: 0.125rem;
+  --space-2x-small: 0.25rem;
+  --space-x-small: 0.5rem;
+  --space-small: 0.75rem;
+  --space-medium: 1rem;
+  --space-large: 1.25rem;
+  --space-x-large: 1.5rem;
+  --space-2x-large: 1.75rem;
+  --space-3x-large: 2rem;
+  --space-4x-large: 2.25rem;
+  --space-5x-large: 2.5rem;
+  --space-6x-large: 3rem;
+  --text-x-small: 0.75rem;
+  --text-x-small-line-height: 1.3333;
+  --text-small: 0.875rem;
+  --text-small-line-height: 1.4286;
+  --text-medium: 1rem;
+  --text-medium-line-height: 1.5;
+  --text-large: 1.125rem;
+  --text-large-line-height: 1.5556;
+  --text-x-large: 1.875rem;
+  --text-x-large-line-height: 1.2;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --shadow-small: 0 1px 3px 0 rgb(0 0 0 / 10%), 0 1px 2px -1px rgb(0 0 0 / 10%);
+  --shadow-large: 0 10px 15px -3px rgb(0 0 0 / 10%), 0 4px 6px -4px rgb(0 0 0 / 10%);
+  --shadow-x-large: 0 20px 25px -5px rgb(0 0 0 / 10%), 0 8px 10px -6px rgb(0 0 0 / 10%);
+  --border-width: 1px;
+  --border-width-large: 2px;
+  --border-width-x-large: 3px;
+  --duration-fast: 100ms;
+  --duration-normal: 150ms;
+  --duration-slow: 200ms;
+  --opacity-disabled: 0.5;
+
+  /* Explicit stacking order rather than one shared tier: a dialog's own
+     content must sit above its own backdrop; a dropdown menu may be
+     triggered from a control inside an open dialog, so it stacks above
+     both; a tooltip may be triggered from inside any of the above (a
+     dropdown item, a dialog's own controls), so it stays topmost. */
+  --z-dialog-backdrop: 40;
+  --z-dialog-content: 41;
+  --z-dropdown: 42;
+  --z-tooltip: 43;
+}

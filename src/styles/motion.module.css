@@ -1,0 +1,163 @@
+/* Shared enter/exit animations for dialogs and popups. Animation properties
+   only — colors and sizing belong in the consuming module, since `composes:`
+   puts both class names on the element and cascade order between this file
+   and the consumer decides ties for any property both set. */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+/* Animates `scale`, not `transform: scale()` — a consumer (dialog content)
+   may set its own static `translate` for centering, and the two individual
+   transform properties compose independently instead of one clobbering the
+   other. */
+@keyframes popIn {
+  from {
+    opacity: 0;
+    scale: 0.95;
+  }
+
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes popOut {
+  from {
+    opacity: 1;
+    scale: 1;
+  }
+
+  to {
+    opacity: 0;
+    scale: 0.95;
+  }
+}
+
+@keyframes slideInFromTop {
+  from {
+    translate: 0 calc(-1 * var(--space-x-small));
+  }
+
+  to {
+    translate: 0 0;
+  }
+}
+
+@keyframes slideInFromBottom {
+  from {
+    translate: 0 var(--space-x-small);
+  }
+
+  to {
+    translate: 0 0;
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    translate: calc(-1 * var(--space-x-small)) 0;
+  }
+
+  to {
+    translate: 0 0;
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    translate: var(--space-x-small) 0;
+  }
+
+  to {
+    translate: 0 0;
+  }
+}
+
+.dialog[data-open] {
+  animation-duration: var(--duration-slow);
+  animation-timing-function: var(--ease-out-strong);
+}
+
+.dialog[data-closed] {
+  animation-duration: var(--duration-normal);
+  animation-timing-function: var(--ease-out-strong);
+}
+
+.popup[data-open] {
+  animation-duration: var(--duration-normal);
+  animation-timing-function: var(--ease-out-strong);
+  animation-name: popIn;
+}
+
+.popup[data-closed] {
+  animation-duration: var(--duration-fast);
+  animation-timing-function: var(--ease-out-strong);
+  animation-name: popOut;
+}
+
+/* The popup slides in from the side opposite its anchor placement — a
+   popup rendered above its trigger (data-side="top") enters moving up from
+   below it, etc. inline-start/inline-end reuse right/left since Base UI
+   assigns them for RTL-aware anchoring but this app doesn't support RTL. */
+.popup[data-open][data-side='top'] {
+  animation-name: popIn, slideInFromBottom;
+}
+
+.popup[data-open][data-side='bottom'] {
+  animation-name: popIn, slideInFromTop;
+}
+
+.popup[data-open][data-side='left'],
+.popup[data-open][data-side='inline-start'] {
+  animation-name: popIn, slideInFromRight;
+}
+
+.popup[data-open][data-side='right'],
+.popup[data-open][data-side='inline-end'] {
+  animation-name: popIn, slideInFromLeft;
+}
+
+/* Tooltip's extra state: fires on hover-delay open, distinct from
+   data-open (which also covers keyboard-focus open with no delay). */
+.popup[data-state='delayed-open'] {
+  animation-duration: var(--duration-normal);
+  animation-timing-function: var(--ease-out-strong);
+  animation-name: popIn;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog[data-open],
+  .popup[data-open],
+  .popup[data-open][data-side='top'],
+  .popup[data-open][data-side='bottom'],
+  .popup[data-open][data-side='left'],
+  .popup[data-open][data-side='right'],
+  .popup[data-open][data-side='inline-start'],
+  .popup[data-open][data-side='inline-end'],
+  .popup[data-state='delayed-open'] {
+    animation-name: fadeIn;
+  }
+
+  .dialog[data-closed],
+  .popup[data-closed] {
+    animation-name: fadeOut;
+  }
+}

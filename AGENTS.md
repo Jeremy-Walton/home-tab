@@ -9,6 +9,7 @@ Launch Tabs (a.k.a. Home Tab) — a browser new-tab dashboard for quickly naviga
 Product requirements: @docs/PRD.md
 Architecture and stack decisions: @docs/TECHNICAL_DESIGN.md
 Export/import wire formats: @docs/DATA_FORMATS.md
+CSS Modules structuring methodology (Block/Element/Modifier): @docs/BEM.md
 
 ## Plans
 
@@ -47,8 +48,27 @@ Keep comments short — one line stating the non-obvious *why*, not a multi-line
 explanation of mechanism or history. If it needs more than a line, that detail
 belongs in `docs/TECHNICAL_DESIGN.md`'s "Known Gotchas," not inline.
 
+Don't call preserved-but-currently-unexercised styling/behavior "dead code,"
+"unreachable," or "kept for parity" — in code comments, commit messages, or
+chat. `src/components/ui/` primitives are full-featured design-system
+components ported faithfully (see `docs/plans/009-tailwind-to-css-modules.md`'s
+Decisions table); a disabled-state rule or variant with no current call site
+is deliberate completeness, not cruft, and a comment flagging it as unused
+goes stale and invites future deletion of something that was never dead.
+
 ## Gotchas
 
 Known gotchas (dnd-kit/click interaction, RxDB ready-state timing, legacy import gating, hotkeys-js's per-element capture latching and module-singleton state) are documented in `docs/TECHNICAL_DESIGN.md`'s "Known Gotchas" section — read it before touching drag-and-drop, the RxDB bootstrap effect, legacy import in `AppStateContext.tsx`, or keyboard shortcut bindings in `useKeyboardShortcuts.ts`.
 
-UI changes in this repo should be verified in an actual browser (Playwright/`chromium-cli`), not just via typecheck/lint/tests. Every real bug found so far was invisible to all three and only showed up when actually clicking/dragging in a browser.
+UI changes in this repo need browser verification beyond typecheck/lint/tests
+— every real bug found so far was invisible to all three and only showed up
+when actually clicking/dragging in a browser. The general click-through/
+visual QA pass (does it look right at various sizes, does a drag feel
+smooth) is the user's own job — hand it back with a checklist rather than
+running it yourself. When a specific computed-CSS/DOM fact is worth
+confirming directly (a token resolves to the right value, a cascade conflict
+is real, a fix reproduces the prior computed output), a throwaway Playwright
+script (a devDependency) run with `node` works better than the
+`mcp__claude-in-chrome__*` tools — write it inside the project directory,
+not `/tmp` (Yarn's `node-modules` linker can't resolve `import { chromium }
+from 'playwright'` from outside the repo), and delete it when done.

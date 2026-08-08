@@ -1,0 +1,54 @@
+.dashboard-grid {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  background-size: cover;
+  background-position: center;
+  padding: var(--space-x-large);
+
+  .dashboard-grid__viewport {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dashboard-grid__tiles {
+    display: grid;
+    width: 100%;
+    max-width: 89rem;
+    margin-inline: auto;
+    grid-template-columns: repeat(auto-fill, 14rem);
+    justify-content: center;
+    gap: var(--space-medium);
+  }
+
+  .dashboard-grid__add-tile {
+    display: flex;
+    aspect-ratio: 16 / 9;
+    width: 14rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-2x-large);
+    border: var(--border-width-large) dashed var(--border);
+    color: var(--muted-foreground);
+    font-size: var(--text-x-large);
+    line-height: var(--text-x-large-line-height);
+    transition-property: color, border-color, scale;
+    transition-duration: var(--duration-normal);
+    transition-timing-function: var(--ease-out-strong);
+
+    &:hover {
+      border-color: var(--ring);
+      color: var(--foreground);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      &:active {
+        scale: 0.98;
+      }
+    }
+  }
+}

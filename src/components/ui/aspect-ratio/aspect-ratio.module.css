@@ -1,0 +1,4 @@
+.aspect-ratio {
+  position: relative;
+  aspect-ratio: var(--ratio);
+}

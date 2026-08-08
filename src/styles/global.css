@@ -1,0 +1,119 @@
+@import url('@fontsource-variable/space-grotesk');
+@import url('@fontsource-variable/figtree');
+@import url('./tokens.css');
+
+/* Box sizing rules */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Prevent font size inflation */
+html {
+  /* stylelint-disable-next-line property-no-vendor-prefix -- no unprefixed fallback below Firefox/Safari's current versions */
+  -moz-text-size-adjust: none;
+  /* stylelint-disable-next-line property-no-vendor-prefix -- no unprefixed fallback below Firefox/Safari's current versions */
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+  font-family: var(--font-sans);
+}
+
+/* Remove default margin in favour of better control in authored CSS */
+body, h1, h2, h3, h4, p,
+figure, blockquote, dl, dd {
+  margin-block-end: 0;
+}
+
+/* Remove list styles on ul, ol elements with a list role, which suggests default styling will be removed */
+ul[role='list'],
+ol[role='list'] {
+  list-style: none;
+}
+
+/* Set core body defaults */
+body {
+  min-height: 100vh;
+  line-height: 1.5;
+  background: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Set shorter line heights on headings and interactive elements */
+h1, h2, h3, h4,
+button, input, label {
+  line-height: 1.1;
+}
+
+/* Balance text wrapping on headings */
+h1, h2,
+h3, h4 {
+  text-wrap: balance;
+}
+
+/* A elements that don't have a class get default styles */
+a:not([class]) {
+  text-decoration-skip-ink: auto;
+  color: currentcolor;
+}
+
+/* Make images easier to work with */
+img,
+picture {
+  max-width: 100%;
+  display: block;
+}
+
+/* Inherit fonts for inputs and buttons */
+input, button,
+textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* Make sure textareas without a rows attribute are not tiny */
+textarea:not([rows]) {
+  min-height: 10em;
+}
+
+/* Anything that has been anchored to should have extra scroll margin */
+:target {
+  scroll-margin-block: 5ex;
+}
+
+/* Visually hidden but still available to assistive tech — a genuine
+   cross-cutting accessibility pattern, not component styling, so it lives
+   here rather than duplicated as a BEM element per consumer (dialog.tsx's
+   close button, field.tsx's [&>.sr-only] selector). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  margin: -1px;
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Every group (incl. implicit `root`) cross-fades old/new by default, even
+   when they're pixel-identical -- causes a page-wide blink and tiles
+   dimming mid-slide. Forcing `new` to paint fully opaque immediately hides
+   that; `old`'s fade-out (below) then only shows for a genuinely deleted
+   tile, which has no `new` counterpart. */
+::view-transition-new(*) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-group(*) {
+  animation-duration: var(--duration-slow);
+  animation-timing-function: var(--ease-in-out-strong);
+}
+
+::view-transition-old(*) {
+  animation-duration: var(--duration-normal);
+  animation-timing-function: var(--ease-out-strong);
+}

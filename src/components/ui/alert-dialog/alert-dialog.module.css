@@ -1,0 +1,227 @@
+/* Duplicated from motion.module.css, same reason dialog.module.css does —
+   see docs/plans/009-tailwind-to-css-modules.md Part 3.3's Status note:
+   a bare cross-file `animation-name` reference silently resolves to
+   nothing under Vite's CSS Modules scoping. */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    scale: 0.95;
+  }
+
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes popOut {
+  from {
+    opacity: 1;
+    scale: 1;
+  }
+
+  to {
+    opacity: 0;
+    scale: 0.95;
+  }
+}
+
+.alert-dialog-overlay {
+  composes: dialog from '../../../styles/motion.module.css';
+  position: fixed;
+  inset: 0;
+  isolation: isolate;
+  z-index: var(--z-dialog-backdrop);
+  background: rgb(0 0 0 / 30%);
+
+  @supports (backdrop-filter: blur(1px)) {
+    backdrop-filter: blur(8px);
+  }
+
+  &[data-open] {
+    animation-name: fadeIn;
+  }
+
+  &[data-closed] {
+    animation-name: fadeOut;
+  }
+}
+
+.alert-dialog-content {
+  composes: dialog from '../../../styles/motion.module.css';
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: var(--z-dialog-content);
+  display: grid;
+  width: 100%;
+  max-width: 20rem;
+  gap: var(--space-x-large);
+  border-radius: var(--radius-4x-large);
+  padding: var(--space-x-large);
+  color: var(--popover-foreground);
+  background: var(--popover);
+  box-shadow: 0 0 0 var(--border-width) oklch(from var(--foreground) l c h / 10%), var(--shadow-x-large);
+  outline: none;
+  translate: -50% -50%;
+
+  &[data-size='default'] {
+    @media (width >= 40rem) {
+      max-width: 28rem;
+    }
+  }
+
+  &[data-open] {
+    animation-name: popIn;
+  }
+
+  &[data-closed] {
+    animation-name: popOut;
+  }
+}
+
+.alert-dialog-header {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  place-items: center;
+  gap: var(--space-x-small);
+  text-align: center;
+
+  &:has([data-slot='alert-dialog-media']) {
+    grid-template-rows: auto auto 1fr;
+    column-gap: var(--space-x-large);
+
+    /* The media's own extra bottom spacing is this parent's call, not the
+       media block's own margin — see docs/BEM.md "no margin on a block's
+       own root class". */
+    [data-slot='alert-dialog-media'] {
+      margin-block-end: var(--space-x-small);
+    }
+  }
+
+  .alert-dialog-content[data-size='default'] & {
+    @media (width >= 40rem) {
+      place-items: start;
+      text-align: left;
+
+      &:has([data-slot='alert-dialog-media']) {
+        grid-template-rows: auto 1fr;
+      }
+    }
+  }
+}
+
+.alert-dialog-footer {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-x-small);
+
+  @media (width >= 40rem) {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+
+  .alert-dialog-content[data-size='sm'] & {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.alert-dialog-media {
+  display: inline-flex;
+  width: 4rem;
+  height: 4rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+
+  > svg {
+    width: var(--space-3x-large);
+    height: var(--space-3x-large);
+  }
+
+  .alert-dialog-content[data-size='default'] & {
+    @media (width >= 40rem) {
+      grid-row: span 2 / span 2;
+    }
+  }
+}
+
+.alert-dialog-title {
+  font-family: var(--font-heading);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--text-large);
+  line-height: var(--text-large-line-height);
+
+  .alert-dialog-content[data-size='default']:has([data-slot='alert-dialog-media']) & {
+    @media (width >= 40rem) {
+      grid-column-start: 2;
+    }
+  }
+}
+
+.alert-dialog-description {
+  color: var(--muted-foreground);
+  font-size: var(--text-small);
+  line-height: var(--text-small-line-height);
+  text-wrap: balance;
+
+  @media (width >= 48rem) {
+    text-wrap: pretty;
+  }
+
+  > a {
+    text-underline-offset: 3px;
+    text-decoration-line: underline;
+
+    @media (hover: hover) {
+      &:hover {
+        color: var(--foreground);
+      }
+    }
+  }
+
+  /* Modifier: emphasis — a consumer opts a description into full
+     `--foreground` (e.g. a delete-confirmation message) via the
+     `emphasis` prop, rather than passing its own color override. */
+  &.alert-dialog-description--emphasis {
+    color: var(--foreground);
+  }
+}
+
+/* Same asymmetry as dialog.module.css (Part 3.3): motion.module.css's
+   `.dialog` never sets `animation-name` at normal motion, so its
+   reduced-motion branch can lose a same-specificity source-order tie
+   against this file's own declarations above. Repeat it here. */
+@media (prefers-reduced-motion: reduce) {
+  .alert-dialog-overlay[data-open],
+  .alert-dialog-content[data-open] {
+    animation-name: fadeIn;
+  }
+
+  .alert-dialog-overlay[data-closed],
+  .alert-dialog-content[data-closed] {
+    animation-name: fadeOut;
+  }
+}

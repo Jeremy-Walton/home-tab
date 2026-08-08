@@ -4,12 +4,12 @@ import { AppStateProvider } from './context/AppStateContext'
 import { useAppState } from './context/useAppState'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useLinkDragAndDrop } from './hooks/useLinkDragAndDrop'
-import { DashboardGrid } from './components/DashboardGrid'
-import { LinkEditModal } from './components/LinkEditModal'
-import { Navbar } from './components/Navbar'
-import { ShortcutsDialog } from './components/ShortcutsDialog'
-import { Kbd } from './components/ui/kbd'
-import { TooltipProvider } from './components/ui/tooltip'
+import { DashboardGrid } from '@/components/DashboardGrid/DashboardGrid'
+import { LinkEditModal } from '@/components/LinkEditModal/LinkEditModal'
+import { Navbar } from '@/components/Navbar/Navbar'
+import { ShortcutsDialog } from '@/components/ShortcutsDialog/ShortcutsDialog'
+import { Kbd } from '@/components/ui/kbd/kbd'
+import { TooltipProvider } from '@/components/ui/tooltip/tooltip'
 
 function Dashboard() {
   const { ready, dashboards, links, activeDashboardId, setActiveDashboardId, addLink } =

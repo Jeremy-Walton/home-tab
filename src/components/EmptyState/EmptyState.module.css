@@ -1,0 +1,50 @@
+.empty-state {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Foreign component (Empty) styled from here via a passed-down className,
+   per the Conventions section's cross-component pattern. border-style and
+   border-color both come from Empty's own dashed default — this only adds
+   the width, which is specific to this one instance. */
+.card {
+  width: 20rem;
+  border-width: var(--border-width);
+  background: color-mix(in oklab, var(--card) 90%, transparent);
+  animation-name: enter;
+  animation-duration: var(--duration-slow);
+  animation-timing-function: var(--ease-out-strong);
+
+  @media (prefers-reduced-motion: reduce) {
+    animation-name: fadeIn;
+  }
+}
+
+/* Foreign component (Button), same pattern. */
+.action {
+  width: 100%;
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    translate: 0 var(--space-2x-small);
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

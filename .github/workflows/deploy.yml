@@ -22,8 +22,7 @@ jobs:
           node-version: 24
           cache: yarn
       - run: yarn install --immutable
-      - run: yarn lint
-      - run: yarn test
+      - run: yarn check
       - run: yarn build
       - uses: peaceiris/actions-gh-pages@v4
         with:

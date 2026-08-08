@@ -1,0 +1,48 @@
+.input {
+  width: 100%;
+  min-width: 0;
+  height: var(--space-4x-large);
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-3x-large);
+  padding-inline: var(--space-small);
+  padding-block: var(--space-2x-small);
+  color: inherit;
+  font-size: var(--text-small);
+  background: color-mix(in oklab, var(--input) 50%, transparent);
+  outline: none;
+  transition-property: color, box-shadow, background-color;
+  transition-duration: var(--duration-normal);
+
+  &::file-selector-button {
+    height: var(--space-2x-large);
+    border: 0;
+    color: var(--foreground);
+    font-size: var(--text-small);
+    font-weight: var(--font-weight-medium);
+    background: transparent;
+    display: inline-flex;
+  }
+
+  &::placeholder {
+    color: var(--muted-foreground);
+  }
+
+  &:focus-visible {
+    border-color: var(--ring);
+    box-shadow: 0 0 0 var(--border-width-x-large) oklch(from var(--ring) l c h / 30%);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    pointer-events: none;
+    opacity: var(--opacity-disabled);
+  }
+
+  &:global([aria-invalid='true']) {
+    border-color: var(--destructive);
+
+    &:focus-visible {
+      box-shadow: 0 0 0 var(--border-width-x-large) oklch(from var(--destructive) l c h / 20%);
+    }
+  }
+}
