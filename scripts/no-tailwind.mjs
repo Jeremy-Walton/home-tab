@@ -24,6 +24,7 @@ const MIGRATED = [
   'src/components/EmptyState/**/*.tsx',
   'src/components/Navbar/**/*.tsx',
   'src/components/DashboardTabs/**/*.tsx',
+  'src/components/ImportExportBar/**/*.tsx',
 ]
 
 const PATTERNS = [

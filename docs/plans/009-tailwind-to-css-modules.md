@@ -2124,6 +2124,37 @@ converted (Part 3.5).
 Contains `FeedbackDialog`, which relies on `AlertDialogAction` *not*
 auto-closing (Base UI difference) — leave its `onClick` close logic alone.
 
+**Status: done.** `yarn check` passes (81 tests, same count). Notes:
+- **Smallest CSS footprint so far**: the root `<div>` genuinely has zero
+  base styling of its own in the original (`cn(className)`, nothing else),
+  so it stays without a block class rather than inventing an empty one —
+  `stylelint-config-standard`'s `block-no-empty` would reject a rule with
+  no declarations anyway. The only real CSS is `.file-input { display:
+  none }` for the hidden file input, a genuine native element with no
+  meaningful block to pair it with here.
+- **Closed the `tailwind-passthrough` gap opened in Part 5.1**: now that
+  `ImportExportBar` itself is converted, `Navbar.tsx`'s `ml-auto` forward
+  is no longer "temporary Tailwind on a not-yet-converted child" — it's a
+  real, permanent cross-component styling need (the bar owns its slotted
+  children's layout, per BEM.md). Added `.actions { margin-left: auto }`
+  to `Navbar.module.css` and removed the passthrough marker for this one
+  line; `LogoIcon`/`Wordmark`'s markers stay, since those two are still
+  ahead (Parts 5.4/5.5).
+- `AlertDialogAction`'s manual close-on-click (the Base UI non-auto-close
+  difference) is untouched, per the part's own instruction — no styling
+  change touches that logic.
+- **Live-verified all three checklist items** with Playwright against the
+  running dev server: the dropdown-menu opens positioned just below the
+  button (`y: 46` vs. the button's own `y+height: 42`), `Export` triggers
+  a real download named `launch-tabs-export.json`, and both feedback paths
+  work — a good import shows "Import complete" with the correct
+  dashboard/link counts, a deliberately malformed file (`not json {{{`)
+  shows "Import failed — That file is not valid JSON.", and `OK` closes
+  the dialog in both cases. Also confirmed the file input's `display:
+  none` and that `margin-left: auto` genuinely resolved to a real computed
+  pixel value pushing the button to the far right, not just present as
+  unapplied CSS text.
+
 **Browser verification (you):**
 - Import/export menu opens and is positioned under its button
 - Export downloads `launch-tabs-export.json`

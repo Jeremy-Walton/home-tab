@@ -12,3 +12,9 @@
     gap: var(--space-x-small);
   }
 }
+
+/* Foreign component (ImportExportBar), already converted — styled from here
+   via a passed-down className, per the Conventions cross-component pattern. */
+.actions {
+  margin-left: auto;
+}

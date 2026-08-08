@@ -1,5 +1,5 @@
 import { DashboardTabs } from '../DashboardTabs/DashboardTabs'
-import { ImportExportBar } from '../ImportExportBar'
+import { ImportExportBar } from '../ImportExportBar/ImportExportBar'
 import { LogoIcon } from '../LogoIcon'
 import { Wordmark } from '../Wordmark'
 import styles from './Navbar.module.css'
@@ -12,7 +12,7 @@ export function Navbar() {
         <Wordmark className="h-5" /> {/* tailwind-passthrough: Wordmark converts in Part 5.5 */}
       </div>
       <DashboardTabs />
-      <ImportExportBar className="ml-auto" /> {/* tailwind-passthrough: ImportExportBar converts in Part 5.3 */}
+      <ImportExportBar className={styles.actions} />
     </nav>
   )
 }

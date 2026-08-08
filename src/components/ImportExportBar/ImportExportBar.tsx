@@ -1,9 +1,9 @@
 import { useRef, useState } from 'react'
-import { useAppState } from '../context/useAppState'
-import { useClosingDialog } from '../hooks/useClosingDialog'
-import { cn } from '../lib/utils'
-import { OptionsMenu } from './OptionsMenu'
-import { DropdownMenuItem } from './ui/dropdown-menu/dropdown-menu'
+import { useAppState } from '../../context/useAppState'
+import { useClosingDialog } from '../../hooks/useClosingDialog'
+import { cn } from '../../lib/utils'
+import { OptionsMenu } from '../OptionsMenu'
+import { DropdownMenuItem } from '../ui/dropdown-menu/dropdown-menu'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,7 +11,8 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogTitle,
-} from './ui/alert-dialog/alert-dialog'
+} from '../ui/alert-dialog/alert-dialog'
+import styles from './ImportExportBar.module.css'
 
 function FeedbackDialog({
   title,
@@ -87,7 +88,7 @@ export function ImportExportBar({ className }: { className?: string }) {
         ref={fileInputRef}
         type="file"
         accept="application/json"
-        className="hidden"
+        className={styles.fileInput}
         onChange={(e) => {
           const file = e.target.files?.[0]
           if (file) void handleImportFile(file)
