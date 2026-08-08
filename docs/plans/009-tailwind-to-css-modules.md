@@ -454,9 +454,12 @@ signal that URL validation still renders.
 
 ---
 
-### Part 6.5 — `DashboardEditModal`
+### Part 6.5 — `DashboardEditModal` (done)
 
-Name + background image URL over `EditDialog`.
+Relocated to `DashboardEditModal/DashboardEditModal.tsx` (no `.module.css` —
+same composition-only shape as `LinkEditModal`). Name + background image URL
+over `EditDialog`. `DashboardTabs.tsx`'s import path updated to
+`@/components/DashboardEditModal/DashboardEditModal`.
 
 **Browser verification (you):** rename persists to the tab strip; setting a
 background URL changes the grid background; clearing it removes it; an
@@ -673,7 +676,7 @@ Anything the registry adds to `components.json`'s `css` target lands in
 
 ## Resuming this plan in a fresh session
 
-**Resume at Part 6.5 (`DashboardEditModal`).** Phases 0–5 and Parts 6.1–6.4 are
+**Resume at Part 6.6 (`ConfirmDialog`).** Phases 0–5 and Parts 6.1–6.5 are
 done.
 Read "Progress so far" above (the facts that carry forward) and the
 Conventions section before writing any CSS. Each remaining part lists its

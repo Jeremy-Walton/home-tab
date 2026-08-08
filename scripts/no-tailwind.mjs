@@ -31,6 +31,7 @@ const MIGRATED = [
   'src/components/EntityOptionsMenu/**/*.tsx',
   'src/components/EditDialog/**/*.tsx',
   'src/components/LinkEditModal/**/*.tsx',
+  'src/components/DashboardEditModal/**/*.tsx',
 ]
 
 const PATTERNS = [
