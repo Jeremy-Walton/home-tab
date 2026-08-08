@@ -3,7 +3,7 @@ import { defaultAnimateLayoutChanges, useSortable, type AnimateLayoutChanges } f
 import { CSS } from '@dnd-kit/utilities'
 import { useAppState } from '../../context/useAppState'
 import { ConfirmDialog } from '../ConfirmDialog'
-import { EntityOptionsMenu } from '../EntityOptionsMenu'
+import { EntityOptionsMenu } from '../EntityOptionsMenu/EntityOptionsMenu'
 import { LinkEditModal } from '../LinkEditModal'
 import { AspectRatio } from '../ui/aspect-ratio/aspect-ratio'
 import { Badge } from '../ui/badge/badge'

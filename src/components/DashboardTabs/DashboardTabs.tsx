@@ -8,7 +8,7 @@ import { dashboardShortcutDigit, MAX_DASHBOARD_SHORTCUTS } from '../../lib/keybo
 import { cn } from '../../lib/utils'
 import { ConfirmDialog } from '../ConfirmDialog'
 import { DashboardEditModal } from '../DashboardEditModal'
-import { EntityOptionsMenu } from '../EntityOptionsMenu'
+import { EntityOptionsMenu } from '../EntityOptionsMenu/EntityOptionsMenu'
 import { Badge } from '../ui/badge/badge'
 import { Button } from '../ui/button/button'
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs/tabs'

@@ -28,6 +28,7 @@ const MIGRATED = [
   'src/components/LogoIcon/**/*.tsx',
   'src/components/Wordmark/**/*.tsx',
   'src/components/OptionsMenu/**/*.tsx',
+  'src/components/EntityOptionsMenu/**/*.tsx',
 ]
 
 const PATTERNS = [

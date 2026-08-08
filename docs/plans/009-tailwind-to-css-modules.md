@@ -391,14 +391,14 @@ the link tile's options menu still opens with the right items.
 
 ---
 
-### Part 6.2 — `EntityOptionsMenu`
+### Part 6.2 — `EntityOptionsMenu` (done)
 
-`OptionsMenu` + the Edit/Move/Delete item set shared by dashboards and
-links.
-
-**Browser verification (you):** both menus open with the right items;
-"Move to…" submenu lists only *other* dashboards and moving works; Delete
-is disabled/greyed when only one dashboard exists.
+Relocated to `EntityOptionsMenu/EntityOptionsMenu.tsx` (no `.module.css` —
+it's pure composition over `OptionsMenu` and `dropdown-menu`, no styled
+elements of its own, so nothing to convert). Playwright-verified: dashboard
+menu's `Delete` is `aria-disabled="true"` with one dashboard, enabled with
+two; link menu shows `Edit`/`Move to…`/`Delete`, and hovering "Move to…"
+lists the other dashboard by name.
 
 ⏸ **PAUSE — review before Part 6.3.**
 
@@ -651,11 +651,11 @@ Anything the registry adds to `components.json`'s `css` target lands in
 
 ## Resuming this plan in a fresh session
 
-**Resume at Part 6.2 (`EntityOptionsMenu`).** Phases 0–5 and Part 6.1
-(`OptionsMenu`) are done. Read "Progress so far" above (the facts that carry
-forward) and the Conventions section before writing any CSS. Each remaining
-part lists its own importers/notes/browser-verification inline; nothing else
-needs to be re-derived.
+**Resume at Part 6.3 (`EditDialog`).** Phases 0–5 and Parts 6.1–6.2 are done.
+Read "Progress so far" above (the facts that carry forward) and the
+Conventions section before writing any CSS. Each remaining part lists its
+own importers/notes/browser-verification inline; nothing else needs to be
+re-derived.
 
 **Working agreements:**
 - A part, not a phase, is the unit of work: convert it, `yarn check`,
