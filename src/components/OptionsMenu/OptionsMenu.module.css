@@ -2,7 +2,7 @@
   &.trigger--reveal-on-hover {
     opacity: 0;
     transition-property: opacity;
-    transition-duration: 150ms;
+    transition-duration: var(--duration-normal);
     transition-timing-function: var(--ease-out-strong);
   }
 }

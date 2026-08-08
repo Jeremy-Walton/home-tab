@@ -81,5 +81,21 @@
   --shadow-small: 0 1px 3px 0 rgb(0 0 0 / 10%), 0 1px 2px -1px rgb(0 0 0 / 10%);
   --shadow-large: 0 10px 15px -3px rgb(0 0 0 / 10%), 0 4px 6px -4px rgb(0 0 0 / 10%);
   --shadow-x-large: 0 20px 25px -5px rgb(0 0 0 / 10%), 0 8px 10px -6px rgb(0 0 0 / 10%);
-  --z-popup: 50;
+  --border-width: 1px;
+  --border-width-large: 2px;
+  --border-width-x-large: 3px;
+  --duration-fast: 100ms;
+  --duration-normal: 150ms;
+  --duration-slow: 200ms;
+  --opacity-disabled: 0.5;
+
+  /* Explicit stacking order rather than one shared tier: a dialog's own
+     content must sit above its own backdrop; a dropdown menu may be
+     triggered from a control inside an open dialog, so it stacks above
+     both; a tooltip may be triggered from inside any of the above (a
+     dropdown item, a dialog's own controls), so it stays topmost. */
+  --z-dialog-backdrop: 40;
+  --z-dialog-content: 41;
+  --z-dropdown: 42;
+  --z-tooltip: 43;
 }

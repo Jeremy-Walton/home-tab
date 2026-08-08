@@ -60,20 +60,20 @@
 @utility motion-dialog {
     --tw-ease: var(--ease-out-strong);
     &[data-open] {
-        --tw-duration: 200ms;
+        --tw-duration: var(--duration-slow);
     }
     &[data-closed] {
-        --tw-duration: 150ms;
+        --tw-duration: var(--duration-normal);
     }
 }
 
 @utility motion-popup {
     --tw-ease: var(--ease-out-strong);
     &[data-open] {
-        --tw-duration: 150ms;
+        --tw-duration: var(--duration-normal);
     }
     &[data-closed] {
-        --tw-duration: 100ms;
+        --tw-duration: var(--duration-fast);
     }
 }
 
@@ -193,11 +193,11 @@
 }
 
 ::view-transition-group(*) {
-  animation-duration: 200ms;
+  animation-duration: var(--duration-slow);
   animation-timing-function: var(--ease-in-out-strong);
 }
 
 ::view-transition-old(*) {
-  animation-duration: 150ms;
+  animation-duration: var(--duration-normal);
   animation-timing-function: var(--ease-out-strong);
 }

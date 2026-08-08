@@ -7,7 +7,7 @@
   justify-content: center;
   gap: var(--space-2x-small);
   overflow: hidden;
-  border: 1px solid transparent;
+  border: var(--border-width) solid transparent;
   border-radius: var(--radius-3x-large);
   padding-inline: var(--space-x-small);
   padding-block: var(--space-3x-small);
@@ -15,16 +15,16 @@
   font-size: var(--text-x-small);
   white-space: nowrap;
   transition-property: color, background-color;
-  transition-duration: 150ms;
+  transition-duration: var(--duration-normal);
 
   &:focus-visible {
     border-color: var(--ring);
-    box-shadow: 0 0 0 3px oklch(from var(--ring) l c h / 50%);
+    box-shadow: 0 0 0 var(--border-width-x-large) oklch(from var(--ring) l c h / 50%);
   }
 
   &:global([aria-invalid='true']) {
     border-color: var(--destructive);
-    box-shadow: 0 0 0 3px oklch(from var(--destructive) l c h / 40%);
+    box-shadow: 0 0 0 var(--border-width-x-large) oklch(from var(--destructive) l c h / 40%);
   }
 
   svg {
@@ -66,7 +66,7 @@
     background: oklch(from var(--destructive) l c h / 20%);
 
     &:focus-visible {
-      box-shadow: 0 0 0 3px oklch(from var(--destructive) l c h / 40%);
+      box-shadow: 0 0 0 var(--border-width-x-large) oklch(from var(--destructive) l c h / 40%);
     }
 
     &:is(a):hover {

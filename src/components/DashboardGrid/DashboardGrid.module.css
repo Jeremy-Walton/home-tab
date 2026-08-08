@@ -32,12 +32,12 @@
     align-items: center;
     justify-content: center;
     border-radius: var(--radius-2x-large);
-    border: 2px dashed var(--border);
+    border: var(--border-width-large) dashed var(--border);
     color: var(--muted-foreground);
     font-size: var(--text-x-large);
     line-height: var(--text-x-large-line-height);
     transition-property: color, border-color, scale;
-    transition-duration: 150ms;
+    transition-duration: var(--duration-normal);
     transition-timing-function: var(--ease-out-strong);
 
     &:hover {

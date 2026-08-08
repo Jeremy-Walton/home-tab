@@ -2,7 +2,7 @@
   width: 100%;
   min-width: 0;
   height: var(--space-4x-large);
-  border: 1px solid transparent;
+  border: var(--border-width) solid transparent;
   border-radius: var(--radius-3x-large);
   padding-inline: var(--space-small);
   padding-block: var(--space-2x-small);
@@ -11,7 +11,7 @@
   background: color-mix(in oklab, var(--input) 50%, transparent);
   outline: none;
   transition-property: color, box-shadow, background-color;
-  transition-duration: 150ms;
+  transition-duration: var(--duration-normal);
 
   &::file-selector-button {
     height: var(--space-2x-large);
@@ -29,20 +29,20 @@
 
   &:focus-visible {
     border-color: var(--ring);
-    box-shadow: 0 0 0 3px oklch(from var(--ring) l c h / 30%);
+    box-shadow: 0 0 0 var(--border-width-x-large) oklch(from var(--ring) l c h / 30%);
   }
 
   &:disabled {
     cursor: not-allowed;
     pointer-events: none;
-    opacity: 0.5;
+    opacity: var(--opacity-disabled);
   }
 
   &:global([aria-invalid='true']) {
     border-color: var(--destructive);
 
     &:focus-visible {
-      box-shadow: 0 0 0 3px oklch(from var(--destructive) l c h / 20%);
+      box-shadow: 0 0 0 var(--border-width-x-large) oklch(from var(--destructive) l c h / 20%);
     }
   }
 }

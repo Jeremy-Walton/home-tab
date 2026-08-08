@@ -79,7 +79,7 @@
   gap: var(--space-x-small);
   border-radius: var(--radius-full);
   border-style: solid;
-  border-width: 1px;
+  border-width: var(--border-width);
   border-color: transparent !important;
   padding-inline: var(--space-small);
   padding-block: var(--space-2x-small);
@@ -89,7 +89,7 @@
   line-height: var(--text-small-line-height);
   white-space: nowrap;
   transition-property: color, background-color, box-shadow;
-  transition-duration: 150ms;
+  transition-duration: var(--duration-normal);
 
   &:hover {
     color: var(--foreground);
@@ -98,13 +98,13 @@
   &:focus-visible {
     /* no border-color override here: the !important transparent border above always wins */
     outline: 1px solid var(--ring);
-    box-shadow: 0 0 0 3px oklch(from var(--ring) l c h / 50%);
+    box-shadow: 0 0 0 var(--border-width-x-large) oklch(from var(--ring) l c h / 50%);
   }
 
   &:disabled,
   &:global([aria-disabled='true']) {
     pointer-events: none;
-    opacity: 0.5;
+    opacity: var(--opacity-disabled);
   }
 
   &:has([data-icon='inline-end']) {
@@ -137,7 +137,7 @@
     background: var(--foreground);
     opacity: 0;
     transition-property: opacity;
-    transition-duration: 150ms;
+    transition-duration: var(--duration-normal);
   }
 }
 

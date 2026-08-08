@@ -1,12 +1,12 @@
 .dropdown-menu-positioner {
   isolation: isolate;
-  z-index: var(--z-popup);
+  z-index: var(--z-dropdown);
   outline: none;
 }
 
 .dropdown-menu-content {
   composes: popup from '../../../styles/motion.module.css';
-  z-index: var(--z-popup);
+  z-index: var(--z-dropdown);
   max-height: var(--available-height);
   width: var(--anchor-width);
   min-width: 12rem;
@@ -15,7 +15,7 @@
   padding: var(--space-x-small);
   color: var(--popover-foreground);
   background: var(--popover);
-  box-shadow: 0 0 0 1px oklch(from var(--foreground) l c h / 10%), var(--shadow-large);
+  box-shadow: 0 0 0 var(--border-width) oklch(from var(--foreground) l c h / 10%), var(--shadow-large);
   outline: none;
   transform-origin: var(--transform-origin);
 
@@ -100,7 +100,7 @@
 
   &[data-disabled] {
     pointer-events: none;
-    opacity: 0.5;
+    opacity: var(--opacity-disabled);
   }
 
   svg {
@@ -186,7 +186,7 @@
 
   &[data-disabled] {
     pointer-events: none;
-    opacity: 0.5;
+    opacity: var(--opacity-disabled);
   }
 
   svg {
@@ -236,7 +236,7 @@
 
   &[data-disabled] {
     pointer-events: none;
-    opacity: 0.5;
+    opacity: var(--opacity-disabled);
   }
 
   svg {

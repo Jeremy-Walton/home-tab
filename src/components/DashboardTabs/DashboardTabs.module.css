@@ -2,11 +2,11 @@
   position: relative;
   border-radius: var(--radius-full);
   transition-property: box-shadow;
-  transition-duration: 100ms;
+  transition-duration: var(--duration-fast);
   transition-timing-function: var(--ease-out-strong);
 
   &.dashboard-tab--over {
-    box-shadow: 0 0 0 2px var(--ring);
+    box-shadow: 0 0 0 var(--border-width-large) var(--ring);
   }
 
   &:hover .options-trigger {

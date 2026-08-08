@@ -4,7 +4,7 @@
 
   &:hover .surface {
     box-shadow:
-      0 0 0 1px oklch(from var(--foreground) l c h / 10%),
+      0 0 0 var(--border-width) oklch(from var(--foreground) l c h / 10%),
       var(--shadow-x-large);
   }
 
@@ -20,7 +20,7 @@
     object-fit: cover;
     opacity: 0;
     transition-property: opacity;
-    transition-duration: 200ms;
+    transition-duration: var(--duration-slow);
     transition-timing-function: var(--ease-out-strong);
 
     &.tile__image--loaded {
@@ -55,10 +55,10 @@
   border-radius: var(--radius-2x-large);
   background: var(--muted);
   box-shadow:
-    0 0 0 1px oklch(from var(--foreground) l c h / 10%),
+    0 0 0 var(--border-width) oklch(from var(--foreground) l c h / 10%),
     var(--shadow-large);
   transition-property: box-shadow, scale;
-  transition-duration: 150ms;
+  transition-duration: var(--duration-normal);
   transition-timing-function: var(--ease-out-strong);
 
   @media (prefers-reduced-motion: no-preference) {

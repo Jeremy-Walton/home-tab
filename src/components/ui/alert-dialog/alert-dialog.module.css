@@ -51,7 +51,7 @@
   position: fixed;
   inset: 0;
   isolation: isolate;
-  z-index: var(--z-popup);
+  z-index: var(--z-dialog-backdrop);
   background: rgb(0 0 0 / 30%);
 
   @supports (backdrop-filter: blur(1px)) {
@@ -72,7 +72,7 @@
   position: fixed;
   top: 50%;
   left: 50%;
-  z-index: var(--z-popup);
+  z-index: var(--z-dialog-content);
   display: grid;
   width: 100%;
   max-width: 20rem;
@@ -81,7 +81,7 @@
   padding: var(--space-x-large);
   color: var(--popover-foreground);
   background: var(--popover);
-  box-shadow: 0 0 0 1px oklch(from var(--foreground) l c h / 10%), var(--shadow-x-large);
+  box-shadow: 0 0 0 var(--border-width) oklch(from var(--foreground) l c h / 10%), var(--shadow-x-large);
   outline: none;
   translate: -50% -50%;
 

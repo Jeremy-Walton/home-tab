@@ -142,7 +142,7 @@
   &:has(> [data-slot='field']) {
     width: 100%;
     flex-direction: column;
-    border: 1px solid var(--border);
+    border: var(--border-width) solid var(--border);
     border-radius: var(--radius-2x-large);
   }
 
@@ -151,7 +151,7 @@
   }
 
   .field[data-disabled='true'] & {
-    opacity: 0.5;
+    opacity: var(--opacity-disabled);
   }
 }
 
@@ -165,7 +165,7 @@
   font-weight: var(--font-weight-medium);
 
   .field[data-disabled='true'] & {
-    opacity: 0.5;
+    opacity: var(--opacity-disabled);
   }
 }
 

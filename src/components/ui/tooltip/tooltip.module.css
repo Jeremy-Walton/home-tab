@@ -1,11 +1,11 @@
 .tooltip-positioner {
   isolation: isolate;
-  z-index: var(--z-popup);
+  z-index: var(--z-tooltip);
 }
 
 .tooltip-content {
   composes: popup from '../../../styles/motion.module.css';
-  z-index: var(--z-popup);
+  z-index: var(--z-tooltip);
   display: inline-flex;
   width: fit-content;
   max-width: 20rem;
@@ -27,14 +27,14 @@
   [data-slot='kbd'] {
     position: relative;
     isolation: isolate;
-    z-index: var(--z-popup);
+    z-index: var(--z-tooltip);
     border-radius: var(--radius-large);
   }
 
   /* Rotated square, not an SVG diamond — size and offsets are one-off
      geometry tuned against `rotate: 45deg`, not the space/radius scales. */
   .tooltip-content__arrow {
-    z-index: var(--z-popup);
+    z-index: var(--z-tooltip);
     width: 0.625rem;
     height: 0.625rem;
     translate: 0 calc(-50% - 2px);

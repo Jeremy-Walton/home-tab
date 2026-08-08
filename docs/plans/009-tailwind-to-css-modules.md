@@ -112,6 +112,20 @@ only for one-off geometry that has no scale equivalent (e.g. `16 / 9`,
 `-1px`, a tooltip arrow's rotation-math offsets, a grid's `14rem` tile
 width). Color tokens have **no `--color-` prefix** — `tokens.css` defines
 `--foreground`, `--popover`, `--muted-foreground`, not `--color-foreground`.
+**Border-width** (`--border-width`/`-large`/`-x-large`, 1/2/3px),
+**duration** (`--duration-fast`/`-normal`/`-slow`, 100/150/200ms), and
+**opacity** (`--opacity-disabled`, 0.5) tokens were added after Part 6.2 —
+a Playwright-verified `/simplify`-style pass found these were the only
+scales in the migration still written as scattered literals (every other
+scale had a token from Phase 1 on). Use them in every part from here on;
+don't reintroduce a literal `150ms`/`3px`/`0.5` opacity. **Z-index** also
+changed shape: the single shared `--z-popup` became an explicit hierarchy —
+`--z-dialog-backdrop` (40) < `--z-dialog-content` (41) < `--z-dropdown` (42)
+< `--z-tooltip` (43) — so a popup triggered from within a dialog (or a
+tooltip triggered from within a dropdown) is guaranteed to stack above it,
+not tied by an equal value relying on DOM paint order. Any new popup-style
+`ui/` primitive should pick the tier matching its actual nesting behavior,
+not default back to a single shared constant.
 
 **Translating a Tailwind `<color>/<alpha>` modifier.** For a token whose own
 value is fully opaque (`--primary`, `--destructive`, `--ring`, `--muted`,

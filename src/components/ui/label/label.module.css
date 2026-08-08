@@ -9,11 +9,11 @@
 
   :global(.group[data-disabled='true']) & {
     pointer-events: none;
-    opacity: 0.5;
+    opacity: var(--opacity-disabled);
   }
 
   :global(.peer):disabled ~ & {
     cursor: not-allowed;
-    opacity: 0.5;
+    opacity: var(--opacity-disabled);
   }
 }

@@ -11,10 +11,10 @@
    the width, which is specific to this one instance. */
 .card {
   width: 20rem;
-  border-width: 1px;
+  border-width: var(--border-width);
   background: color-mix(in oklab, var(--card) 90%, transparent);
   animation-name: enter;
-  animation-duration: 200ms;
+  animation-duration: var(--duration-slow);
   animation-timing-function: var(--ease-out-strong);
 
   @media (prefers-reduced-motion: reduce) {
