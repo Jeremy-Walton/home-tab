@@ -1680,6 +1680,70 @@ the grid definition exactly; do not "simplify" it. The add-tile's dashed
 border and press scale come along. `LinkTile`/`EmptyState` are still
 Tailwind-classed after this part — cascade-layer watch applies.
 
+**Status: done.** `yarn check` passes (81 tests, same count). Notes:
+- **Block naming**: this file exports a single component (no multi-part
+  primitive shape), so the root wrapper is the block (`.dashboard-grid`) and
+  the three genuinely-JSX-nested children — the centering wrapper, the CSS
+  Grid itself, and the add-tile button — are flat elements
+  (`.dashboard-grid__viewport`, `.dashboard-grid__tiles`,
+  `.dashboard-grid__add-tile`), all nested one level inside `.dashboard-grid`
+  regardless of their actual DOM depth, per BEM.md's "flatten nested
+  elements" guidance.
+- **Grid definition transcribed exactly, unchanged**: `display: grid`,
+  `grid-template-columns: repeat(auto-fill, 14rem)`, `justify-content:
+  center`, `gap: var(--space-medium)`, `max-width: 89rem`. `14rem`/`89rem`
+  stayed literal (Conventions' one-off-geometry carve-out — no scale tier
+  reaches layout-level dimensions like these, and `14rem` doubles as the
+  add-tile's own width so a real tile and the add-tile stay pixel-identical
+  by construction, not by coincidence).
+- **New tokens**: `--space-6x-large` already existed (Part 3.7); added
+  `--text-x-large: 1.875rem` / `--text-x-large-line-height: 1.2` for the
+  add-tile's `+` glyph (`text-3xl`, the first use of a text size beyond the
+  scale's previous top tier, `--text-large`/`1.125rem`) — continuing the
+  same "small…large + Nx-" naming rather than jumping straight to a bare
+  literal.
+- **`ease-out-strong` needed an explicit `transition-timing-function`**,
+  unlike `button`/`badge`/`input`'s hover/press transitions, which all
+  omitted one and fell back to the browser default. Checked the actual
+  compiled Tailwind output rather than assuming: unlike those three, the
+  add-tile's source classes explicitly opt into the project's own named
+  easing token (`ease-out-strong` — a real `@theme`-registered utility
+  class, confirmed by compiling it), so leaving it out would have been an
+  under-transcription, not a harmless omission.
+- **No cascade-layer conflict from this direction** — `DashboardGrid`
+  doesn't pass any `className` into `LinkTile`/`EmptyState` (unlike
+  `Tabs`/`Empty`'s own conversions), and `App.tsx` doesn't pass a
+  `className` into `DashboardGrid` either, so there was no unconverted
+  consumer able to lose a cascade fight here. The part's own "cascade-layer
+  watch applies" note is about the *reverse* direction (whether `LinkTile`
+  relies on anything `DashboardGrid` no longer provides) — checked and
+  unaffected, since grid-item sizing comes entirely from the parent's
+  `grid-template-columns`, which `LinkTile` never touched.
+- **Live-verified with Playwright against the running dev server**, using
+  `docs/fixtures/animation-test-data.json` imported via the same hidden
+  file-input the UI uses (`setInputFiles`, no real file-picker needed):
+  - Grid: `display: grid`, exact column/gap/max-width values, centered;
+    reflowed correctly at `700px` (2 columns) and capped at `1424px`
+    (`89rem`) at `2200px` viewport width.
+  - Add-tile: `224px × 126px` (`16:9` at `14rem`), dashed `2px` border in
+    `var(--border)`, `var(--muted-foreground)` text — matched a real tile's
+    `getBoundingClientRect()` exactly.
+  - **Drag-and-drop, three sequential reorders on the 12-tile fixture
+    dashboard** (same-row, cross-row down to the last tile, cross-row back up
+    to the first), tracking tiles by their title text through each step, not
+    DOM index. All three landed in the expected position immediately, with
+    no off-screen flight and no reversion — the exact failure modes the
+    Known Gotchas history warns a single screenshot won't catch, checked
+    here by reading the full tile-order array after every drag instead.
+  - **Confirmed dragging never navigates** (`page.url()` unchanged after
+    all three drags) **and that a genuine click still does** (a real,
+    non-drag click on a tile navigated to its `https://example.com/...`
+    href) — both sides of the drag-vs-click suppression gotcha, not just
+    the one this part could have broken.
+  - Deleted a link via its options menu; the view-transition reflow ran
+    with no thrown `pageerror` and the tile count/DOM updated correctly
+    (`12 → 11`, the deleted tile's title gone).
+
 **Browser verification (you):**
 - Grid reflow at several window widths; the max-width cap on wide screens
 - The trailing dashed "+" add-tile matches a real tile's size; its press

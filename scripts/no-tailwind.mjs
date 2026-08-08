@@ -19,6 +19,7 @@ const MIGRATED = [
   'src/components/ui/tabs/**/*.tsx',
   'src/components/ui/field/**/*.tsx',
   'src/components/ui/empty/**/*.tsx',
+  'src/components/DashboardGrid/**/*.tsx',
 ]
 
 const PATTERNS = [
