@@ -43,7 +43,8 @@ the PRD.
   land in `src/components/icons/` as ordinary, editable project files. They are
   the only reason [`motion`](https://motion.dev) (Framer Motion's successor) is
   a dependency; it is the sole JS animation library here, everything else is
-  CSS. `@phosphor-icons/react` stays installed: `ui/dropdown-menu.tsx` still
+  CSS. It is deliberately not imported whole — see "Known Gotchas" for the
+  `m` + `LazyMotion` split and what silently undoes it. `@phosphor-icons/react` stays installed: `ui/dropdown-menu.tsx` still
   uses `CheckIcon`, and future `shadcn add` runs generate imports from it.
 - **Fonts**: self-hosted variable fonts via `@fontsource-variable`
   (Space Grotesk for body/sans, Figtree for headings).
@@ -193,7 +194,9 @@ Two distinct version concepts, kept separate:
   data — these are editable project code, not vendor files, so retuning a
   keyframe in place is expected rather than a fork. Alongside them,
   `HoverIcon.tsx` — the project-owned wrapper every call site actually uses; see
-  "Known Gotchas" for what it exists to solve.
+  "Known Gotchas" for what it exists to solve. `motion-features.ts` is the
+  lazily-imported Motion feature bundle, kept in its own module purely so it
+  becomes its own async chunk.
 - `src/components/ui/` — shadcn-generated primitive wrappers (`button`,
   `dialog`, `alert-dialog`, `dropdown-menu`, `tabs`, `tooltip`, `badge`,
   `aspect-ratio`, `label`, `separator`, `field`, `input`, `empty`, `kbd`).
@@ -557,6 +560,30 @@ broken image URL, a dashboard with a background, and an empty dashboard.
     latches the icon active after a menu closes back onto its own trigger —
     which makes the *next* hover a silent no-op, since `play()` only animates
     on a state change.
+- **`animated-icon.tsx` is deliberately edited away from what the registry
+  generates, and re-running `shadcn add` would silently undo it.** Upstream
+  imports the full `motion` proxy; this copy imports `m` from `motion/react-m`
+  and wraps each icon in `<LazyMotion features={loadMotionFeatures} strict>`,
+  which moves Motion's DOM feature bundle (`motion-features.ts`) into its own
+  async chunk. That is worth 76 kB off the initial chunk — 850.70 kB → 774.33 kB
+  raw, 271.75 kB → 248.93 kB gzipped, against a 37.59 kB (14.22 kB gzipped)
+  chunk that loads after first paint. It is the right trade here specifically
+  because this is a new-tab page that loads fresh on every tab open, and an icon
+  cannot be hovered before the page has loaded. Two traps:
+  - Adding another icon runs `shadcn add`, which offers to overwrite
+    `animated-icon.tsx` and restore the eager import. Nothing would fail — the
+    icons still animate — the bundle just quietly grows back. Decline that
+    overwrite, or re-apply the split afterwards.
+  - `strict` is what keeps the split honest: a full `motion.*` component
+    rendered inside `LazyMotion` throws instead of pulling the whole library
+    back in. Without it that regression is invisible too. `domAnimation` covers
+    animations, variants, exit and gestures; nothing here needs `domMax`'s
+    layout animations or drag.
+
+  `LazyMotion` renders only a context provider, no DOM element, so wrapping each
+  icon individually costs no layout — which is what lets the icons stay
+  self-contained rather than depending on a provider mounted somewhere up in
+  `App.tsx`.
 - **Reduced motion is enforced by three mechanisms, and the CSS one
   deliberately has a hole.** `src/index.css`'s
   `@media (prefers-reduced-motion: reduce)` block zeroes tw-animate-css's

@@ -20,13 +20,24 @@
  */
 
 import * as React from "react";
+import * as m from "motion/react-m";
 import {
-  motion,
+  LazyMotion,
   useReducedMotion,
   type MotionStyle,
   type Transition,
   type Variants,
 } from "motion/react";
+
+/**
+ * Motion ships as `m` (render only) plus a feature bundle loaded by `LazyMotion`,
+ * which keeps ~76kB off the initial chunk — this is a new-tab page, so bytes before
+ * first paint are the ones that matter, and an icon cannot be hovered before load.
+ *
+ * `strict` makes rendering a full `motion.*` component in here throw instead of
+ * silently pulling the whole library back in and undoing the split.
+ */
+const loadMotionFeatures = () => import("./motion-features").then((mod) => mod.default);
 
 export const WEIGHTS = ["thin", "light", "regular", "bold", "duotone"] as const;
 export type Weight = (typeof WEIGHTS)[number];
@@ -372,7 +383,7 @@ export const AnimatedIcon = React.forwardRef<AnimatedIconHandle, InternalProps>(
           if (!anim) return React.createElement(tag, { key: renderIndex, ...attrs });
 
           const v = buildVariants(anim, duration, speed, looping);
-          const MotionTag = (motion as unknown as Record<string, React.ElementType>)[tag];
+          const MotionTag = (m as unknown as Record<string, React.ElementType>)[tag];
 
           return (
             <MotionTag
@@ -387,39 +398,41 @@ export const AnimatedIcon = React.forwardRef<AnimatedIconHandle, InternalProps>(
     );
 
     return (
-      <motion.svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 256 256"
-        width={size}
-        height={size}
-        fill={fill}
-        stroke="currentColor"
-        strokeWidth={STROKE_WIDTH[weight]}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        style={svgStyle}
-        initial="rest"
-        animate={animateState}
-        {...(trigger === "in-view"
-          ? { whileInView: "active", viewport: { once: false, amount: 0.6 } }
-          : null)}
-        {...handlers}
-        {...rest}
-      >
-        {/* Whole-icon motion rides a group inside the frame, so the frame can clip
-            it. Motion propagates the variant down from the <svg>, so this animates
-            with everything else. */}
-        {wholeVariants && choreo.whole ? (
-          <motion.g
-            style={originStyle(choreo.whole)}
-            variants={{ rest: wholeVariants.rest, active: wholeVariants.active }}
-          >
-            {drawing}
-          </motion.g>
-        ) : (
-          drawing
-        )}
-      </motion.svg>
+      <LazyMotion features={loadMotionFeatures} strict>
+        <m.svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 256 256"
+          width={size}
+          height={size}
+          fill={fill}
+          stroke="currentColor"
+          strokeWidth={STROKE_WIDTH[weight]}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={svgStyle}
+          initial="rest"
+          animate={animateState}
+          {...(trigger === "in-view"
+            ? { whileInView: "active", viewport: { once: false, amount: 0.6 } }
+            : null)}
+          {...handlers}
+          {...rest}
+        >
+          {/* Whole-icon motion rides a group inside the frame, so the frame can clip
+              it. Motion propagates the variant down from the <svg>, so this animates
+              with everything else. */}
+          {wholeVariants && choreo.whole ? (
+            <m.g
+              style={originStyle(choreo.whole)}
+              variants={{ rest: wholeVariants.rest, active: wholeVariants.active }}
+            >
+              {drawing}
+            </m.g>
+          ) : (
+            drawing
+          )}
+        </m.svg>
+      </LazyMotion>
     );
   },
 );
