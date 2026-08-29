@@ -65,7 +65,7 @@ recreating these consistently matters as much as the individual features:
   to enter before editing/deleting/moving something.
 - **The "options" menu.** Both dashboards and links expose their
   edit/delete/move actions through the same kind of small icon-only button
-  (a vertical three-dot glyph) that opens a dropdown menu:
+  (a horizontal three-dot glyph) that opens a dropdown menu:
   - Links: **Edit**, **Move to…** (only present if at least one other
     dashboard exists, expands to a submenu listing every *other* dashboard
     by name), **Delete**.
