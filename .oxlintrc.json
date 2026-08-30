@@ -1,0 +1,17 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "react", "react-hooks", "oxc"],
+  "categories": { "correctness": "error", "suspicious": "warn" },
+  "rules": {
+    "react-hooks/exhaustive-deps": "error",
+    "react/only-export-components": "error",
+    "react/react-in-jsx-scope": "off"
+  },
+  "ignorePatterns": ["dist"],
+  "overrides": [
+    {
+      "files": ["src/components/ui/**/*.tsx", "src/components/icons/**/*.tsx"],
+      "rules": { "react/only-export-components": "off" }
+    }
+  ]
+}

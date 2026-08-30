@@ -209,13 +209,13 @@ function buildVariants(
   const loop = repeat ? { repeat: Infinity, repeatDelay: 0.45 / (speed || 1) } : {};
 
   if (anim.spring) {
-    const { velocity, ...rest } = anim.spring;
+    const { velocity, ...springOptions } = anim.spring;
     active.transition = {
       type: "spring",
       stiffness: 220,
       damping: 14,
       mass: 1,
-      ...rest,
+      ...springOptions,
       ...(velocity !== undefined ? { velocity: velocity * (speed || 1) } : {}),
       delay,
       ...loop,

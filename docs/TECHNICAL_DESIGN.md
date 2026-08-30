@@ -52,15 +52,36 @@ the PRD.
   state change, not a navigation.
 - **Testing**: Vitest (+ jsdom, React Testing Library installed and
   configured) — see "Testing Focus" for what's actually covered today.
+- **Lint**: [oxlint](https://oxc.rs/docs/guide/usage/linter.html), configured
+  in `.oxlintrc.json` (`correctness` as errors, `suspicious` as warnings, plus
+  the `typescript`/`react`/`react-hooks`/`oxc` plugins). It replaced the
+  ESLint stack; `react/react-in-jsx-scope` is off because the project uses the
+  automatic JSX runtime, and `react/only-export-components` is off for the
+  registry-generated `src/components/ui/**` and `src/components/icons/**`.
+  Non-type-checked, as the ESLint config before it was — oxlint's type-aware
+  mode (`options.typeAware` + `oxlint-tsgolint`) is deliberately not enabled,
+  since it would reintroduce a TypeScript-version coupling.
+- **Format**: [oxfmt](https://oxc.rs/docs/guide/usage/formatter.html),
+  configured in `.oxfmtrc.json`. Two non-default options (`semi: false`,
+  `singleQuote: true`) keep the style the repo already had; everything else is
+  oxfmt's Prettier-compatible default (100 columns, 2-space indent, trailing
+  commas, double quotes in JSX). Its `sortImports` and `sortTailwindcss`
+  features are available but **off** — each is its own whole-repo diff.
+  `sortPackageJson` is on by default, so `package.json`'s key order is
+  formatter-owned and a `yarn add` can leave `format:check` red until
+  `yarn format` runs. Scope is `src/`, `vite.config.ts`, and the root JSON
+  configs — `docs/**`, `.github/**`, and all Markdown are excluded via
+  `ignorePatterns` and stay hand-managed. The version is pinned exactly
+  (no caret) so a patch release can't silently reformat the tree in CI.
 - **Hosting**: GitHub Pages, deployed under the repository's default
   project-pages path (`https://<user>.github.io/home-tab/`, per `base:
   '/home-tab/'` in `vite.config.ts`). **No custom domain is configured at
   this time** (no `CNAME`), unlike earlier plans — see "Open Items."
 - **CI/CD**: GitHub Actions
-  - `ci.yml` — runs `yarn lint`, `yarn tsc -b`, `yarn test` on push to
-    `main` and on every pull request.
-  - `deploy.yml` — runs `yarn lint`, `yarn test`, then `yarn build` →
-    deploys `dist/` to GitHub Pages on push to `main`.
+  - `ci.yml` — runs `yarn lint`, `yarn format:check`, `yarn tsc -b`,
+    `yarn test` on push to `main` and on every pull request.
+  - `deploy.yml` — runs `yarn lint`, `yarn format:check`, `yarn test`, then
+    `yarn build` → deploys `dist/` to GitHub Pages on push to `main`.
 
 ## Why RxDB
 
@@ -638,13 +659,10 @@ broken image URL, a dashboard with a background, and an empty dashboard.
 - No automated coverage for RxDB/drag-and-drop/reorder logic (see "Testing
   Focus") — decide whether to invest in component/e2e tests for these or
   keep relying on manual browser verification.
-- `typescript` is held at `~6.0.2` (not the current TypeScript major, 7.x)
-  because `typescript-eslint` hard-throws on any TS `>=7` (confirmed by
-  reading its installed source — an unconditional version check, not just a
-  peer-dependency range) and has no released or canary version that lifts
-  that guard yet. Tracked upstream at
-  [typescript-eslint#10940](https://github.com/typescript-eslint/typescript-eslint/issues/10940).
-  Revisit the TypeScript upgrade once that ships — `yarn` itself is already
-  on a version (4.17.1+) whose bundled `typescript` compatibility patch
-  supports TS 7's restructured `lib/` layout, so nothing on the tooling side
-  should block it once typescript-eslint catches up.
+- `typescript` is still held at `~6.0.2` (not the current major, 7.x), but
+  **nothing blocks the upgrade any more**. The pin existed because
+  `typescript-eslint` hard-throws on any TS `>=7`; moving to oxlint deleted
+  that dependency, and `yarn` is already on a version (4.17.1+) whose bundled
+  `typescript` compatibility patch supports TS 7's restructured `lib/` layout.
+  What remains is doing the bump and re-verifying `tsc -b`, Vite, and Vitest
+  under TS 7 — tracked as its own plan.

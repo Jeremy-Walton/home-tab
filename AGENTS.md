@@ -36,10 +36,11 @@ hosting/CI branch mismatch, no custom domain yet).
 
 - `yarn dev` — start the Vite dev server
 - `yarn build` — typecheck (`tsc -b`) then production build
-- `yarn lint` — ESLint
+- `yarn lint` — oxlint (`yarn lint:fix` to auto-fix)
+- `yarn format` — oxfmt; `yarn format:check` to verify without writing
 - `yarn test` — Vitest (single run); `yarn test:watch` for watch mode
 
-Run typecheck, lint, and tests before considering any change done — none of them are caught by the others.
+Run typecheck, lint, formatting, and tests before considering any change done — none of them are caught by the others.
 
 ## Comments
 

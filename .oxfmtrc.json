@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "semi": false,
+  "singleQuote": true,
+  "ignorePatterns": [
+    "**/*.md",
+    ".agents/**",
+    ".claude/**",
+    ".github/**",
+    "docs/**",
+    "signaling/**",
+    "skills-lock.json"
+  ]
+}
