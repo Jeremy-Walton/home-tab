@@ -18,7 +18,7 @@ const badgeVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         overlay: "h-auto max-w-full truncate rounded-lg bg-black/50 text-white",
         shortcut:
-          "h-4 min-w-4 rounded-full border-none bg-foreground px-1 text-[10px] font-semibold leading-none text-background",
+          "h-4 min-w-4 rounded-full border-none bg-foreground px-1 text-[10px] leading-none font-semibold text-background",
       },
     },
     defaultVariants: {

@@ -6,3 +6,11 @@
 
 # Format the codebase with oxfmt (plan 011)
 22336c4c9829bae2c728358c2febe317bb810cd8
+
+# Apply the linting changes — reformat to oxfmt defaults (plan 012)
+# Also carries the config flip and doc updates; those few prose lines blame
+# one commit too early as a result.
+0cf05600680d57b1fd7ae3eeacde99ec6d9440d7
+
+# Enable sort imports (plan 013)
+80d8aab42492d5f6d8319cb43b1266c3218dc1fa

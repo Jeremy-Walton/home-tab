@@ -90,7 +90,7 @@ export function LinkTile({ link }: { link: Link }) {
           <Badge variant="overlay">{link.title || "Untitled"}</Badge>
         </a>
 
-        <div className="absolute right-1 top-1">
+        <div className="absolute top-1 right-1">
           <EntityOptionsMenu
             label="Link options"
             variant="secondary"

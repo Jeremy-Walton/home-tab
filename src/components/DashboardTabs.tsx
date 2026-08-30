@@ -50,7 +50,7 @@ function DashboardTabItem({
         <Badge
           variant="shortcut"
           aria-hidden
-          className="pointer-events-none absolute -left-1 -top-1"
+          className="pointer-events-none absolute -top-1 -left-1"
         >
           {dashboardShortcutDigit(index)}
         </Badge>

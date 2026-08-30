@@ -73,8 +73,20 @@ the PRD.
   group and separated by a blank line. `sortSideEffects` stays off (its
   default), which is what keeps bare imports — `./index.css` in `main.tsx`,
   `../lib/keyboard` in the two keyboard hooks — from being reordered across
-  the imports they depend on. `sortTailwindcss` is still **off**, as its own
-  whole-repo diff. `sortPackageJson` is on by default, so
+  the imports they depend on. Tailwind class order is
+  **formatter-enforced** too (`sortTailwindcss`), inside `className`
+  attributes and inside `cn()`/`cva()` calls (both named in `functions` —
+  `cva`'s nested object values are reached, which was not a given). Two
+  things about that option are load-bearing: it is pointed at
+  `src/index.css` via `stylesheet`, without which the project's own
+  `@utility` rules (`motion-dialog`, `motion-popup`) and theme tokens sort
+  as *unknown* classes and get dumped at the front of every string — so
+  moving or renaming `src/index.css` breaks class sorting, not just
+  theming. And because `cn()` resolves conflicts last-wins via
+  `tailwind-merge`, re-sorting a string could in principle change what
+  "last" means; it doesn't today, but a future conflicting pair inside a
+  single string literal is the thing to watch.
+  `sortPackageJson` is on by default, so
   `package.json`'s key order is formatter-owned and a `yarn add` can leave
   `format:check` red until `yarn format` runs. Scope is `src/`,
   `vite.config.ts`, and the root JSON configs — `docs/**`, `.github/**`, and

@@ -69,7 +69,7 @@ function Dashboard() {
         <Kbd className="border-white/20 bg-black/40 text-white">?</Kbd>
         <span>for shortcuts</span>
       </div>
-      <div className="pointer-events-none fixed bottom-2 right-3 text-xs text-white/70">
+      <div className="pointer-events-none fixed right-3 bottom-2 text-xs text-white/70">
         <span>© 2026 Jeremy Walton. All Rights Reserved.</span>{" "}
         <a
           href="https://chromewebstore.google.com/detail/new-tab-redirect/icpgjfneehieebagbmdbhnlpiopdcmna?hl=en"
