@@ -4,6 +4,10 @@
 @import "@fontsource-variable/space-grotesk";
 @import "@fontsource-variable/figtree";
 
+/* Prose is not markup: without this, class names mentioned in docs compile
+   into the shipped stylesheet. */
+@source not "../docs";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

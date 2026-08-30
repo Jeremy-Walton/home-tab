@@ -7,7 +7,12 @@ the PRD.
 ## Stack
 
 - **Framework**: React 19 + Vite
-- **Language**: TypeScript
+- **Language**: TypeScript 7 (`^7`). `skipLibCheck: true` in both leaf
+  configs masks 8 pre-existing dependency-typing errors — `@dnd-kit/*` using
+  the pre-React-19 global `JSX` namespace, and RxDB wanting
+  `Symbol.asyncDispose` from a later `lib`. Identical in count and error code
+  under TS 6, so they are not a TS 7 regression; they are what turning
+  `skipLibCheck` off would surface.
 - **Package manager**: yarn 4 (Corepack; see `packageManager` in
   `package.json`)
 - **State management**: React Context + custom hooks (no Redux/Zustand) —
@@ -683,10 +688,3 @@ broken image URL, a dashboard with a background, and an empty dashboard.
 - No automated coverage for RxDB/drag-and-drop/reorder logic (see "Testing
   Focus") — decide whether to invest in component/e2e tests for these or
   keep relying on manual browser verification.
-- `typescript` is still held at `~6.0.2` (not the current major, 7.x), but
-  **nothing blocks the upgrade any more**. The pin existed because
-  `typescript-eslint` hard-throws on any TS `>=7`; moving to oxlint deleted
-  that dependency, and `yarn` is already on a version (4.17.1+) whose bundled
-  `typescript` compatibility patch supports TS 7's restructured `lib/` layout.
-  What remains is doing the bump and re-verifying `tsc -b`, Vite, and Vitest
-  under TS 7 — tracked as its own plan.
