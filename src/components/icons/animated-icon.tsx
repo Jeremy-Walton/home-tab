@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 /**
  * Shared runtime for phosphor-animated icons.
@@ -19,15 +19,15 @@
  * redrawn the same way at duotone and use that path too.
  */
 
-import * as React from 'react'
-import * as m from 'motion/react-m'
+import * as React from "react";
+import * as m from "motion/react-m";
 import {
   LazyMotion,
   useReducedMotion,
   type MotionStyle,
   type Transition,
   type Variants,
-} from 'motion/react'
+} from "motion/react";
 
 /**
  * Motion ships as `m` (render only) plus a feature bundle loaded by `LazyMotion`,
@@ -37,10 +37,10 @@ import {
  * `strict` makes rendering a full `motion.*` component in here throw instead of
  * silently pulling the whole library back in and undoing the split.
  */
-const loadMotionFeatures = () => import('./motion-features').then((mod) => mod.default)
+const loadMotionFeatures = () => import("./motion-features").then((mod) => mod.default);
 
-export const WEIGHTS = ['thin', 'light', 'regular', 'bold', 'duotone'] as const
-export type Weight = (typeof WEIGHTS)[number]
+export const WEIGHTS = ["thin", "light", "regular", "bold", "duotone"] as const;
+export type Weight = (typeof WEIGHTS)[number];
 
 export const STROKE_WIDTH: Record<Weight, number> = {
   thin: 8,
@@ -48,27 +48,27 @@ export const STROKE_WIDTH: Record<Weight, number> = {
   regular: 16,
   bold: 24,
   duotone: 16,
-}
+};
 
 /** A drawn element: tag plus its geometry attributes. */
-export type Part = [tag: string, attrs: Record<string, string | number>]
+export type Part = [tag: string, attrs: Record<string, string | number>];
 
 export type IconGeometry = {
-  regular: Part[]
-  thin?: Part[]
-  light?: Part[]
-  bold?: Part[]
-  duotone?: Part[]
+  regular: Part[];
+  thin?: Part[];
+  light?: Part[];
+  bold?: Part[];
+  duotone?: Part[];
   /** Duotone's filled backdrop layer. Decoration; carries no choreography. */
-  backdrop?: Partial<Record<Weight, Part[]>>
+  backdrop?: Partial<Record<Weight, Part[]>>;
   /** Per-weight part maps: map[i] is where regular's part i lives at this weight. */
-  maps?: Partial<Record<Weight, (number | null)[]>>
+  maps?: Partial<Record<Weight, (number | null)[]>>;
   /**
    * Weights Phosphor redrew as a merged shape, where part indices carry no meaning.
    * Per-part choreography is skipped for these; only whole-icon motion applies.
    */
-  divergent?: Weight[]
-}
+  divergent?: Weight[];
+};
 
 /**
  * A damped spring, for motion that is physical rather than sequenced.
@@ -79,30 +79,30 @@ export type IconGeometry = {
  * than jumping — which is what makes un-hovering mid-swing look right.
  */
 export type SpringSpec = {
-  stiffness?: number
-  damping?: number
-  mass?: number
+  stiffness?: number;
+  damping?: number;
+  mass?: number;
   /** Initial velocity. This is the strike that sets a bell ringing. */
-  velocity?: number
-}
+  velocity?: number;
+};
 
 /** Animatable properties of a single part. Arrays are keyframes. */
 export type PartAnimation = {
-  rotate?: number[]
-  scale?: number[]
-  scaleX?: number[]
-  scaleY?: number[]
-  x?: number[]
-  y?: number[]
-  opacity?: number[]
+  rotate?: number[];
+  scale?: number[];
+  scaleX?: number[];
+  scaleY?: number[];
+  x?: number[];
+  y?: number[];
+  opacity?: number[];
   /** 0 → 1 draws the stroke on. Requires a stroked element. */
-  pathLength?: number[]
+  pathLength?: number[];
   /** Rotation/scale origin in viewBox units. Defaults to the canvas centre. */
-  origin?: [number, number]
+  origin?: [number, number];
   /** Seconds, before this part starts. Use for stagger. */
-  delay?: number
+  delay?: number;
   /** Overrides the icon's duration for this part. */
-  duration?: number
+  duration?: number;
   /**
    * One curve, or one per segment.
    *
@@ -111,27 +111,27 @@ export type PartAnimation = {
    * pendulum passing through its extremes, but wrong for the first segment of a
    * struck object, which should leave rest at full speed. Pass an array to say so.
    */
-  ease?: Transition['ease'] | Transition['ease'][]
+  ease?: Transition["ease"] | Transition["ease"][];
   /** Keyframe positions in 0–1. Defaults to even spacing. */
-  times?: number[]
+  times?: number[];
   /** Use a spring instead of a timed tween. Overrides duration/ease/times. */
-  spring?: SpringSpec
-}
+  spring?: SpringSpec;
+};
 
 export type Choreography = {
   /** Keyed by part index in the regular drawing. */
-  parts?: Record<number, PartAnimation>
+  parts?: Record<number, PartAnimation>;
   /** Applied to the whole <svg>. The only option for fill. */
-  whole?: PartAnimation
-  duration?: number
-}
+  whole?: PartAnimation;
+  duration?: number;
+};
 
-export type Trigger = 'hover' | 'click' | 'in-view' | 'loop' | 'none'
+export type Trigger = "hover" | "click" | "in-view" | "loop" | "none";
 
 export type AnimatedIconHandle = {
-  play: () => void
-  stop: () => void
-}
+  play: () => void;
+  stop: () => void;
+};
 
 /**
  * Standard SVG props, minus the handful Motion redefines with its own signatures
@@ -139,23 +139,23 @@ export type AnimatedIconHandle = {
  */
 export type AnimatedIconProps = Omit<
   React.SVGProps<SVGSVGElement>,
-  | 'ref'
-  | 'onAnimationStart'
-  | 'onAnimationEnd'
-  | 'onAnimationIteration'
-  | 'onDrag'
-  | 'onDragStart'
-  | 'onDragEnd'
+  | "ref"
+  | "onAnimationStart"
+  | "onAnimationEnd"
+  | "onAnimationIteration"
+  | "onDrag"
+  | "onDragStart"
+  | "onDragEnd"
   // SVG's `values` is a string attribute; Motion's is a MotionValue map.
-  | 'values'
+  | "values"
 > & {
-  size?: number | string
-  weight?: Weight
+  size?: number | string;
+  weight?: Weight;
   /** How the animation starts. Default "hover". */
-  trigger?: Trigger
+  trigger?: Trigger;
   /** Multiplies playback rate; 2 is twice as fast. Default 1. */
-  speed?: number
-}
+  speed?: number;
+};
 
 /**
  * One of the generated components, as a value.
@@ -167,21 +167,21 @@ export type AnimatedIconProps = Omit<
  */
 export type IconComponent = React.ForwardRefExoticComponent<
   AnimatedIconProps & React.RefAttributes<AnimatedIconHandle>
->
+>;
 
 /**
  * Everything the generated file supplies. Grouped into one prop because `stroke`
  * is itself an SVG attribute — spreading these alongside SVGProps would collide.
  */
 export type IconSpec = {
-  geometry: IconGeometry
+  geometry: IconGeometry;
   /** Drives every weight. */
-  stroke: Choreography
-}
+  stroke: Choreography;
+};
 
-type InternalProps = AnimatedIconProps & { spec: IconSpec }
+type InternalProps = AnimatedIconProps & { spec: IconSpec };
 
-const DEFAULT_DURATION = 0.96
+const DEFAULT_DURATION = 0.96;
 const IDENTITY: Record<string, number> = {
   rotate: 0,
   scale: 1,
@@ -191,18 +191,18 @@ const IDENTITY: Record<string, number> = {
   y: 0,
   opacity: 1,
   pathLength: 1,
-}
+};
 
 const ANIMATABLE = [
-  'rotate',
-  'scale',
-  'scaleX',
-  'scaleY',
-  'x',
-  'y',
-  'opacity',
-  'pathLength',
-] as const
+  "rotate",
+  "scale",
+  "scaleX",
+  "scaleY",
+  "x",
+  "y",
+  "opacity",
+  "pathLength",
+] as const;
 
 /**
  * Build Motion variants for one part.
@@ -216,26 +216,26 @@ function buildVariants(
   speed: number,
   repeat: boolean,
 ): Variants {
-  const rest: Record<string, unknown> = {}
-  const active: Record<string, unknown> = {}
+  const rest: Record<string, unknown> = {};
+  const active: Record<string, unknown> = {};
 
   for (const key of ANIMATABLE) {
-    const frames = anim[key]
-    if (!frames?.length) continue
+    const frames = anim[key];
+    if (!frames?.length) continue;
     // Rest is the *last* keyframe — the settled state. Most animations return to
     // where they started, but a draw-on (pathLength 0 -> 1) must rest fully drawn,
     // or the icon would sit invisible until hovered.
-    rest[key] = frames[frames.length - 1] ?? IDENTITY[key]
-    active[key] = frames
+    rest[key] = frames[frames.length - 1] ?? IDENTITY[key];
+    active[key] = frames;
   }
 
-  const delay = (anim.delay ?? 0) / (speed || 1)
-  const loop = repeat ? { repeat: Infinity, repeatDelay: 0.45 / (speed || 1) } : {}
+  const delay = (anim.delay ?? 0) / (speed || 1);
+  const loop = repeat ? { repeat: Infinity, repeatDelay: 0.45 / (speed || 1) } : {};
 
   if (anim.spring) {
-    const { velocity, ...springOptions } = anim.spring
+    const { velocity, ...springOptions } = anim.spring;
     active.transition = {
-      type: 'spring',
+      type: "spring",
       stiffness: 220,
       damping: 14,
       mass: 1,
@@ -243,16 +243,16 @@ function buildVariants(
       ...(velocity !== undefined ? { velocity: velocity * (speed || 1) } : {}),
       delay,
       ...loop,
-    } satisfies Transition
+    } satisfies Transition;
   } else {
-    const d = anim.duration && anim.duration > 0 ? anim.duration : duration
+    const d = anim.duration && anim.duration > 0 ? anim.duration : duration;
     active.transition = {
       duration: d / (speed || 1),
       delay,
-      ease: anim.ease ?? 'easeInOut',
+      ease: anim.ease ?? "easeInOut",
       ...(anim.times ? { times: anim.times } : {}),
       ...loop,
-    } as Transition
+    } as Transition;
   }
 
   // Returning to rest gets its own spring. Without it, un-hovering mid-animation
@@ -260,13 +260,13 @@ function buildVariants(
   // the part already had and carries it back, which is what makes an interrupted
   // hover look deliberate instead of broken.
   rest.transition = {
-    type: 'spring',
+    type: "spring",
     stiffness: 260,
     damping: 26,
     mass: 0.7,
-  } satisfies Transition
+  } satisfies Transition;
 
-  return { rest, active } as Variants
+  return { rest, active } as Variants;
 }
 
 /**
@@ -281,8 +281,8 @@ function buildVariants(
  * so a hinge stays on its hinge at any rendered size.
  */
 function originStyle(anim: PartAnimation): MotionStyle {
-  const [ox, oy] = anim.origin ?? [128, 128]
-  return { transformBox: 'view-box', originX: `${ox}px`, originY: `${oy}px` }
+  const [ox, oy] = anim.origin ?? [128, 128];
+  return { transformBox: "view-box", originX: `${ox}px`, originY: `${oy}px` };
 }
 
 /**
@@ -293,11 +293,11 @@ function originStyle(anim: PartAnimation): MotionStyle {
  * editor would end up showing something that never ships.
  */
 export function resolveWeight(geometry: IconGeometry, weight: Weight) {
-  const divergent = geometry.divergent?.includes(weight) ?? false
-  const parts = (weight === 'regular' ? geometry.regular : geometry[weight]) ?? geometry.regular
-  const map = geometry.maps?.[weight]
-  const backdrop = geometry.backdrop?.[weight]
-  return { parts, map, backdrop, divergent }
+  const divergent = geometry.divergent?.includes(weight) ?? false;
+  const parts = (weight === "regular" ? geometry.regular : geometry[weight]) ?? geometry.regular;
+  const map = geometry.maps?.[weight];
+  const backdrop = geometry.backdrop?.[weight];
+  return { parts, map, backdrop, divergent };
 }
 
 export const AnimatedIcon = React.forwardRef<AnimatedIconHandle, InternalProps>(
@@ -305,8 +305,8 @@ export const AnimatedIcon = React.forwardRef<AnimatedIconHandle, InternalProps>(
     {
       spec,
       size = 24,
-      weight = 'regular',
-      trigger = 'hover',
+      weight = "regular",
+      trigger = "hover",
       speed = 1,
       onMouseEnter,
       onMouseLeave,
@@ -322,46 +322,46 @@ export const AnimatedIcon = React.forwardRef<AnimatedIconHandle, InternalProps>(
        * the "none" it was meant to keep. A default parameter absorbs the
        * undefined instead.
        */
-      fill = 'none',
+      fill = "none",
       ...rest
     },
     ref,
   ) {
-    const reduced = useReducedMotion()
-    const [active, setActive] = React.useState(false)
+    const reduced = useReducedMotion();
+    const [active, setActive] = React.useState(false);
     // `trigger="click"` has no matching "up" event, so it schedules its own reset.
     // Held here so a second click replaces the pending reset instead of racing it.
-    const clickResetRef = React.useRef<number | undefined>(undefined)
+    const clickResetRef = React.useRef<number | undefined>(undefined);
 
-    React.useEffect(() => () => window.clearTimeout(clickResetRef.current), [])
+    React.useEffect(() => () => window.clearTimeout(clickResetRef.current), []);
 
     React.useImperativeHandle(
       ref,
       () => ({
         play: () => setActive(true),
         stop: () => {
-          window.clearTimeout(clickResetRef.current)
-          setActive(false)
+          window.clearTimeout(clickResetRef.current);
+          setActive(false);
         },
       }),
       [],
-    )
+    );
 
-    const { parts, map, backdrop, divergent } = resolveWeight(spec.geometry, weight)
-    const choreo = spec.stroke
+    const { parts, map, backdrop, divergent } = resolveWeight(spec.geometry, weight);
+    const choreo = spec.stroke;
     // `??` would let a zero through, and a zero-duration tween completes instantly —
     // the icon jumps to its end state with no visible animation at all.
-    const duration = choreo.duration && choreo.duration > 0 ? choreo.duration : DEFAULT_DURATION
-    const looping = trigger === 'loop'
+    const duration = choreo.duration && choreo.duration > 0 ? choreo.duration : DEFAULT_DURATION;
+    const looping = trigger === "loop";
 
     // Reduced motion: render the icon, skip the motion. Never animate against an
     // explicit OS-level preference not to.
-    const animateState = reduced ? 'rest' : looping || active ? 'active' : 'rest'
+    const animateState = reduced ? "rest" : looping || active ? "active" : "rest";
 
     const wholeVariants = React.useMemo(
       () => (choreo.whole ? buildVariants(choreo.whole, duration, speed, looping) : null),
       [choreo.whole, duration, speed, looping],
-    )
+    );
 
     const svgStyle: MotionStyle = {
       /**
@@ -384,31 +384,31 @@ export const AnimatedIcon = React.forwardRef<AnimatedIconHandle, InternalProps>(
        * itself would carry its clip along with it, and the drawing would sail out
        * of position with nothing to stop it.
        */
-      overflow: 'hidden',
+      overflow: "hidden",
       ...(style as MotionStyle),
-    }
+    };
 
     const handlers = {
       onMouseEnter: (e: React.MouseEvent<SVGSVGElement>) => {
-        if (trigger === 'hover') setActive(true)
-        onMouseEnter?.(e)
+        if (trigger === "hover") setActive(true);
+        onMouseEnter?.(e);
       },
       onMouseLeave: (e: React.MouseEvent<SVGSVGElement>) => {
-        if (trigger === 'hover') setActive(false)
-        onMouseLeave?.(e)
+        if (trigger === "hover") setActive(false);
+        onMouseLeave?.(e);
       },
       onClick: (e: React.MouseEvent<SVGSVGElement>) => {
-        if (trigger === 'click') {
-          setActive(true)
-          window.clearTimeout(clickResetRef.current)
+        if (trigger === "click") {
+          setActive(true);
+          window.clearTimeout(clickResetRef.current);
           clickResetRef.current = window.setTimeout(
             () => setActive(false),
             (duration / (speed || 1)) * 1000 + 60,
-          )
+          );
         }
-        onClick?.(e)
+        onClick?.(e);
       },
-    }
+    };
 
     const drawing = (
       <>
@@ -416,22 +416,22 @@ export const AnimatedIcon = React.forwardRef<AnimatedIconHandle, InternalProps>(
           React.createElement(tag, {
             key: `bd-${i}`,
             ...attrs,
-            fill: 'currentColor',
-            stroke: 'none',
+            fill: "currentColor",
+            stroke: "none",
           }),
         )}
 
         {parts.map((_, renderIndex) => {
           // Choreography is keyed by regular-weight indices; find which one drives
           // the part being rendered at this weight.
-          const sourceIndex = map ? map.findIndex((target) => target === renderIndex) : renderIndex
-          const anim = !divergent && sourceIndex >= 0 ? choreo.parts?.[sourceIndex] : undefined
-          const [tag, attrs] = parts[renderIndex]
+          const sourceIndex = map ? map.findIndex((target) => target === renderIndex) : renderIndex;
+          const anim = !divergent && sourceIndex >= 0 ? choreo.parts?.[sourceIndex] : undefined;
+          const [tag, attrs] = parts[renderIndex];
 
-          if (!anim) return React.createElement(tag, { key: renderIndex, ...attrs })
+          if (!anim) return React.createElement(tag, { key: renderIndex, ...attrs });
 
-          const v = buildVariants(anim, duration, speed, looping)
-          const MotionTag = (m as unknown as Record<string, React.ElementType>)[tag]
+          const v = buildVariants(anim, duration, speed, looping);
+          const MotionTag = (m as unknown as Record<string, React.ElementType>)[tag];
 
           return (
             <MotionTag
@@ -440,10 +440,10 @@ export const AnimatedIcon = React.forwardRef<AnimatedIconHandle, InternalProps>(
               style={originStyle(anim)}
               variants={{ rest: v.rest, active: v.active }}
             />
-          )
+          );
         })}
       </>
-    )
+    );
 
     return (
       <LazyMotion features={loadMotionFeatures} strict>
@@ -460,8 +460,8 @@ export const AnimatedIcon = React.forwardRef<AnimatedIconHandle, InternalProps>(
           style={svgStyle}
           initial="rest"
           animate={animateState}
-          {...(trigger === 'in-view'
-            ? { whileInView: 'active', viewport: { once: false, amount: 0.6 } }
+          {...(trigger === "in-view"
+            ? { whileInView: "active", viewport: { once: false, amount: 0.6 } }
             : null)}
           {...handlers}
           {...rest}
@@ -481,9 +481,9 @@ export const AnimatedIcon = React.forwardRef<AnimatedIconHandle, InternalProps>(
           )}
         </m.svg>
       </LazyMotion>
-    )
+    );
   },
-)
+);
 
 /** Wraps a generated icon so consumers get a clean, typed component. */
 export function createAnimatedIcon(
@@ -491,10 +491,10 @@ export function createAnimatedIcon(
   geometry: IconGeometry,
   stroke: Choreography,
 ) {
-  const spec: IconSpec = { geometry, stroke }
+  const spec: IconSpec = { geometry, stroke };
   const Icon = React.forwardRef<AnimatedIconHandle, AnimatedIconProps>(function Icon(props, ref) {
-    return <AnimatedIcon ref={ref} spec={spec} {...props} />
-  })
-  Icon.displayName = displayName
-  return Icon
+    return <AnimatedIcon ref={ref} spec={spec} {...props} />;
+  });
+  Icon.displayName = displayName;
+  return Icon;
 }

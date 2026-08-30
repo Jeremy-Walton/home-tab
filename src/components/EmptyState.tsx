@@ -1,7 +1,7 @@
-import { HoverIcon } from './icons/HoverIcon'
-import { Plus } from './icons/plus'
-import { Button } from './ui/button'
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from './ui/empty'
+import { HoverIcon } from "./icons/HoverIcon";
+import { Plus } from "./icons/plus";
+import { Button } from "./ui/button";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from "./ui/empty";
 
 export function EmptyState({ onAddLink }: { onAddLink: () => void }) {
   return (
@@ -18,5 +18,5 @@ export function EmptyState({ onAddLink }: { onAddLink: () => void }) {
         </EmptyContent>
       </Empty>
     </div>
-  )
+  );
 }

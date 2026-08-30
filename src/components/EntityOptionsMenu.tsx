@@ -1,24 +1,24 @@
-import { OptionsMenu } from './OptionsMenu'
+import { OptionsMenu } from "./OptionsMenu";
 import {
   DropdownMenuItem,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
-} from './ui/dropdown-menu'
+} from "./ui/dropdown-menu";
 
 interface EntityOptionsMenuProps {
-  label: string
-  variant: 'secondary' | 'ghost'
-  triggerClassName?: string
-  onTriggerClick?: (e: React.MouseEvent) => void
-  revealOnHover?: boolean
-  onEdit: () => void
-  onDelete: () => void
-  deleteDisabled?: boolean
+  label: string;
+  variant: "secondary" | "ghost";
+  triggerClassName?: string;
+  onTriggerClick?: (e: React.MouseEvent) => void;
+  revealOnHover?: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+  deleteDisabled?: boolean;
   moveTo?: {
-    options: { id: string; name: string }[]
-    onSelect: (id: string) => void
-  }
+    options: { id: string; name: string }[];
+    onSelect: (id: string) => void;
+  };
 }
 
 export function EntityOptionsMenu({
@@ -57,5 +57,5 @@ export function EntityOptionsMenu({
         Delete
       </DropdownMenuItem>
     </OptionsMenu>
-  )
+  );
 }

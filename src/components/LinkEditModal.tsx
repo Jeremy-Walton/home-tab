@@ -1,38 +1,40 @@
-import { useState } from 'react'
-import { useAppState } from '../context/useAppState'
-import { EditDialog } from './EditDialog'
-import { Input } from './ui/input'
-import { Field, FieldLabel, FieldError } from './ui/field'
-import { normalizeUrl, isSafeHref } from '../lib/url'
-import type { Link } from '../types'
+import { useState } from "react";
+import { useAppState } from "../context/useAppState";
+import { EditDialog } from "./EditDialog";
+import { Input } from "./ui/input";
+import { Field, FieldLabel, FieldError } from "./ui/field";
+import { normalizeUrl, isSafeHref } from "../lib/url";
+import type { Link } from "../types";
 
 export function LinkEditModal({ link, onClose }: { link: Link; onClose: () => void }) {
-  const { updateLink } = useAppState()
-  const [title, setTitle] = useState(link.title)
-  const [url, setUrl] = useState(link.url)
-  const [backgroundImageUrl, setBackgroundImageUrl] = useState(link.backgroundImageUrl ?? '')
-  const [urlError, setUrlError] = useState<string | null>(null)
-  const [backgroundError, setBackgroundError] = useState<string | null>(null)
+  const { updateLink } = useAppState();
+  const [title, setTitle] = useState(link.title);
+  const [url, setUrl] = useState(link.url);
+  const [backgroundImageUrl, setBackgroundImageUrl] = useState(link.backgroundImageUrl ?? "");
+  const [urlError, setUrlError] = useState<string | null>(null);
+  const [backgroundError, setBackgroundError] = useState<string | null>(null);
 
   return (
     <EditDialog
       title="Edit link"
       onClose={onClose}
       onSave={async () => {
-        const normalizedUrl = normalizeUrl(url)
-        const nextUrlError = isSafeHref(normalizedUrl) ? null : 'Enter a valid URL (http or https).'
+        const normalizedUrl = normalizeUrl(url);
+        const nextUrlError = isSafeHref(normalizedUrl)
+          ? null
+          : "Enter a valid URL (http or https).";
         const nextBackgroundError =
-          backgroundImageUrl.trim() === '' || isSafeHref(normalizeUrl(backgroundImageUrl))
+          backgroundImageUrl.trim() === "" || isSafeHref(normalizeUrl(backgroundImageUrl))
             ? null
-            : 'Enter a valid image URL, or leave this empty.'
-        setUrlError(nextUrlError)
-        setBackgroundError(nextBackgroundError)
-        if (nextUrlError || nextBackgroundError) return false
+            : "Enter a valid image URL, or leave this empty.";
+        setUrlError(nextUrlError);
+        setBackgroundError(nextBackgroundError);
+        if (nextUrlError || nextBackgroundError) return false;
         await updateLink(link.id, {
           title,
           url,
           backgroundImageUrl: backgroundImageUrl || undefined,
-        })
+        });
       }}
     >
       <Field>
@@ -56,5 +58,5 @@ export function LinkEditModal({ link, onClose }: { link: Link; onClose: () => vo
         <FieldError>{backgroundError}</FieldError>
       </Field>
     </EditDialog>
-  )
+  );
 }

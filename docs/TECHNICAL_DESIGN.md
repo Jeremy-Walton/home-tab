@@ -62,17 +62,24 @@ the PRD.
   mode (`options.typeAware` + `oxlint-tsgolint`) is deliberately not enabled,
   since it would reintroduce a TypeScript-version coupling.
 - **Format**: [oxfmt](https://oxc.rs/docs/guide/usage/formatter.html),
-  configured in `.oxfmtrc.json`. Two non-default options (`semi: false`,
-  `singleQuote: true`) keep the style the repo already had; everything else is
-  oxfmt's Prettier-compatible default (100 columns, 2-space indent, trailing
-  commas, double quotes in JSX). Its `sortImports` and `sortTailwindcss`
-  features are available but **off** — each is its own whole-repo diff.
-  `sortPackageJson` is on by default, so `package.json`'s key order is
-  formatter-owned and a `yarn add` can leave `format:check` red until
-  `yarn format` runs. Scope is `src/`, `vite.config.ts`, and the root JSON
-  configs — `docs/**`, `.github/**`, and all Markdown are excluded via
-  `ignorePatterns` and stay hand-managed. The version is pinned exactly
-  (no caret) so a patch release can't silently reformat the tree in CI.
+  configured in `.oxfmtrc.json`. It runs on **oxfmt's defaults with no style
+  overrides** — semicolons, double quotes, 100 columns, 2-space indent,
+  trailing commas. The repo briefly kept `semi: false`/`singleQuote: true` to
+  preserve its old hand-maintained style; those were dropped so the config is
+  nothing but scope, and so generated output (`shadcn add`, code samples)
+  lands already-formatted instead of being restyled on the way in. Its
+  `sortImports` and `sortTailwindcss` features are available but **off** —
+  each is its own whole-repo diff. `sortPackageJson` is on by default, so
+  `package.json`'s key order is formatter-owned and a `yarn add` can leave
+  `format:check` red until `yarn format` runs. Scope is `src/`,
+  `vite.config.ts`, and the root JSON configs — `docs/**`, `.github/**`, and
+  all Markdown are excluded via `ignorePatterns` and stay hand-managed. The
+  version is pinned exactly (no caret) so a patch release can't silently
+  reformat the tree in CI.
+- **`git blame` and the reformat commits**: the whole-repo reformats live in
+  their own commits, listed in `.git-blame-ignore-revs`. GitHub honours that
+  file automatically; a local clone needs
+  `git config blame.ignoreRevsFile .git-blame-ignore-revs` once.
 - **Hosting**: GitHub Pages, deployed under the repository's default
   project-pages path (`https://<user>.github.io/home-tab/`, per `base:
   '/home-tab/'` in `vite.config.ts`). **No custom domain is configured at

@@ -42,6 +42,10 @@ hosting/CI branch mismatch, no custom domain yet).
 
 Run typecheck, lint, formatting, and tests before considering any change done — none of them are caught by the others.
 
+The whole-repo reformats are listed in `.git-blame-ignore-revs`. Run
+`git config blame.ignoreRevsFile .git-blame-ignore-revs` once per clone so
+`git blame` skips them locally (GitHub already does).
+
 ## Comments
 
 Keep comments short — one line stating the non-obvious *why*, not a multi-line

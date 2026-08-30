@@ -1,33 +1,33 @@
-import { createContext } from 'react'
-import type { Dashboard, ExportedState, Link } from '../types'
+import { createContext } from "react";
+import type { Dashboard, ExportedState, Link } from "../types";
 
 export interface ImportSummary {
-  dashboards: number
-  links: number
+  dashboards: number;
+  links: number;
 }
 
 export interface AppStateValue {
-  ready: boolean
-  dashboards: Dashboard[]
-  links: Link[]
-  activeDashboardId: string | null
-  setActiveDashboardId: (id: string) => void
-  addDashboard: (name: string) => Promise<void>
+  ready: boolean;
+  dashboards: Dashboard[];
+  links: Link[];
+  activeDashboardId: string | null;
+  setActiveDashboardId: (id: string) => void;
+  addDashboard: (name: string) => Promise<void>;
   updateDashboard: (
     id: string,
-    fields: Partial<Pick<Dashboard, 'name' | 'backgroundImageUrl'>>,
-  ) => Promise<void>
-  deleteDashboard: (id: string) => Promise<void>
-  addLink: (dashboardId: string) => Promise<string | null>
+    fields: Partial<Pick<Dashboard, "name" | "backgroundImageUrl">>,
+  ) => Promise<void>;
+  deleteDashboard: (id: string) => Promise<void>;
+  addLink: (dashboardId: string) => Promise<string | null>;
   updateLink: (
     id: string,
-    fields: Partial<Pick<Link, 'title' | 'url' | 'backgroundImageUrl'>>,
-  ) => Promise<void>
-  deleteLink: (id: string) => Promise<void>
-  reorderLinks: (dashboardId: string, orderedIds: string[]) => Promise<void>
-  moveLinkToDashboard: (linkId: string, targetDashboardId: string) => Promise<void>
-  exportState: () => ExportedState
-  importState: (data: unknown) => Promise<ImportSummary>
+    fields: Partial<Pick<Link, "title" | "url" | "backgroundImageUrl">>,
+  ) => Promise<void>;
+  deleteLink: (id: string) => Promise<void>;
+  reorderLinks: (dashboardId: string, orderedIds: string[]) => Promise<void>;
+  moveLinkToDashboard: (linkId: string, targetDashboardId: string) => Promise<void>;
+  exportState: () => ExportedState;
+  importState: (data: unknown) => Promise<ImportSummary>;
 }
 
-export const AppStateContext = createContext<AppStateValue | null>(null)
+export const AppStateContext = createContext<AppStateValue | null>(null);

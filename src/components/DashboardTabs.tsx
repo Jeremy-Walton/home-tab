@@ -1,39 +1,39 @@
-import { useState } from 'react'
-import { useDroppable } from '@dnd-kit/core'
-import { useAppState } from '../context/useAppState'
-import { useAltHeld } from '../hooks/useAltHeld'
-import { dashboardDropId } from '../lib/dashboardDropId'
-import { dashboardShortcutDigit, MAX_DASHBOARD_SHORTCUTS } from '../lib/keyboard'
-import { ConfirmDialog } from './ConfirmDialog'
-import { DashboardEditModal } from './DashboardEditModal'
-import { EntityOptionsMenu } from './EntityOptionsMenu'
-import { HoverIcon } from './icons/HoverIcon'
-import { Plus } from './icons/plus'
-import { Badge } from './ui/badge'
-import { Button } from './ui/button'
-import { Tabs, TabsList, TabsTrigger } from './ui/tabs'
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
-import type { Dashboard } from '../types'
+import { useState } from "react";
+import { useDroppable } from "@dnd-kit/core";
+import { useAppState } from "../context/useAppState";
+import { useAltHeld } from "../hooks/useAltHeld";
+import { dashboardDropId } from "../lib/dashboardDropId";
+import { dashboardShortcutDigit, MAX_DASHBOARD_SHORTCUTS } from "../lib/keyboard";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { DashboardEditModal } from "./DashboardEditModal";
+import { EntityOptionsMenu } from "./EntityOptionsMenu";
+import { HoverIcon } from "./icons/HoverIcon";
+import { Plus } from "./icons/plus";
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
+import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import type { Dashboard } from "../types";
 
 function DashboardTabItem({
   dashboard,
   index,
   showShortcut,
 }: {
-  dashboard: Dashboard
-  index: number
-  showShortcut: boolean
+  dashboard: Dashboard;
+  index: number;
+  showShortcut: boolean;
 }) {
-  const { dashboards, deleteDashboard } = useAppState()
-  const [editing, setEditing] = useState(false)
-  const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const { dashboards, deleteDashboard } = useAppState();
+  const [editing, setEditing] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
-  const { isOver, setNodeRef } = useDroppable({ id: dashboardDropId(dashboard.id) })
+  const { isOver, setNodeRef } = useDroppable({ id: dashboardDropId(dashboard.id) });
 
   return (
     <div
       ref={setNodeRef}
-      className={`group relative rounded-full transition-shadow duration-100 ease-out-strong ${isOver ? 'ring-2 ring-ring' : ''}`}
+      className={`group relative rounded-full transition-shadow duration-100 ease-out-strong ${isOver ? "ring-2 ring-ring" : ""}`}
     >
       <TabsTrigger
         value={dashboard.id}
@@ -72,22 +72,22 @@ function DashboardTabItem({
         <ConfirmDialog
           message={`Delete "${dashboard.name}" and all its links? This cannot be undone.`}
           onConfirm={() => {
-            void deleteDashboard(dashboard.id)
-            setConfirmingDelete(false)
+            void deleteDashboard(dashboard.id);
+            setConfirmingDelete(false);
           }}
           onCancel={() => setConfirmingDelete(false)}
         />
       )}
     </div>
-  )
+  );
 }
 
 export function DashboardTabs() {
-  const { dashboards, activeDashboardId, setActiveDashboardId, addDashboard } = useAppState()
-  const altHeld = useAltHeld()
+  const { dashboards, activeDashboardId, setActiveDashboardId, addDashboard } = useAppState();
+  const altHeld = useAltHeld();
 
   return (
-    <Tabs value={activeDashboardId ?? ''} onValueChange={setActiveDashboardId}>
+    <Tabs value={activeDashboardId ?? ""} onValueChange={setActiveDashboardId}>
       <TabsList className="gap-1">
         {dashboards.map((dashboard, index) => (
           <DashboardTabItem
@@ -105,7 +105,7 @@ export function DashboardTabs() {
                 size="icon-xs"
                 className="ml-1 rounded-full"
                 aria-label="Add dashboard"
-                onClick={() => void addDashboard('New dashboard')}
+                onClick={() => void addDashboard("New dashboard")}
               >
                 <HoverIcon icon={Plus} />
               </Button>
@@ -115,5 +115,5 @@ export function DashboardTabs() {
         </Tooltip>
       </TabsList>
     </Tabs>
-  )
+  );
 }

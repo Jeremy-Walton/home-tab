@@ -1,0 +1,8 @@
+# Whole-repo reformats. Mechanical only — no behavior change.
+#
+# Local clones need this wired up once:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+# GitHub picks the file up automatically.
+
+# Format the codebase with oxfmt (plan 011)
+22336c4c9829bae2c728358c2febe317bb810cd8

@@ -1,4 +1,4 @@
-import { useClosingDialog } from '../hooks/useClosingDialog'
+import { useClosingDialog } from "../hooks/useClosingDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -7,20 +7,20 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogTitle,
-} from './ui/alert-dialog'
+} from "./ui/alert-dialog";
 
 interface ConfirmDialogProps {
-  message: string
-  onConfirm: () => void
-  onCancel: () => void
+  message: string;
+  onConfirm: () => void;
+  onCancel: () => void;
 }
 
 export function ConfirmDialog({ message, onConfirm, onCancel }: ConfirmDialogProps) {
   // Confirming deletes the entity that renders this dialog, so the outcome has
   // to wait until the closing animation has finished or it cuts itself short.
-  const { close, dialogProps } = useClosingDialog<'confirm'>((outcome) =>
-    outcome === 'confirm' ? onConfirm() : onCancel(),
-  )
+  const { close, dialogProps } = useClosingDialog<"confirm">((outcome) =>
+    outcome === "confirm" ? onConfirm() : onCancel(),
+  );
 
   return (
     <AlertDialog {...dialogProps}>
@@ -29,11 +29,11 @@ export function ConfirmDialog({ message, onConfirm, onCancel }: ConfirmDialogPro
         <AlertDialogDescription className="text-foreground">{message}</AlertDialogDescription>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" onClick={() => close('confirm')}>
+          <AlertDialogAction variant="destructive" onClick={() => close("confirm")}>
             Delete
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  )
+  );
 }

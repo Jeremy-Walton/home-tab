@@ -1,21 +1,21 @@
-import { useClosingDialog } from '../hooks/useClosingDialog'
-import { Button } from './ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog'
-import { FieldGroup } from './ui/field'
+import { useClosingDialog } from "../hooks/useClosingDialog";
+import { Button } from "./ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog";
+import { FieldGroup } from "./ui/field";
 
 interface EditDialogProps {
-  title: string
-  onSave: () => Promise<boolean | void> | boolean | void
-  onClose: () => void
-  children: React.ReactNode
+  title: string;
+  onSave: () => Promise<boolean | void> | boolean | void;
+  onClose: () => void;
+  children: React.ReactNode;
 }
 
 export function EditDialog({ title, onSave, onClose, children }: EditDialogProps) {
-  const { close, dialogProps } = useClosingDialog(onClose)
+  const { close, dialogProps } = useClosingDialog(onClose);
 
   async function handleSave() {
-    const result = await onSave()
-    if (result !== false) close()
+    const result = await onSave();
+    if (result !== false) close();
   }
 
   return (
@@ -35,5 +35,5 @@ export function EditDialog({ title, onSave, onClose, children }: EditDialogProps
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
