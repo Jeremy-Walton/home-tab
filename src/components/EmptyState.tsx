@@ -1,4 +1,5 @@
-import { PlusIcon } from '@phosphor-icons/react'
+import { HoverIcon } from './icons/HoverIcon'
+import { Plus } from './icons/plus'
 import { Button } from './ui/button'
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from './ui/empty'
 
@@ -12,7 +13,7 @@ export function EmptyState({ onAddLink }: { onAddLink: () => void }) {
         </EmptyHeader>
         <EmptyContent>
           <Button className="w-full" onClick={onAddLink}>
-            <PlusIcon /> Add link
+            <HoverIcon icon={Plus} /> Add link
           </Button>
         </EmptyContent>
       </Empty>

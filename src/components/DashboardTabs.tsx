@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useDroppable } from '@dnd-kit/core'
-import { PlusIcon } from '@phosphor-icons/react'
 import { useAppState } from '../context/useAppState'
 import { useAltHeld } from '../hooks/useAltHeld'
 import { dashboardDropId } from '../lib/dashboardDropId'
@@ -8,6 +7,8 @@ import { dashboardShortcutDigit, MAX_DASHBOARD_SHORTCUTS } from '../lib/keyboard
 import { ConfirmDialog } from './ConfirmDialog'
 import { DashboardEditModal } from './DashboardEditModal'
 import { EntityOptionsMenu } from './EntityOptionsMenu'
+import { HoverIcon } from './icons/HoverIcon'
+import { Plus } from './icons/plus'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs'
@@ -106,7 +107,7 @@ export function DashboardTabs() {
                 aria-label="Add dashboard"
                 onClick={() => void addDashboard('New dashboard')}
               >
-                <PlusIcon />
+                <HoverIcon icon={Plus} />
               </Button>
             }
           />

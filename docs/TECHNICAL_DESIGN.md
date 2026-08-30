@@ -36,6 +36,16 @@ the PRD.
   migrated off Radix (see "Known Gotchas"). `class-variance-authority` for
   variant props, `tailwind-merge`/`clsx` (via the `cn()` helper) for class
   composition, Phosphor (`@phosphor-icons/react`) for icons.
+- **Icons**: static glyphs come from `@phosphor-icons/react`; every icon on an
+  interactive control is instead an animated Phosphor equivalent vendored from
+  [phosphor-animated](https://phosphor-animated.com) — shadcn registry items
+  (`npx shadcn@latest add "https://phosphor-animated.com/r/<name>.json"`) that
+  land in `src/components/icons/` as ordinary, editable project files. They are
+  the only reason [`motion`](https://motion.dev) (Framer Motion's successor) is
+  a dependency; it is the sole JS animation library here, everything else is
+  CSS. It is deliberately not imported whole — see "Known Gotchas" for the
+  `m` + `LazyMotion` split and what silently undoes it. `@phosphor-icons/react` stays installed: `ui/dropdown-menu.tsx` still
+  uses `CheckIcon`, and future `shadcn add` runs generate imports from it.
 - **Fonts**: self-hosted variable fonts via `@fontsource-variable`
   (Space Grotesk for body/sans, Figtree for headings).
 - **Routing**: none — single root component, dashboard switching is a
@@ -169,14 +179,24 @@ Two distinct version concepts, kept separate:
   `Navbar.tsx`, `DashboardTabs.tsx` (tab strip + per-tab options menu +
   held-⌥ digit badges), `DashboardGrid.tsx` (grid/empty-state switch +
   sortable context), `LinkTile.tsx`, `EmptyState.tsx`, `OptionsMenu.tsx` (the
-  shared three-dot/kebab trigger: a tooltip'd dropdown-menu button; callers
-  pass the menu items as children), `EntityOptionsMenu.tsx` (`OptionsMenu` +
+  shared options trigger: a tooltip'd dropdown-menu button drawn as a
+  horizontal three-dot glyph; callers pass the menu items as children), `EntityOptionsMenu.tsx` (`OptionsMenu` +
   the Edit/Move/Delete item set used by both dashboards and links),
   `ConfirmDialog.tsx` (shared delete-confirmation), `EditDialog.tsx`
   (shared edit-modal shell), `LinkEditModal.tsx`/`DashboardEditModal.tsx`
   (field sets on top of `EditDialog`), `ShortcutsDialog.tsx` (the `?`
   overlay, rendering `SHORTCUTS`), `ImportExportBar.tsx`,
   `LogoIcon.tsx`/`Wordmark.tsx` (branding).
+- `src/components/icons/` — `animated-icon.tsx` (the phosphor-animated runtime:
+  weight resolution, triggers, reduced-motion handling) plus one file per icon
+  (`plus`, `x`, `caret-right`, `dots-three`), each a `GEOMETRY` object and a
+  `Choreography` keyframe object fed to `createAnimatedIcon`. Both are plain
+  data — these are editable project code, not vendor files, so retuning a
+  keyframe in place is expected rather than a fork. Alongside them,
+  `HoverIcon.tsx` — the project-owned wrapper every call site actually uses; see
+  "Known Gotchas" for what it exists to solve. `motion-features.ts` is the
+  lazily-imported Motion feature bundle, kept in its own module purely so it
+  becomes its own async chunk.
 - `src/components/ui/` — shadcn-generated primitive wrappers (`button`,
   `dialog`, `alert-dialog`, `dropdown-menu`, `tabs`, `tooltip`, `badge`,
   `aspect-ratio`, `label`, `separator`, `field`, `input`, `empty`, `kbd`).
@@ -311,6 +331,19 @@ Library + jsdom being installed and configured (`src/test/setup.ts`):
   handling are both unit-tested in isolation, but whether the badge visually
   avoids reflow and whether capture-phase `stopPropagation` actually beats
   Base UI's own arrow-key handling in a real DOM are browser-verified only.
+- Everything `components/icons/HoverIcon.tsx` does: that its `closest()` walk
+  finds the right control, that the enlarged `before:-inset-2` hit area and a
+  text+icon button's label both drive the glyph, that pointer and focus compose
+  on the rising edge, and that `useReducedMotion()` holds the icon still. None
+  of it is reachable without layout and `requestAnimationFrame` — jsdom has
+  neither — so it is browser-verified only, and a regression is silent: the
+  icon simply stops animating while typecheck, lint and tests stay green. Note
+  that a browser is not automatically enough either. A tab whose window is
+  occluded reports `visibilityState: "hidden"`, which freezes rAF and makes
+  every icon read as broken no matter what the code does; verify in a browser
+  that is actually on screen, or drive one with Playwright (whose browser is
+  never occluded, and which takes `reducedMotion: 'reduce'` as a context option
+  rather than needing a `matchMedia` shim).
 
 If component-level automated coverage is added later, these are the
 remaining highest-value targets: drag-and-drop/click-suppression behavior
@@ -503,7 +536,55 @@ broken image URL, a dashboard with a background, and an empty dashboard.
   re-deriving it; `ConfirmDialog.tsx` shows the variant that needs to know
   *which* outcome closed it. Call sites are unaffected — they still
   mount/unmount on their own boolean exactly as before.
-- **Reduced motion is enforced by two mechanisms, and the CSS one
+- **An animated icon's own `trigger="hover"` is silently inert on every control
+  in this app.** The phosphor-animated runtime attaches `onMouseEnter`/
+  `onMouseLeave` to its `<motion.svg>` root, and `ui/button.tsx` plus the
+  dropdown-menu item classes both set `[&_svg]:pointer-events-none` — so the
+  icon never sees a hover. It compiles, lints and tests green while doing
+  nothing. Even with pointer events restored the glyph is the wrong target: an
+  icon-only button is mostly padding (and, at `icon-xs`, a `before:-inset-2`
+  enlarged hit area), and a text+icon button like "Add link" is mostly not the
+  glyph. `components/icons/HoverIcon.tsx` is the fix and the only supported way
+  to use these icons: it renders with `trigger="none"`, holds the runtime's
+  `AnimatedIconHandle`, and binds pointer/focus listeners to the nearest
+  interactive ancestor (`closest('button, a, [role="menuitem"]')`). Two details
+  of it are load-bearing:
+  - It wraps the icon in a `<span className="contents">` purely to have a DOM
+    node to run `closest()` from — the icon's own ref is the imperative handle,
+    not an element. `display: contents` keeps the `<svg>` the control's own
+    layout child, so `[&_svg:not([class*='size-'])]:size-4`, the
+    `has-data-[icon=…]` padding rules and the flex `gap` all behave as before.
+  - Pointer and focus are tracked separately and the icon plays on the rising
+    edge of "either holds the control". Toggling on each event instead lets a
+    `pointerleave` cut short an animation the control still has focus for, and
+    latches the icon active after a menu closes back onto its own trigger —
+    which makes the *next* hover a silent no-op, since `play()` only animates
+    on a state change.
+- **`animated-icon.tsx` is deliberately edited away from what the registry
+  generates, and re-running `shadcn add` would silently undo it.** Upstream
+  imports the full `motion` proxy; this copy imports `m` from `motion/react-m`
+  and wraps each icon in `<LazyMotion features={loadMotionFeatures} strict>`,
+  which moves Motion's DOM feature bundle (`motion-features.ts`) into its own
+  async chunk. That is worth 76 kB off the initial chunk — 850.70 kB → 774.33 kB
+  raw, 271.75 kB → 248.93 kB gzipped, against a 37.59 kB (14.22 kB gzipped)
+  chunk that loads after first paint. It is the right trade here specifically
+  because this is a new-tab page that loads fresh on every tab open, and an icon
+  cannot be hovered before the page has loaded. Two traps:
+  - Adding another icon runs `shadcn add`, which offers to overwrite
+    `animated-icon.tsx` and restore the eager import. Nothing would fail — the
+    icons still animate — the bundle just quietly grows back. Decline that
+    overwrite, or re-apply the split afterwards.
+  - `strict` is what keeps the split honest: a full `motion.*` component
+    rendered inside `LazyMotion` throws instead of pulling the whole library
+    back in. Without it that regression is invisible too. `domAnimation` covers
+    animations, variants, exit and gestures; nothing here needs `domMax`'s
+    layout animations or drag.
+
+  `LazyMotion` renders only a context provider, no DOM element, so wrapping each
+  icon individually costs no layout — which is what lets the icons stay
+  self-contained rather than depending on a provider mounted somewhere up in
+  `App.tsx`.
+- **Reduced motion is enforced by three mechanisms, and the CSS one
   deliberately has a hole.** `src/index.css`'s
   `@media (prefers-reduced-motion: reduce)` block zeroes tw-animate-css's
   `--tw-enter-*`/`--tw-exit-*` variables, which covers every `animate-in`/
@@ -513,7 +594,10 @@ broken image URL, a dashboard with a background, and an empty dashboard.
   any `scale-*`/`translate-*` utility written outside tw-animate-css must
   carry a `motion-safe:` prefix itself. Nothing enforces that: an
   unprefixed `active:scale-*` ships motion to reduced-motion users and
-  passes typecheck, lint, and tests.
+  passes typecheck, lint, and tests. The third mechanism is JS-side and covers
+  the animated icons: `animated-icon.tsx` calls Motion's `useReducedMotion()`
+  and pins the icon to its rest state, so `HoverIcon`'s `play()` is a no-op
+  under the preference and no `motion-safe:` prefix is involved.
 - **`hotkeys-js` latches its `capture` flag on the first binding registered
   per element, not per binding.** `elementEventMap` short-circuits listener
   registration for an element it's already seen, so a later

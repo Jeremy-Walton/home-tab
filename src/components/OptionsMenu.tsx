@@ -1,5 +1,6 @@
-import { DotsThreeVerticalIcon } from '@phosphor-icons/react'
 import { cn } from '../lib/utils'
+import { HoverIcon } from './icons/HoverIcon'
+import { DotsThree } from './icons/dots-three'
 import { Button } from './ui/button'
 import {
   DropdownMenu,
@@ -20,7 +21,8 @@ interface OptionsMenuProps {
 }
 
 /**
- * The shared three-dot (kebab) trigger: a tooltip'd dropdown-menu button.
+ * The shared options trigger: a tooltip'd dropdown-menu button drawn as a
+ * horizontal three-dot glyph — that is the orientation the animated set ships.
  * Owns the trigger shell; callers supply the menu items as children.
  */
 export function OptionsMenu({
@@ -51,7 +53,7 @@ export function OptionsMenu({
                   )}
                   onClick={onTriggerClick}
                 >
-                  <DotsThreeVerticalIcon weight="bold" />
+                  <HoverIcon icon={DotsThree} weight="light" />
                 </Button>
               }
             />

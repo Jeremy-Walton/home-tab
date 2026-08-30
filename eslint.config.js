@@ -20,7 +20,8 @@ export default defineConfig([
     },
   },
   {
-    files: ['src/components/ui/**/*.tsx'],
+    // Registry-generated files: geometry/variant data ships alongside the component.
+    files: ['src/components/ui/**/*.tsx', 'src/components/icons/**/*.tsx'],
     rules: {
       'react-refresh/only-export-components': 'off',
     },
