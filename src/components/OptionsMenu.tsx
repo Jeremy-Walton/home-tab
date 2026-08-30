@@ -2,11 +2,7 @@ import { cn } from '../lib/utils'
 import { HoverIcon } from './icons/HoverIcon'
 import { DotsThree } from './icons/dots-three'
 import { Button } from './ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from './ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
 
 interface OptionsMenuProps {
@@ -47,8 +43,7 @@ export function OptionsMenu({
                   size={size}
                   aria-label={label}
                   className={cn(
-                    revealOnHover &&
-                      'opacity-0 transition-opacity group-hover:opacity-100',
+                    revealOnHover && 'opacity-0 transition-opacity group-hover:opacity-100',
                     triggerClassName,
                   )}
                   onClick={onTriggerClick}

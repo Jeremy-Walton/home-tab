@@ -62,9 +62,7 @@ function Dashboard() {
           )}
         </div>
       </div>
-      {editingLink && (
-        <LinkEditModal link={editingLink} onClose={() => setEditingLinkId(null)} />
-      )}
+      {editingLink && <LinkEditModal link={editingLink} onClose={() => setEditingLinkId(null)} />}
       {showShortcuts && <ShortcutsDialog onClose={() => setShowShortcuts(false)} />}
       <div className="pointer-events-none fixed bottom-2 left-3 flex items-center gap-1.5 text-xs text-white/70">
         <Kbd className="border-white/20 bg-black/40 text-white">?</Kbd>

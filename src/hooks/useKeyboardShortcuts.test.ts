@@ -190,7 +190,12 @@ describe('useKeyboardShortcuts — cycling', () => {
       }),
     )
 
-    fireEvent.keyDown(document, { key: 'ArrowRight', code: 'ArrowRight', keyCode: 39, altKey: true })
+    fireEvent.keyDown(document, {
+      key: 'ArrowRight',
+      code: 'ArrowRight',
+      keyCode: 39,
+      altKey: true,
+    })
 
     expect(setActiveDashboardId).toHaveBeenCalledWith('dash-1')
   })
@@ -250,7 +255,12 @@ describe('useKeyboardShortcuts — cycling', () => {
       }),
     )
 
-    fireEvent.keyDown(document, { key: 'ArrowRight', code: 'ArrowRight', keyCode: 39, altKey: true })
+    fireEvent.keyDown(document, {
+      key: 'ArrowRight',
+      code: 'ArrowRight',
+      keyCode: 39,
+      altKey: true,
+    })
 
     expect(setActiveDashboardId).not.toHaveBeenCalled()
   })

@@ -52,7 +52,10 @@ export function useLinkDragAndDrop(activeDashboardId: string | null, activeLinks
     const [moved] = reordered.splice(fromIndex, 1)
     reordered.splice(toIndex, 0, moved)
 
-    void reorderLinks(activeDashboardId, reordered.map((l) => l.id))
+    void reorderLinks(
+      activeDashboardId,
+      reordered.map((l) => l.id),
+    )
   }
 
   return { sensors, handleDragStart, handleDragEnd }

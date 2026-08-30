@@ -1,5 +1,9 @@
 import { useState } from 'react'
-import { defaultAnimateLayoutChanges, useSortable, type AnimateLayoutChanges } from '@dnd-kit/sortable'
+import {
+  defaultAnimateLayoutChanges,
+  useSortable,
+  type AnimateLayoutChanges,
+} from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useAppState } from '../context/useAppState'
 import { ConfirmDialog } from './ConfirmDialog'
@@ -46,7 +50,13 @@ export function LinkTile({ link }: { link: Link }) {
   }
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="group relative w-56">
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="group relative w-56"
+    >
       {/* Press feedback keys off the full-bleed <a>: the options button is painted
           over it, not inside it, so pressing that button can't match. */}
       <AspectRatio

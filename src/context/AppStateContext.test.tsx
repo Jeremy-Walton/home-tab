@@ -111,8 +111,20 @@ describe('bootstrap', () => {
 describe('mutations', () => {
   it('addLink appends with the next order', async () => {
     await testDb.dashboards.insert({ id: 'd1', name: 'D1', order: 0, createdAt: 1 })
-    await testDb.links.insert({ id: 'l1', dashboardId: 'd1', order: 0, title: 'A', url: 'https://a.com' })
-    await testDb.links.insert({ id: 'l2', dashboardId: 'd1', order: 1, title: 'B', url: 'https://b.com' })
+    await testDb.links.insert({
+      id: 'l1',
+      dashboardId: 'd1',
+      order: 0,
+      title: 'A',
+      url: 'https://a.com',
+    })
+    await testDb.links.insert({
+      id: 'l2',
+      dashboardId: 'd1',
+      order: 1,
+      title: 'B',
+      url: 'https://b.com',
+    })
 
     const { result } = await readyAppState()
     await waitFor(() => expect(result.current.links).toHaveLength(2))
@@ -131,9 +143,27 @@ describe('mutations', () => {
 
   it('reorderLinks persists the new order', async () => {
     await testDb.dashboards.insert({ id: 'd1', name: 'D1', order: 0, createdAt: 1 })
-    await testDb.links.insert({ id: 'l1', dashboardId: 'd1', order: 0, title: 'A', url: 'https://a.com' })
-    await testDb.links.insert({ id: 'l2', dashboardId: 'd1', order: 1, title: 'B', url: 'https://b.com' })
-    await testDb.links.insert({ id: 'l3', dashboardId: 'd1', order: 2, title: 'C', url: 'https://c.com' })
+    await testDb.links.insert({
+      id: 'l1',
+      dashboardId: 'd1',
+      order: 0,
+      title: 'A',
+      url: 'https://a.com',
+    })
+    await testDb.links.insert({
+      id: 'l2',
+      dashboardId: 'd1',
+      order: 1,
+      title: 'B',
+      url: 'https://b.com',
+    })
+    await testDb.links.insert({
+      id: 'l3',
+      dashboardId: 'd1',
+      order: 2,
+      title: 'C',
+      url: 'https://c.com',
+    })
 
     const { result } = await readyAppState()
     await waitFor(() => expect(result.current.links).toHaveLength(3))
@@ -157,9 +187,27 @@ describe('mutations', () => {
   it("reorderLinks leaves other dashboards' links untouched", async () => {
     await testDb.dashboards.insert({ id: 'd1', name: 'D1', order: 0, createdAt: 1 })
     await testDb.dashboards.insert({ id: 'd2', name: 'D2', order: 1, createdAt: 2 })
-    await testDb.links.insert({ id: 'l1', dashboardId: 'd1', order: 0, title: 'A', url: 'https://a.com' })
-    await testDb.links.insert({ id: 'l2', dashboardId: 'd1', order: 1, title: 'B', url: 'https://b.com' })
-    await testDb.links.insert({ id: 'l9', dashboardId: 'd2', order: 0, title: 'Z', url: 'https://z.com' })
+    await testDb.links.insert({
+      id: 'l1',
+      dashboardId: 'd1',
+      order: 0,
+      title: 'A',
+      url: 'https://a.com',
+    })
+    await testDb.links.insert({
+      id: 'l2',
+      dashboardId: 'd1',
+      order: 1,
+      title: 'B',
+      url: 'https://b.com',
+    })
+    await testDb.links.insert({
+      id: 'l9',
+      dashboardId: 'd2',
+      order: 0,
+      title: 'Z',
+      url: 'https://z.com',
+    })
 
     const { result } = await readyAppState()
     await waitFor(() => expect(result.current.links).toHaveLength(3))
@@ -178,8 +226,20 @@ describe('mutations', () => {
   it('moveLinkToDashboard appends to the end of the target dashboard', async () => {
     await testDb.dashboards.insert({ id: 'd1', name: 'D1', order: 0, createdAt: 1 })
     await testDb.dashboards.insert({ id: 'd2', name: 'D2', order: 1, createdAt: 2 })
-    await testDb.links.insert({ id: 'l1', dashboardId: 'd1', order: 0, title: 'A', url: 'https://a.com' })
-    await testDb.links.insert({ id: 'l2', dashboardId: 'd2', order: 0, title: 'B', url: 'https://b.com' })
+    await testDb.links.insert({
+      id: 'l1',
+      dashboardId: 'd1',
+      order: 0,
+      title: 'A',
+      url: 'https://a.com',
+    })
+    await testDb.links.insert({
+      id: 'l2',
+      dashboardId: 'd2',
+      order: 0,
+      title: 'B',
+      url: 'https://b.com',
+    })
 
     const { result } = await readyAppState()
     await waitFor(() => expect(result.current.links).toHaveLength(2))
@@ -199,8 +259,20 @@ describe('mutations', () => {
   it('deleteDashboard cascades link deletion', async () => {
     await testDb.dashboards.insert({ id: 'd1', name: 'D1', order: 0, createdAt: 1 })
     await testDb.dashboards.insert({ id: 'd2', name: 'D2', order: 1, createdAt: 2 })
-    await testDb.links.insert({ id: 'l1', dashboardId: 'd1', order: 0, title: 'A', url: 'https://a.com' })
-    await testDb.links.insert({ id: 'l2', dashboardId: 'd1', order: 1, title: 'B', url: 'https://b.com' })
+    await testDb.links.insert({
+      id: 'l1',
+      dashboardId: 'd1',
+      order: 0,
+      title: 'A',
+      url: 'https://a.com',
+    })
+    await testDb.links.insert({
+      id: 'l2',
+      dashboardId: 'd1',
+      order: 1,
+      title: 'B',
+      url: 'https://b.com',
+    })
 
     const { result } = await readyAppState()
     await waitFor(() => expect(result.current.dashboards).toHaveLength(2))
@@ -228,7 +300,13 @@ describe('mutations', () => {
 
   it('updateLink normalizes scheme-less URLs', async () => {
     await testDb.dashboards.insert({ id: 'd1', name: 'D1', order: 0, createdAt: 1 })
-    await testDb.links.insert({ id: 'l1', dashboardId: 'd1', order: 0, title: 'A', url: 'https://a.com' })
+    await testDb.links.insert({
+      id: 'l1',
+      dashboardId: 'd1',
+      order: 0,
+      title: 'A',
+      url: 'https://a.com',
+    })
 
     const { result } = await readyAppState()
     await waitFor(() => expect(result.current.links).toHaveLength(1))
@@ -254,9 +332,7 @@ describe('importState', () => {
 
     const summary = await result.current.importState({
       dashboards: [{ id: 'd1', name: 'Imported D', order: 1, createdAt: 2 }],
-      links: [
-        { id: 'l1', dashboardId: 'd1', order: 0, title: 'A', url: 'https://a.com' },
-      ],
+      links: [{ id: 'l1', dashboardId: 'd1', order: 0, title: 'A', url: 'https://a.com' }],
       activeDashboardId: 'd1',
     })
 
@@ -278,9 +354,9 @@ describe('importState', () => {
     const { result } = await readyAppState()
     await waitFor(() => expect(result.current.dashboards).toHaveLength(1))
 
-    await expect(
-      result.current.importState({ dashboards: 'x', links: [] }),
-    ).rejects.toThrow('Unrecognized import file format.')
+    await expect(result.current.importState({ dashboards: 'x', links: [] })).rejects.toThrow(
+      'Unrecognized import file format.',
+    )
 
     const dashboards = await testDb.dashboards.find().exec()
     expect(dashboards).toHaveLength(1)

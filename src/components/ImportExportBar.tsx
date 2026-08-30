@@ -79,9 +79,7 @@ export function ImportExportBar({ className }: { className?: string }) {
     <div className={cn(className)}>
       <OptionsMenu label="Import / export" variant="ghost" size="icon-sm" align="end">
         <DropdownMenuItem onClick={handleExport}>Export</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
-          Import
-        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>Import</DropdownMenuItem>
       </OptionsMenu>
       <input
         ref={fileInputRef}

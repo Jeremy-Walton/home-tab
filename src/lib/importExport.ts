@@ -128,7 +128,6 @@ export function sanitizeExportedState(state: ExportedState): ExportedState {
   return {
     dashboards,
     links,
-    activeDashboardId:
-      typeof state.activeDashboardId === 'string' ? state.activeDashboardId : null,
+    activeDashboardId: typeof state.activeDashboardId === 'string' ? state.activeDashboardId : null,
   }
 }

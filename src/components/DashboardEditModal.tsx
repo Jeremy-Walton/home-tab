@@ -15,9 +15,7 @@ export function DashboardEditModal({
 }) {
   const { updateDashboard } = useAppState()
   const [name, setName] = useState(dashboard.name)
-  const [backgroundImageUrl, setBackgroundImageUrl] = useState(
-    dashboard.backgroundImageUrl ?? '',
-  )
+  const [backgroundImageUrl, setBackgroundImageUrl] = useState(dashboard.backgroundImageUrl ?? '')
   const [backgroundError, setBackgroundError] = useState<string | null>(null)
 
   return (

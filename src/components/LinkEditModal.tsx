@@ -20,9 +20,7 @@ export function LinkEditModal({ link, onClose }: { link: Link; onClose: () => vo
       onClose={onClose}
       onSave={async () => {
         const normalizedUrl = normalizeUrl(url)
-        const nextUrlError = isSafeHref(normalizedUrl)
-          ? null
-          : 'Enter a valid URL (http or https).'
+        const nextUrlError = isSafeHref(normalizedUrl) ? null : 'Enter a valid URL (http or https).'
         const nextBackgroundError =
           backgroundImageUrl.trim() === '' || isSafeHref(normalizeUrl(backgroundImageUrl))
             ? null

@@ -55,8 +55,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [db, setDb] = useState<AppDatabase | null>(null)
   const [dashboards, setDashboards] = useState<Dashboard[]>([])
   const [links, setLinks] = useState<Link[]>([])
-  const [activeDashboardId, setActiveDashboardIdState] = useState<string | null>(
-    () => localStorage.getItem(ACTIVE_DASHBOARD_KEY),
+  const [activeDashboardId, setActiveDashboardIdState] = useState<string | null>(() =>
+    localStorage.getItem(ACTIVE_DASHBOARD_KEY),
   )
   const [ready, setReady] = useState(false)
 
@@ -74,12 +74,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       // persisted IndexedDB data has actually loaded. Only flip `ready`
       // once dashboards have emitted for real, so the bootstrap effect
       // below never mistakes "not loaded yet" for "no dashboards exist".
-      dashboardsSub = database.dashboards
-        .find({ sort: [{ order: 'asc' }] })
-        .$.subscribe((docs) => {
-          setDashboards(docs.map((d) => d.toJSON()))
-          setReady(true)
-        })
+      dashboardsSub = database.dashboards.find({ sort: [{ order: 'asc' }] }).$.subscribe((docs) => {
+        setDashboards(docs.map((d) => d.toJSON()))
+        setReady(true)
+      })
       linksSub = database.links.find().$.subscribe((docs) => {
         if (reorderInFlightRef.current) return
         const next = docs.map((d) => d.toJSON())

@@ -1,12 +1,6 @@
 import { useClosingDialog } from '../hooks/useClosingDialog'
 import { Button } from './ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from './ui/dialog'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog'
 import { FieldGroup } from './ui/field'
 
 interface EditDialogProps {
