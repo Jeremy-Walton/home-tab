@@ -179,8 +179,8 @@ Two distinct version concepts, kept separate:
   `Navbar.tsx`, `DashboardTabs.tsx` (tab strip + per-tab options menu +
   held-⌥ digit badges), `DashboardGrid.tsx` (grid/empty-state switch +
   sortable context), `LinkTile.tsx`, `EmptyState.tsx`, `OptionsMenu.tsx` (the
-  shared three-dot/kebab trigger: a tooltip'd dropdown-menu button; callers
-  pass the menu items as children), `EntityOptionsMenu.tsx` (`OptionsMenu` +
+  shared options trigger: a tooltip'd dropdown-menu button drawn as a
+  horizontal three-dot glyph; callers pass the menu items as children), `EntityOptionsMenu.tsx` (`OptionsMenu` +
   the Edit/Move/Delete item set used by both dashboards and links),
   `ConfirmDialog.tsx` (shared delete-confirmation), `EditDialog.tsx`
   (shared edit-modal shell), `LinkEditModal.tsx`/`DashboardEditModal.tsx`

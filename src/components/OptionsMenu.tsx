@@ -21,8 +21,8 @@ interface OptionsMenuProps {
 }
 
 /**
- * The shared three-dot (kebab) trigger: a tooltip'd dropdown-menu button.
- * Horizontal, not vertical — that is the orientation the animated set ships.
+ * The shared options trigger: a tooltip'd dropdown-menu button drawn as a
+ * horizontal three-dot glyph — that is the orientation the animated set ships.
  * Owns the trigger shell; callers supply the menu items as children.
  */
 export function OptionsMenu({

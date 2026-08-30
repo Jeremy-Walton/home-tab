@@ -300,10 +300,18 @@ export const AnimatedIcon = React.forwardRef<AnimatedIconHandle, InternalProps>(
   ) {
     const reduced = useReducedMotion();
     const [active, setActive] = React.useState(false);
+    // `trigger="click"` has no matching "up" event, so it schedules its own reset.
+    // Held here so a second click replaces the pending reset instead of racing it.
+    const clickResetRef = React.useRef<number | undefined>(undefined);
+
+    React.useEffect(() => () => window.clearTimeout(clickResetRef.current), []);
 
     React.useImperativeHandle(ref, () => ({
       play: () => setActive(true),
-      stop: () => setActive(false),
+      stop: () => {
+        window.clearTimeout(clickResetRef.current);
+        setActive(false);
+      },
     }), []);
 
     const { parts, map, backdrop, divergent } = resolveWeight(spec.geometry, weight);
@@ -359,7 +367,11 @@ export const AnimatedIcon = React.forwardRef<AnimatedIconHandle, InternalProps>(
       onClick: (e: React.MouseEvent<SVGSVGElement>) => {
         if (trigger === "click") {
           setActive(true);
-          window.setTimeout(() => setActive(false), (duration / (speed || 1)) * 1000 + 60);
+          window.clearTimeout(clickResetRef.current);
+          clickResetRef.current = window.setTimeout(
+            () => setActive(false),
+            (duration / (speed || 1)) * 1000 + 60,
+          );
         }
         onClick?.(e);
       },
