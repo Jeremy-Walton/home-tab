@@ -1,27 +1,32 @@
-import { useState } from 'react'
-import { defaultAnimateLayoutChanges, useSortable, type AnimateLayoutChanges } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import { useAppState } from '../context/useAppState'
-import { ConfirmDialog } from './ConfirmDialog'
-import { EntityOptionsMenu } from './EntityOptionsMenu'
-import { LinkEditModal } from './LinkEditModal'
-import { AspectRatio } from './ui/aspect-ratio'
-import { Badge } from './ui/badge'
-import { cn } from '../lib/utils'
-import { isSafeHref } from '../lib/url'
-import type { Link } from '../types'
+import {
+  defaultAnimateLayoutChanges,
+  useSortable,
+  type AnimateLayoutChanges,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { useState } from "react";
+
+import { useAppState } from "../context/useAppState";
+import { isSafeHref } from "../lib/url";
+import { cn } from "../lib/utils";
+import type { Link } from "../types";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { EntityOptionsMenu } from "./EntityOptionsMenu";
+import { LinkEditModal } from "./LinkEditModal";
+import { AspectRatio } from "./ui/aspect-ratio";
+import { Badge } from "./ui/badge";
 
 const animateLayoutChanges: AnimateLayoutChanges = (args) =>
-  args.wasDragging ? false : defaultAnimateLayoutChanges(args)
+  args.wasDragging ? false : defaultAnimateLayoutChanges(args);
 
 export function LinkTile({ link }: { link: Link }) {
-  const { dashboards, deleteLink, moveLinkToDashboard } = useAppState()
+  const { dashboards, deleteLink, moveLinkToDashboard } = useAppState();
   // Tracked as URLs rather than booleans so that editing a tile's image
   // invalidates the previous image's load/error result instead of inheriting it.
-  const [failedUrl, setFailedUrl] = useState<string>()
-  const [loadedUrl, setLoadedUrl] = useState<string>()
-  const [editing, setEditing] = useState(false)
-  const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [failedUrl, setFailedUrl] = useState<string>();
+  const [loadedUrl, setLoadedUrl] = useState<string>();
+  const [editing, setEditing] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: link.id,
@@ -31,22 +36,28 @@ export function LinkTile({ link }: { link: Link }) {
     // instantly once a drag just ended -- while keeping the live
     // drag-preview reorder animation (which works correctly) untouched.
     animateLayoutChanges,
-  })
+  });
 
-  const imageUrl = link.backgroundImageUrl
-  const showImage = imageUrl && failedUrl !== imageUrl
-  const imageLoaded = loadedUrl === imageUrl
+  const imageUrl = link.backgroundImageUrl;
+  const showImage = imageUrl && failedUrl !== imageUrl;
+  const imageLoaded = loadedUrl === imageUrl;
 
   const style = {
     transform: CSS.Translate.toString(transform),
     // dnd-kit's own `transition` only covers `transform`, never opacity.
-    transition: [transition, 'opacity 150ms var(--ease-out-strong)'].filter(Boolean).join(', '),
+    transition: [transition, "opacity 150ms var(--ease-out-strong)"].filter(Boolean).join(", "),
     opacity: isDragging ? 0.5 : 1,
     viewTransitionName: `link-${link.id}`,
-  }
+  };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="group relative w-56">
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="group relative w-56"
+    >
       {/* Press feedback keys off the full-bleed <a>: the options button is painted
           over it, not inside it, so pressing that button can't match. */}
       <AspectRatio
@@ -57,14 +68,14 @@ export function LinkTile({ link }: { link: Link }) {
           <img
             ref={(node) => {
               // A cached image can finish loading before React attaches onLoad.
-              if (node?.complete) setLoadedUrl(imageUrl)
+              if (node?.complete) setLoadedUrl(imageUrl);
             }}
             src={imageUrl}
             alt=""
             draggable={false}
             className={cn(
-              'absolute inset-0 size-full object-cover transition-opacity duration-200 ease-out-strong',
-              imageLoaded ? 'opacity-100' : 'opacity-0',
+              "absolute inset-0 size-full object-cover transition-opacity duration-200 ease-out-strong",
+              imageLoaded ? "opacity-100" : "opacity-0",
             )}
             onLoad={() => setLoadedUrl(imageUrl)}
             onError={() => setFailedUrl(imageUrl)}
@@ -76,10 +87,10 @@ export function LinkTile({ link }: { link: Link }) {
           draggable={false}
           className="absolute inset-0 flex items-end p-2"
         >
-          <Badge variant="overlay">{link.title || 'Untitled'}</Badge>
+          <Badge variant="overlay">{link.title || "Untitled"}</Badge>
         </a>
 
-        <div className="absolute right-1 top-1">
+        <div className="absolute top-1 right-1">
           <EntityOptionsMenu
             label="Link options"
             variant="secondary"
@@ -101,14 +112,14 @@ export function LinkTile({ link }: { link: Link }) {
 
       {confirmingDelete && (
         <ConfirmDialog
-          message={`Delete "${link.title || 'this link'}"?`}
+          message={`Delete "${link.title || "this link"}"?`}
           onConfirm={() => {
-            void deleteLink(link.id)
-            setConfirmingDelete(false)
+            void deleteLink(link.id);
+            setConfirmingDelete(false);
           }}
           onCancel={() => setConfirmingDelete(false)}
         />
       )}
     </div>
-  )
+  );
 }

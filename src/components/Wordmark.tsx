@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils'
+import { cn } from "@/lib/utils";
 
 export function Wordmark({ className }: { className?: string }) {
   return (
@@ -6,7 +6,7 @@ export function Wordmark({ className }: { className?: string }) {
       viewBox="0 0 537 100"
       role="img"
       aria-label="LaunchTabs"
-      className={cn('h-5 w-auto', className)}
+      className={cn("h-5 w-auto", className)}
     >
       <text
         x="0"
@@ -23,5 +23,5 @@ export function Wordmark({ className }: { className?: string }) {
         </tspan>
       </text>
     </svg>
-  )
+  );
 }

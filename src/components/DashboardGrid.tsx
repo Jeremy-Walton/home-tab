@@ -1,18 +1,19 @@
-import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable'
-import { LinkTile } from './LinkTile'
-import { EmptyState } from './EmptyState'
-import { HoverIcon } from './icons/HoverIcon'
-import { Plus } from './icons/plus'
-import type { Link } from '../types'
+import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
+
+import type { Link } from "../types";
+import { EmptyState } from "./EmptyState";
+import { HoverIcon } from "./icons/HoverIcon";
+import { Plus } from "./icons/plus";
+import { LinkTile } from "./LinkTile";
 
 interface DashboardGridProps {
-  links: Link[]
-  backgroundImageUrl?: string
-  onAddLink: () => void
+  links: Link[];
+  backgroundImageUrl?: string;
+  onAddLink: () => void;
 }
 
 export function DashboardGrid({ links, backgroundImageUrl, onAddLink }: DashboardGridProps) {
-  const sorted = [...links].sort((a, b) => a.order - b.order)
+  const sorted = [...links].sort((a, b) => a.order - b.order);
 
   return (
     <div
@@ -40,5 +41,5 @@ export function DashboardGrid({ links, backgroundImageUrl, onAddLink }: Dashboar
         </SortableContext>
       )}
     </div>
-  )
+  );
 }

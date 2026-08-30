@@ -9,11 +9,7 @@
  * the keyframes below are ordinary data, so retune or replace them freely.
  */
 
-import {
-  createAnimatedIcon,
-  type Choreography,
-  type IconGeometry,
-} from "./animated-icon";
+import { createAnimatedIcon, type Choreography, type IconGeometry } from "./animated-icon";
 
 const GEOMETRY: IconGeometry = {
   regular: [
@@ -34,33 +30,25 @@ const STROKE: Choreography = {
       pathLength: [0, 1],
       opacity: [0, 1],
       duration: 0.544,
-      ease: [0.65, 0, 0.35, 1]
+      ease: [0.65, 0, 0.35, 1],
     },
     1: {
       pathLength: [0, 1],
       opacity: [0, 1],
       duration: 0.544,
       ease: [0.65, 0, 0.35, 1],
-      delay: 0.288
-    }
+      delay: 0.288,
+    },
   },
   whole: {
     scale: [1, 1, 1.05, 1],
     origin: [128, 128],
     duration: 1.264,
-    ease: [
-      "linear",
-      [0.23, 1, 0.32, 1],
-      [0.23, 1, 0.32, 1]
-    ],
-    times: [0, 0.72, 0.86, 1]
-  }
+    ease: ["linear", [0.23, 1, 0.32, 1], [0.23, 1, 0.32, 1]],
+    times: [0, 0.72, 0.86, 1],
+  },
 };
 
-export const X = createAnimatedIcon(
-  "X",
-  GEOMETRY,
-  STROKE,
-);
+export const X = createAnimatedIcon("X", GEOMETRY, STROKE);
 
 export default X;

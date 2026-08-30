@@ -1,0 +1,17 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "sortImports": true,
+  "sortTailwindcss": {
+    "stylesheet": "src/index.css",
+    "functions": ["cn", "cva"]
+  },
+  "ignorePatterns": [
+    "**/*.md",
+    ".agents/**",
+    ".claude/**",
+    ".github/**",
+    "docs/**",
+    "signaling/**",
+    "skills-lock.json"
+  ]
+}

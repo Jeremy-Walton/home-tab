@@ -6,6 +6,6 @@
  * icons use. Widening this to `domMax` (layout animations, drag) would grow the
  * chunk for features no icon needs.
  */
-import { domAnimation } from "motion/react"
+import { domAnimation } from "motion/react";
 
-export default domAnimation
+export default domAnimation;

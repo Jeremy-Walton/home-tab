@@ -19,8 +19,6 @@
  * redrawn the same way at duotone and use that path too.
  */
 
-import * as React from "react";
-import * as m from "motion/react-m";
 import {
   LazyMotion,
   useReducedMotion,
@@ -28,6 +26,8 @@ import {
   type Transition,
   type Variants,
 } from "motion/react";
+import * as m from "motion/react-m";
+import * as React from "react";
 
 /**
  * Motion ships as `m` (render only) plus a feature bundle loaded by `LazyMotion`,
@@ -43,7 +43,11 @@ export const WEIGHTS = ["thin", "light", "regular", "bold", "duotone"] as const;
 export type Weight = (typeof WEIGHTS)[number];
 
 export const STROKE_WIDTH: Record<Weight, number> = {
-  thin: 8, light: 12, regular: 16, bold: 24, duotone: 16,
+  thin: 8,
+  light: 12,
+  regular: 16,
+  bold: 24,
+  duotone: 16,
 };
 
 /** A drawn element: tag plus its geometry attributes. */
@@ -136,8 +140,12 @@ export type AnimatedIconHandle = {
 export type AnimatedIconProps = Omit<
   React.SVGProps<SVGSVGElement>,
   | "ref"
-  | "onAnimationStart" | "onAnimationEnd" | "onAnimationIteration"
-  | "onDrag" | "onDragStart" | "onDragEnd"
+  | "onAnimationStart"
+  | "onAnimationEnd"
+  | "onAnimationIteration"
+  | "onDrag"
+  | "onDragStart"
+  | "onDragEnd"
   // SVG's `values` is a string attribute; Motion's is a MotionValue map.
   | "values"
 > & {
@@ -175,10 +183,26 @@ type InternalProps = AnimatedIconProps & { spec: IconSpec };
 
 const DEFAULT_DURATION = 0.96;
 const IDENTITY: Record<string, number> = {
-  rotate: 0, scale: 1, scaleX: 1, scaleY: 1, x: 0, y: 0, opacity: 1, pathLength: 1,
+  rotate: 0,
+  scale: 1,
+  scaleX: 1,
+  scaleY: 1,
+  x: 0,
+  y: 0,
+  opacity: 1,
+  pathLength: 1,
 };
 
-const ANIMATABLE = ["rotate", "scale", "scaleX", "scaleY", "x", "y", "opacity", "pathLength"] as const;
+const ANIMATABLE = [
+  "rotate",
+  "scale",
+  "scaleX",
+  "scaleY",
+  "x",
+  "y",
+  "opacity",
+  "pathLength",
+] as const;
 
 /**
  * Build Motion variants for one part.
@@ -209,13 +233,13 @@ function buildVariants(
   const loop = repeat ? { repeat: Infinity, repeatDelay: 0.45 / (speed || 1) } : {};
 
   if (anim.spring) {
-    const { velocity, ...rest } = anim.spring;
+    const { velocity, ...springOptions } = anim.spring;
     active.transition = {
       type: "spring",
       stiffness: 220,
       damping: 14,
       mass: 1,
-      ...rest,
+      ...springOptions,
       ...(velocity !== undefined ? { velocity: velocity * (speed || 1) } : {}),
       delay,
       ...loop,
@@ -270,8 +294,7 @@ function originStyle(anim: PartAnimation): MotionStyle {
  */
 export function resolveWeight(geometry: IconGeometry, weight: Weight) {
   const divergent = geometry.divergent?.includes(weight) ?? false;
-  const parts =
-    (weight === "regular" ? geometry.regular : geometry[weight]) ?? geometry.regular;
+  const parts = (weight === "regular" ? geometry.regular : geometry[weight]) ?? geometry.regular;
   const map = geometry.maps?.[weight];
   const backdrop = geometry.backdrop?.[weight];
   return { parts, map, backdrop, divergent };
@@ -281,8 +304,14 @@ export const AnimatedIcon = React.forwardRef<AnimatedIconHandle, InternalProps>(
   function AnimatedIcon(
     {
       spec,
-      size = 24, weight = "regular", trigger = "hover", speed = 1,
-      onMouseEnter, onMouseLeave, onClick, style,
+      size = 24,
+      weight = "regular",
+      trigger = "hover",
+      speed = 1,
+      onMouseEnter,
+      onMouseLeave,
+      onClick,
+      style,
       /**
        * Defaulted here rather than written straight onto the <svg>, because the
        * attributes below sit before `{...rest}`: a caller who passes
@@ -306,13 +335,17 @@ export const AnimatedIcon = React.forwardRef<AnimatedIconHandle, InternalProps>(
 
     React.useEffect(() => () => window.clearTimeout(clickResetRef.current), []);
 
-    React.useImperativeHandle(ref, () => ({
-      play: () => setActive(true),
-      stop: () => {
-        window.clearTimeout(clickResetRef.current);
-        setActive(false);
-      },
-    }), []);
+    React.useImperativeHandle(
+      ref,
+      () => ({
+        play: () => setActive(true),
+        stop: () => {
+          window.clearTimeout(clickResetRef.current);
+          setActive(false);
+        },
+      }),
+      [],
+    );
 
     const { parts, map, backdrop, divergent } = resolveWeight(spec.geometry, weight);
     const choreo = spec.stroke;
@@ -380,15 +413,18 @@ export const AnimatedIcon = React.forwardRef<AnimatedIconHandle, InternalProps>(
     const drawing = (
       <>
         {backdrop?.map(([tag, attrs], i) =>
-          React.createElement(tag, { key: `bd-${i}`, ...attrs, fill: "currentColor", stroke: "none" }),
+          React.createElement(tag, {
+            key: `bd-${i}`,
+            ...attrs,
+            fill: "currentColor",
+            stroke: "none",
+          }),
         )}
 
         {parts.map((_, renderIndex) => {
           // Choreography is keyed by regular-weight indices; find which one drives
           // the part being rendered at this weight.
-          const sourceIndex = map
-            ? map.findIndex((target) => target === renderIndex)
-            : renderIndex;
+          const sourceIndex = map ? map.findIndex((target) => target === renderIndex) : renderIndex;
           const anim = !divergent && sourceIndex >= 0 ? choreo.parts?.[sourceIndex] : undefined;
           const [tag, attrs] = parts[renderIndex];
 

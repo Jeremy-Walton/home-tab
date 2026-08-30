@@ -1,10 +1,10 @@
-import { useClosingDialog } from '../hooks/useClosingDialog'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog'
-import { Kbd, KbdGroup } from './ui/kbd'
-import { SHORTCUTS } from '../lib/shortcuts'
+import { useClosingDialog } from "../hooks/useClosingDialog";
+import { SHORTCUTS } from "../lib/shortcuts";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import { Kbd, KbdGroup } from "./ui/kbd";
 
 export function ShortcutsDialog({ onClose }: { onClose: () => void }) {
-  const { dialogProps } = useClosingDialog(onClose)
+  const { dialogProps } = useClosingDialog(onClose);
 
   return (
     <Dialog {...dialogProps}>
@@ -29,5 +29,5 @@ export function ShortcutsDialog({ onClose }: { onClose: () => void }) {
         </ul>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

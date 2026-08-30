@@ -1,7 +1,7 @@
-import { DashboardTabs } from './DashboardTabs'
-import { ImportExportBar } from './ImportExportBar'
-import { LogoIcon } from './LogoIcon'
-import { Wordmark } from './Wordmark'
+import { DashboardTabs } from "./DashboardTabs";
+import { ImportExportBar } from "./ImportExportBar";
+import { LogoIcon } from "./LogoIcon";
+import { Wordmark } from "./Wordmark";
 
 export function Navbar() {
   return (
@@ -13,5 +13,5 @@ export function Navbar() {
       <DashboardTabs />
       <ImportExportBar className="ml-auto" />
     </nav>
-  )
+  );
 }

@@ -7,7 +7,12 @@ the PRD.
 ## Stack
 
 - **Framework**: React 19 + Vite
-- **Language**: TypeScript
+- **Language**: TypeScript 7 (`^7`). `skipLibCheck: true` in both leaf
+  configs masks 8 pre-existing dependency-typing errors — `@dnd-kit/*` using
+  the pre-React-19 global `JSX` namespace, and RxDB wanting
+  `Symbol.asyncDispose` from a later `lib`. Identical in count and error code
+  under TS 6, so they are not a TS 7 regression; they are what turning
+  `skipLibCheck` off would surface.
 - **Package manager**: yarn 4 (Corepack; see `packageManager` in
   `package.json`)
 - **State management**: React Context + custom hooks (no Redux/Zustand) —
@@ -52,15 +57,60 @@ the PRD.
   state change, not a navigation.
 - **Testing**: Vitest (+ jsdom, React Testing Library installed and
   configured) — see "Testing Focus" for what's actually covered today.
+- **Lint**: [oxlint](https://oxc.rs/docs/guide/usage/linter.html), configured
+  in `.oxlintrc.json` (`correctness` as errors, `suspicious` as warnings, plus
+  the `typescript`/`react`/`react-hooks`/`oxc` plugins). It replaced the
+  ESLint stack; `react/react-in-jsx-scope` is off because the project uses the
+  automatic JSX runtime, and `react/only-export-components` is off for the
+  registry-generated `src/components/ui/**` and `src/components/icons/**`.
+  Non-type-checked, as the ESLint config before it was — oxlint's type-aware
+  mode (`options.typeAware` + `oxlint-tsgolint`) is deliberately not enabled,
+  since it would reintroduce a TypeScript-version coupling.
+- **Format**: [oxfmt](https://oxc.rs/docs/guide/usage/formatter.html),
+  configured in `.oxfmtrc.json`. It runs on **oxfmt's defaults with no style
+  overrides** — semicolons, double quotes, 100 columns, 2-space indent,
+  trailing commas. The repo briefly kept `semi: false`/`singleQuote: true` to
+  preserve its old hand-maintained style; those were dropped so the config is
+  nothing but scope, and so generated output (`shadcn add`, code samples)
+  lands already-formatted instead of being restyled on the way in. Import
+  order is **formatter-enforced** (`sortImports: true`): external packages,
+  then `@/`-aliased internals, then relative paths, alphabetical within each
+  group and separated by a blank line. `sortSideEffects` stays off (its
+  default), which is what keeps bare imports — `./index.css` in `main.tsx`,
+  `../lib/keyboard` in the two keyboard hooks — from being reordered across
+  the imports they depend on. Tailwind class order is
+  **formatter-enforced** too (`sortTailwindcss`), inside `className`
+  attributes and inside `cn()`/`cva()` calls (both named in `functions` —
+  `cva`'s nested object values are reached, which was not a given). Two
+  things about that option are load-bearing: it is pointed at
+  `src/index.css` via `stylesheet`, without which the project's own
+  `@utility` rules (`motion-dialog`, `motion-popup`) and theme tokens sort
+  as *unknown* classes and get dumped at the front of every string — so
+  moving or renaming `src/index.css` breaks class sorting, not just
+  theming. And because `cn()` resolves conflicts last-wins via
+  `tailwind-merge`, re-sorting a string could in principle change what
+  "last" means; it doesn't today, but a future conflicting pair inside a
+  single string literal is the thing to watch.
+  `sortPackageJson` is on by default, so
+  `package.json`'s key order is formatter-owned and a `yarn add` can leave
+  `format:check` red until `yarn format` runs. Scope is `src/`,
+  `vite.config.ts`, and the root JSON configs — `docs/**`, `.github/**`, and
+  all Markdown are excluded via `ignorePatterns` and stay hand-managed. The
+  version is pinned exactly (no caret) so a patch release can't silently
+  reformat the tree in CI.
+- **`git blame` and the reformat commits**: the whole-repo reformats live in
+  their own commits, listed in `.git-blame-ignore-revs`. GitHub honours that
+  file automatically; a local clone needs
+  `git config blame.ignoreRevsFile .git-blame-ignore-revs` once.
 - **Hosting**: GitHub Pages, deployed under the repository's default
   project-pages path (`https://<user>.github.io/home-tab/`, per `base:
   '/home-tab/'` in `vite.config.ts`). **No custom domain is configured at
   this time** (no `CNAME`), unlike earlier plans — see "Open Items."
 - **CI/CD**: GitHub Actions
-  - `ci.yml` — runs `yarn lint`, `yarn tsc -b`, `yarn test` on push to
-    `main` and on every pull request.
-  - `deploy.yml` — runs `yarn lint`, `yarn test`, then `yarn build` →
-    deploys `dist/` to GitHub Pages on push to `main`.
+  - `ci.yml` — runs `yarn lint`, `yarn format:check`, `yarn tsc -b`,
+    `yarn test` on push to `main` and on every pull request.
+  - `deploy.yml` — runs `yarn lint`, `yarn format:check`, `yarn test`, then
+    `yarn build` → deploys `dist/` to GitHub Pages on push to `main`.
 
 ## Why RxDB
 
@@ -638,13 +688,3 @@ broken image URL, a dashboard with a background, and an empty dashboard.
 - No automated coverage for RxDB/drag-and-drop/reorder logic (see "Testing
   Focus") — decide whether to invest in component/e2e tests for these or
   keep relying on manual browser verification.
-- `typescript` is held at `~6.0.2` (not the current TypeScript major, 7.x)
-  because `typescript-eslint` hard-throws on any TS `>=7` (confirmed by
-  reading its installed source — an unconditional version check, not just a
-  peer-dependency range) and has no released or canary version that lifts
-  that guard yet. Tracked upstream at
-  [typescript-eslint#10940](https://github.com/typescript-eslint/typescript-eslint/issues/10940).
-  Revisit the TypeScript upgrade once that ships — `yarn` itself is already
-  on a version (4.17.1+) whose bundled `typescript` compatibility patch
-  supports TS 7's restructured `lib/` layout, so nothing on the tooling side
-  should block it once typescript-eslint catches up.

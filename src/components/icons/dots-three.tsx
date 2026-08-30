@@ -9,11 +9,7 @@
  * the keyframes below are ordinary data, so retune or replace them freely.
  */
 
-import {
-  createAnimatedIcon,
-  type Choreography,
-  type IconGeometry,
-} from "./animated-icon";
+import { createAnimatedIcon, type Choreography, type IconGeometry } from "./animated-icon";
 
 const GEOMETRY: IconGeometry = {
   regular: [
@@ -37,9 +33,7 @@ const GEOMETRY: IconGeometry = {
     ["circle", { cx: "196", cy: "128", r: "16" }],
   ],
   backdrop: {
-    duotone: [
-      ["rect", { x: "16", y: "80", width: "224", height: "96", rx: "16", opacity: "0.2" }],
-    ],
+    duotone: [["rect", { x: "16", y: "80", width: "224", height: "96", rx: "16", opacity: "0.2" }]],
   },
   maps: {
     thin: [0, 2, 1],
@@ -56,47 +50,31 @@ const STROKE: Choreography = {
       scale: [1, 1.15, 0.96, 1],
       origin: [128, 128],
       duration: 0.672,
-      ease: [
-        "easeOut",
-        "easeInOut",
-        [0.22, 1, 0.36, 1]
-      ],
+      ease: ["easeOut", "easeInOut", [0.22, 1, 0.36, 1]],
       times: [0, 0.4, 0.72, 1],
-      delay: 0.128
+      delay: 0.128,
     },
     1: {
       y: [0, -12, 6.2, 0],
       scale: [1, 1.15, 0.96, 1],
       origin: [196, 128],
       duration: 0.672,
-      ease: [
-        "easeOut",
-        "easeInOut",
-        [0.22, 1, 0.36, 1]
-      ],
+      ease: ["easeOut", "easeInOut", [0.22, 1, 0.36, 1]],
       times: [0, 0.4, 0.72, 1],
-      delay: 0.256
+      delay: 0.256,
     },
     2: {
       y: [0, -12, 6.2, 0],
       scale: [1, 1.15, 0.96, 1],
       origin: [60, 128],
       duration: 0.672,
-      ease: [
-        "easeOut",
-        "easeInOut",
-        [0.22, 1, 0.36, 1]
-      ],
+      ease: ["easeOut", "easeInOut", [0.22, 1, 0.36, 1]],
       times: [0, 0.4, 0.72, 1],
-      delay: 0
-    }
-  }
+      delay: 0,
+    },
+  },
 };
 
-export const DotsThree = createAnimatedIcon(
-  "DotsThree",
-  GEOMETRY,
-  STROKE,
-);
+export const DotsThree = createAnimatedIcon("DotsThree", GEOMETRY, STROKE);
 
 export default DotsThree;

@@ -1,9 +1,9 @@
-import { useRef, useState } from 'react'
-import { useAppState } from '../context/useAppState'
-import { useClosingDialog } from '../hooks/useClosingDialog'
-import { cn } from '../lib/utils'
-import { OptionsMenu } from './OptionsMenu'
-import { DropdownMenuItem } from './ui/dropdown-menu'
+import { useRef, useState } from "react";
+
+import { useAppState } from "../context/useAppState";
+import { useClosingDialog } from "../hooks/useClosingDialog";
+import { cn } from "../lib/utils";
+import { OptionsMenu } from "./OptionsMenu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,18 +11,19 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogTitle,
-} from './ui/alert-dialog'
+} from "./ui/alert-dialog";
+import { DropdownMenuItem } from "./ui/dropdown-menu";
 
 function FeedbackDialog({
   title,
   message,
   onClose,
 }: {
-  title: string
-  message: string
-  onClose: () => void
+  title: string;
+  message: string;
+  onClose: () => void;
 }) {
-  const { close, dialogProps } = useClosingDialog(onClose)
+  const { close, dialogProps } = useClosingDialog(onClose);
 
   return (
     <AlertDialog {...dialogProps}>
@@ -34,44 +35,44 @@ function FeedbackDialog({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  )
+  );
 }
 
 export function ImportExportBar({ className }: { className?: string }) {
-  const { exportState, importState } = useAppState()
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [feedback, setFeedback] = useState<{ title: string; message: string } | null>(null)
+  const { exportState, importState } = useAppState();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [feedback, setFeedback] = useState<{ title: string; message: string } | null>(null);
 
   function handleExport() {
-    const data = exportState()
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'launch-tabs-export.json'
-    a.click()
-    URL.revokeObjectURL(url)
+    const data = exportState();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "launch-tabs-export.json";
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   async function handleImportFile(file: File) {
     try {
-      const text = await file.text()
-      let data: unknown
+      const text = await file.text();
+      let data: unknown;
       try {
-        data = JSON.parse(text)
+        data = JSON.parse(text);
       } catch {
-        throw new Error('That file is not valid JSON.')
+        throw new Error("That file is not valid JSON.");
       }
-      const summary = await importState(data)
+      const summary = await importState(data);
       setFeedback({
-        title: 'Import complete',
+        title: "Import complete",
         message: `Imported ${summary.dashboards} dashboard(s) and ${summary.links} link(s).`,
-      })
+      });
     } catch (error) {
       setFeedback({
-        title: 'Import failed',
-        message: error instanceof Error ? error.message : 'Could not import that file.',
-      })
+        title: "Import failed",
+        message: error instanceof Error ? error.message : "Could not import that file.",
+      });
     }
   }
 
@@ -79,9 +80,7 @@ export function ImportExportBar({ className }: { className?: string }) {
     <div className={cn(className)}>
       <OptionsMenu label="Import / export" variant="ghost" size="icon-sm" align="end">
         <DropdownMenuItem onClick={handleExport}>Export</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
-          Import
-        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>Import</DropdownMenuItem>
       </OptionsMenu>
       <input
         ref={fileInputRef}
@@ -89,9 +88,9 @@ export function ImportExportBar({ className }: { className?: string }) {
         accept="application/json"
         className="hidden"
         onChange={(e) => {
-          const file = e.target.files?.[0]
-          if (file) void handleImportFile(file)
-          e.target.value = ''
+          const file = e.target.files?.[0];
+          if (file) void handleImportFile(file);
+          e.target.value = "";
         }}
       />
       {feedback && (
@@ -102,5 +101,5 @@ export function ImportExportBar({ className }: { className?: string }) {
         />
       )}
     </div>
-  )
+  );
 }
