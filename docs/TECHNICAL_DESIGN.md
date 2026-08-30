@@ -67,9 +67,14 @@ the PRD.
   trailing commas. The repo briefly kept `semi: false`/`singleQuote: true` to
   preserve its old hand-maintained style; those were dropped so the config is
   nothing but scope, and so generated output (`shadcn add`, code samples)
-  lands already-formatted instead of being restyled on the way in. Its
-  `sortImports` and `sortTailwindcss` features are available but **off** —
-  each is its own whole-repo diff. `sortPackageJson` is on by default, so
+  lands already-formatted instead of being restyled on the way in. Import
+  order is **formatter-enforced** (`sortImports: true`): external packages,
+  then `@/`-aliased internals, then relative paths, alphabetical within each
+  group and separated by a blank line. `sortSideEffects` stays off (its
+  default), which is what keeps bare imports — `./index.css` in `main.tsx`,
+  `../lib/keyboard` in the two keyboard hooks — from being reordered across
+  the imports they depend on. `sortTailwindcss` is still **off**, as its own
+  whole-repo diff. `sortPackageJson` is on by default, so
   `package.json`'s key order is formatter-owned and a `yarn add` can leave
   `format:check` red until `yarn format` runs. Scope is `src/`,
   `vite.config.ts`, and the root JSON configs — `docs/**`, `.github/**`, and

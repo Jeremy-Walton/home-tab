@@ -1,7 +1,8 @@
 import { createRxDatabase } from "rxdb";
 import { getRxStorageMemory } from "rxdb/plugins/storage-memory";
-import { dashboardSchema, linkSchema } from "../storage/schemas";
+
 import type { AppCollections, AppDatabase } from "../storage/db";
+import { dashboardSchema, linkSchema } from "../storage/schemas";
 
 let counter = 0;
 

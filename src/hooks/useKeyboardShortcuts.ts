@@ -1,5 +1,6 @@
-import { useEffect, useRef } from "react";
 import hotkeys, { type HotkeysEvent } from "hotkeys-js";
+import { useEffect, useRef } from "react";
+
 import "../lib/keyboard";
 import type { Dashboard } from "../types";
 

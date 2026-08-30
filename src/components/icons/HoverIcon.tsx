@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+
 import type { AnimatedIconHandle, AnimatedIconProps, IconComponent } from "./animated-icon";
 
 /** Whichever of these sits nearest the icon drives its animation. */

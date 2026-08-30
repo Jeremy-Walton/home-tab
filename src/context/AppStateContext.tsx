@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
-import { getDatabase, type AppDatabase } from "../storage/db";
+
 import { generateId } from "../lib/id";
-import { normalizeUrl } from "../lib/url";
 import {
   isExportedState,
   isLegacyState,
@@ -10,6 +9,8 @@ import {
   sanitizeExportedState,
   serializeState,
 } from "../lib/importExport";
+import { normalizeUrl } from "../lib/url";
+import { getDatabase, type AppDatabase } from "../storage/db";
 import type { Dashboard, ExportedState, Link } from "../types";
 import { AppStateContext, type AppStateValue, type ImportSummary } from "./app-state-context";
 

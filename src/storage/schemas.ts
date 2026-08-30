@@ -1,4 +1,5 @@
 import type { RxJsonSchema } from "rxdb";
+
 import type { Dashboard, Link } from "../types";
 
 export const dashboardSchema: RxJsonSchema<Dashboard> = {

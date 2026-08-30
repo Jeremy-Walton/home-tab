@@ -1,7 +1,8 @@
-import { renderHook } from "@testing-library/react";
 import { fireEvent } from "@testing-library/dom";
+import { renderHook } from "@testing-library/react";
 import hotkeys from "hotkeys-js";
 import { afterEach, describe, expect, it } from "vitest";
+
 import { useAltHeld } from "./useAltHeld";
 
 afterEach(() => {

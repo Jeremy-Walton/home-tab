@@ -1,11 +1,12 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { AppStateProvider } from "../context/AppStateContext";
-import { createTestDatabase } from "../test/testDb";
-import { LinkEditModal } from "./LinkEditModal";
 import type { AppDatabase } from "../storage/db";
+import { createTestDatabase } from "../test/testDb";
 import type { Link } from "../types";
+import { LinkEditModal } from "./LinkEditModal";
 
 let testDb: AppDatabase;
 

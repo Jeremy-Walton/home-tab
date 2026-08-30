@@ -1,9 +1,10 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import type { AppDatabase } from "../storage/db";
+import { createTestDatabase } from "../test/testDb";
 import { AppStateProvider } from "./AppStateContext";
 import { useAppState } from "./useAppState";
-import { createTestDatabase } from "../test/testDb";
-import type { AppDatabase } from "../storage/db";
 
 let testDb: AppDatabase;
 

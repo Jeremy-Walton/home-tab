@@ -19,8 +19,6 @@
  * redrawn the same way at duotone and use that path too.
  */
 
-import * as React from "react";
-import * as m from "motion/react-m";
 import {
   LazyMotion,
   useReducedMotion,
@@ -28,6 +26,8 @@ import {
   type Transition,
   type Variants,
 } from "motion/react";
+import * as m from "motion/react-m";
+import * as React from "react";
 
 /**
  * Motion ships as `m` (render only) plus a feature bundle loaded by `LazyMotion`,

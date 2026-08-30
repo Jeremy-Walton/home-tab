@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
 import hotkeys from "hotkeys-js";
+import { useEffect, useState } from "react";
+
 import "../lib/keyboard";
 
 export function useAltHeld(): boolean {

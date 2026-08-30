@@ -1,6 +1,6 @@
+import type { Dashboard, ExportedState, LegacyState, Link } from "../types";
 import { generateId } from "./id";
 import { normalizeUrl } from "./url";
-import type { Dashboard, ExportedState, LegacyState, Link } from "../types";
 
 export function isLegacyState(data: unknown): data is LegacyState {
   if (typeof data !== "object" || data === null) return false;

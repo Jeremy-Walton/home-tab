@@ -1,7 +1,8 @@
 import { createRxDatabase, type RxCollection, type RxDatabase } from "rxdb";
 import { getRxStorageDexie } from "rxdb/plugins/storage-dexie";
-import { dashboardSchema, linkSchema } from "./schemas";
+
 import type { Dashboard, Link } from "../types";
+import { dashboardSchema, linkSchema } from "./schemas";
 
 const originalConsoleWarn = console.warn;
 console.warn = (...args: unknown[]) => {

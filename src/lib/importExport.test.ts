@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+
+import type { ExportedState, LegacyState } from "../types";
 import {
   CURRENT_EXPORT_VERSION,
   isExportedState,
@@ -7,7 +9,6 @@ import {
   sanitizeExportedState,
   serializeState,
 } from "./importExport";
-import type { ExportedState, LegacyState } from "../types";
 
 describe("isLegacyState", () => {
   it("recognizes the old localStorage.state shape", () => {

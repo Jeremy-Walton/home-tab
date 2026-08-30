@@ -1,5 +1,6 @@
-import { useEffect, useRef } from "react";
 import { PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { useEffect, useRef } from "react";
+
 import { useAppState } from "../context/useAppState";
 import { parseDashboardDropId } from "../lib/dashboardDropId";
 import type { Link } from "../types";

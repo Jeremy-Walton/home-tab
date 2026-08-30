@@ -1,9 +1,10 @@
-import { renderHook } from "@testing-library/react";
 import { fireEvent } from "@testing-library/dom";
+import { renderHook } from "@testing-library/react";
 import hotkeys from "hotkeys-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { useKeyboardShortcuts } from "./useKeyboardShortcuts";
+
 import type { Dashboard } from "../types";
+import { useKeyboardShortcuts } from "./useKeyboardShortcuts";
 
 function makeDashboards(count: number): Dashboard[] {
   return Array.from({ length: count }, (_, i) => ({

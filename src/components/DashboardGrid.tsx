@@ -1,9 +1,10 @@
 import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
-import { LinkTile } from "./LinkTile";
+
+import type { Link } from "../types";
 import { EmptyState } from "./EmptyState";
 import { HoverIcon } from "./icons/HoverIcon";
 import { Plus } from "./icons/plus";
-import type { Link } from "../types";
+import { LinkTile } from "./LinkTile";
 
 interface DashboardGridProps {
   links: Link[];

@@ -1,9 +1,11 @@
-import { useState } from "react";
 import { useDroppable } from "@dnd-kit/core";
+import { useState } from "react";
+
 import { useAppState } from "../context/useAppState";
 import { useAltHeld } from "../hooks/useAltHeld";
 import { dashboardDropId } from "../lib/dashboardDropId";
 import { dashboardShortcutDigit, MAX_DASHBOARD_SHORTCUTS } from "../lib/keyboard";
+import type { Dashboard } from "../types";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { DashboardEditModal } from "./DashboardEditModal";
 import { EntityOptionsMenu } from "./EntityOptionsMenu";
@@ -13,7 +15,6 @@ import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
-import type { Dashboard } from "../types";
 
 function DashboardTabItem({
   dashboard,
