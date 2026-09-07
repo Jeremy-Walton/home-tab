@@ -102,10 +102,12 @@ the PRD.
   their own commits, listed in `.git-blame-ignore-revs`. GitHub honours that
   file automatically; a local clone needs
   `git config blame.ignoreRevsFile .git-blame-ignore-revs` once.
-- **Hosting**: GitHub Pages, deployed under the repository's default
-  project-pages path (`https://<user>.github.io/home-tab/`, per `base:
-  '/home-tab/'` in `vite.config.ts`). **No custom domain is configured at
-  this time** (no `CNAME`), unlike earlier plans — see "Open Items."
+- **Hosting**: GitHub Pages on the custom domain
+  `https://www.launchtabs.com`, served from the domain root (`base: '/'` in
+  `vite.config.ts`). The domain is claimed by `public/CNAME`, which Vite
+  copies verbatim into `dist/` on every build — Pages reads it from the
+  deployed branch, so deleting it silently reverts the site to the
+  `github.io/home-tab/` project-pages path.
 - **CI/CD**: GitHub Actions
   - `ci.yml` — runs `yarn lint`, `yarn format:check`, `yarn tsc -b`,
     `yarn test` on push to `main` and on every pull request.
@@ -680,9 +682,6 @@ broken image URL, a dashboard with a background, and an empty dashboard.
   collection-schema half.
 - Which RxDB replication plugin to adopt, deferred until a backend is
   chosen.
-- No custom domain is configured for GitHub Pages yet (deployed at the
-  `/home-tab/` project-pages subpath); decide whether/when to add one, and
-  update `vite.config.ts`'s `base` accordingly if so.
 - No client-side validation beyond URL scheme normalization (see PRD "Open
   Items") — decide whether that's ever needed.
 - No automated coverage for RxDB/drag-and-drop/reorder logic (see "Testing

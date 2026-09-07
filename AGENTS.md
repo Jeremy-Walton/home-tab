@@ -30,7 +30,7 @@ Fully implemented per `docs/PRD.md` and `docs/TECHNICAL_DESIGN.md`: all
 core features (dashboards, links, drag-drop reorder/move, backgrounds,
 export/import + legacy migration, keyboard shortcuts) are built. See
 `docs/TECHNICAL_DESIGN.md`'s "Open Items" for known gaps (test coverage,
-hosting/CI branch mismatch, no custom domain yet).
+hosting/CI branch mismatch).
 
 ## Commands
 
