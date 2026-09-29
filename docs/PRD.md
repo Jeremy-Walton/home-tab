@@ -8,10 +8,10 @@ with an external browser extension (out of scope for this repo) that
 redirects the browser's new-tab page to this SPA. It is loaded fresh each
 time a new tab opens.
 
-There is no backend. All data is persisted locally in the user's browser so
-that the app works fully offline and requires no account or sign-in. The
-persistence mechanism must be swappable for a real backend/sync service
-later without changing any of the behavior described in this document.
+All data is persisted locally in the user's browser, so the app works
+fully offline and requires no account or sign-in. Optionally, a user can
+**sync** that data between browsers with a shareable sync key (see "Sync")
+— still with no account.
 
 This document is intentionally agnostic about *how* the app is built
 (framework, language, styling system, storage engine). It describes the
@@ -24,8 +24,8 @@ technology and be indistinguishable to a user.
 - Chrome-first, desktop only. No mobile/touch support required.
 - No search functionality (web search or link search) — purely a link grid.
 - No global/app-wide settings panel, and no user-facing theme switcher.
-- No backend/sync, but the persistence layer must not assume it is the
-  permanent home of the data (see "Data & Storage").
+- No accounts. Sync is opt-in and keyed by a shareable secret, not a
+  user identity (see "Sync").
 
 ## Application Shell
 
@@ -36,8 +36,8 @@ content area below it that changes with the active dashboard.
   1. App logo/wordmark (branding only, not interactive).
   2. The **dashboard tab strip** (see "Dashboards" below).
   3. Flexible empty space.
-  4. A single icon button that opens the **import/export menu** (see "Data
-     & Storage").
+  4. A single icon button that opens the **import/export menu**: Export,
+     Import (see "Data & Storage"), and Sync… (see "Sync").
 - **Main content area**: fills the remaining height below the top bar and
   renders the active dashboard's **link grid** (or its empty state), with
   that dashboard's own background image behind it if it has one.
@@ -251,9 +251,9 @@ elsewhere) held together with a digit, letter, or arrow/bracket key:
 
 - All app state (dashboards, their links, link properties, dashboard
   backgrounds, and which dashboard is active) is persisted locally in the
-  browser, independent of any specific storage engine, so a real
-  backend/sync service could be substituted later without changing any
-  product behavior described above.
+  browser, independent of any specific storage engine. The local copy is
+  always the one the app reads and writes; sync (see "Sync"), when on,
+  keeps it in step with other browsers in the background.
 
 ### Export / Import
 
@@ -280,9 +280,40 @@ elsewhere) held together with a digit, letter, or arrow/bracket key:
 - The same mapping is also available via the manual **Import** action, for
   a user who has a copy of their old exported data as a file rather than it
   being present live in their browser.
-- This auto-migration is the primary safety net against data loss, since
-  there is no backend/sync.
+- This auto-migration is the primary safety net against data loss for
+  users who don't sync (sync is opt-in).
 - Exact field-by-field mapping: see `docs/DATA_FORMATS.md`.
+
+## Sync
+
+- **Sync key.** A long random key (a UUID). Every browser using the same key
+  shares the same dashboards and links. Anyone who has the key can see and
+  change that data; there are no accounts, permissions, or sharing
+  controls beyond knowing the key.
+- **Where.** "Sync…" in the import/export menu opens a Sync dialog. There is
+  no other sync UI; the top bar is unchanged.
+- **Create.** "Create sync key" starts syncing this browser. Its current
+  dashboards and links become the key's data.
+- **Join.** Pasting a key from another browser and choosing "Join":
+  1. Refuses a key that has no synced data, with an inline error
+     ("No synced data found for that key."), and changes nothing.
+  2. Otherwise asks for confirmation: joining **replaces** this browser's
+     dashboards and links with the synced ones. The confirmation offers
+     "Download backup" (the same file as Export) before joining.
+  3. On Join, the browser shows the key's data.
+- **While synced.** The dialog shows the key with a Copy button and the
+  connection status (connected, connecting, offline and retrying, or
+  syncing through another open tab). Every change — add, edit, delete,
+  reorder, move, dashboard rename/background/delete — reaches the other
+  browsers on the key live, without a reload. When two browsers change the
+  same link or dashboard at once, one version wins; no merge UI.
+- **Offline.** Changes made offline are kept locally and sent when the
+  connection returns.
+- **Stop syncing.** Stops syncing and forgets the key. This browser keeps
+  its data as an ordinary local copy; the other browsers are unaffected.
+- **Per-browser, never synced:** which dashboard is active.
+- Other open tabs of the app in the same browser follow along
+  automatically when sync is created, joined, or stopped.
 
 ## Explicitly Out of Scope
 
@@ -294,13 +325,15 @@ elsewhere) held together with a digit, letter, or arrow/bracket key:
 - Folders or nested grouping of links.
 - Multiple simultaneous backgrounds per dashboard (e.g. per-section).
 - Mobile/touch support.
-- Backend sync (the storage layer must allow for it later, but it is not
-  implemented now).
+- Accounts, per-person permissions, or read-only sharing for sync.
+- End-to-end encryption of synced data.
+- Deleting a sync key's data for everyone.
 - User-remappable keyboard shortcuts.
 
 ## Open Items for Future Consideration
 
-- Whether/when a real backend gets introduced, and what triggers that.
+- Whether sync should ever get end-to-end encryption or a way to delete a
+  key's data for everyone (both currently out of scope).
 - Browser support beyond Chrome (Firefox, Safari, Edge/Brave via
   Chromium compatibility).
 - URL validation is now enforced (see "URL handling"): link and
