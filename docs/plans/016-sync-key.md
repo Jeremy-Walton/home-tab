@@ -1,6 +1,6 @@
 # 016 — Sync key (Durable Object replication)
 
-Status: **in progress** — phase 1 (server) done; phase 2 next.
+Status: **in progress** — phases 1–2 done; phase 3 (UI) next.
 
 ## Goal
 
@@ -131,9 +131,18 @@ Each phase ends green on `yarn build`, `yarn lint`, `yarn format:check`,
    checkpoints, update with reordered-key master, stale-master conflict,
    tombstones excluded from the Join count, and one WebSocket poke per
    successful push. Not yet deployed — ships with phase 4.
-2. **Client replication.** `sync.ts`, leader election, bootstrap wait,
-   stored key. No UI yet — set `launch-tabs:syncKey` by hand in two browser
-   profiles and confirm edits, reorders, moves, and deletes cross over live.
+2. **Client replication.** ✅ `sync.ts`, leader election, bootstrap wait,
+   stored key. Verified with a scripted check (two in-memory RxDB databases
+   running the real `startSync` against `yarn dev`): create pushes local data,
+   a fresh database pulls everything on initial replication, and edits,
+   reorders, deletes, and dashboard renames arrive live via the WebSocket
+   poke; a conflicting offline edit resolves to the server copy on both sides.
+   Browser check (leader election across tabs, bootstrap wait in a fresh
+   profile) is manual: set `launch-tabs:syncKey` in DevTools and reload.
+   Until phase 3, setting a key in a browser that has data **merges** it
+   into the key — use a fresh profile for the second browser.
+   `syncStatus` and the create/join/stop functions move to phase 3, where
+   the UI first needs them.
 3. **UI.** `SyncDialog`, menu item, create/join/stop flows, cross-tab
    reload. Verify hazards 1–4 by hand: join from a browser with its own data
    (the key's data must survive), join with a bad key, stop and keep data.

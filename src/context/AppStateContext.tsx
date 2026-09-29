@@ -11,6 +11,7 @@ import {
 } from "../lib/importExport";
 import { normalizeUrl } from "../lib/url";
 import { getDatabase, type AppDatabase } from "../storage/db";
+import { startSync, SYNC_KEY_STORAGE_KEY, type SyncHandle } from "../storage/sync";
 import type { Dashboard, ExportedState, Link } from "../types";
 import { AppStateContext, type AppStateValue, type ImportSummary } from "./app-state-context";
 
@@ -53,6 +54,7 @@ function linksEqual(a: Link[], b: Link[]): boolean {
 export function AppStateProvider({ children }: { children: ReactNode }) {
   // Suppresses the links subscription while reorderLinks's bulkUpsert is writing.
   const reorderInFlightRef = useRef(false);
+  const syncRef = useRef<SyncHandle | null>(null);
   const [db, setDb] = useState<AppDatabase | null>(null);
   const [dashboards, setDashboards] = useState<Dashboard[]>([]);
   const [links, setLinks] = useState<Link[]>([]);
@@ -69,6 +71,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     getDatabase().then((database) => {
       // Guards against StrictMode's synchronous mount+cleanup+remount in dev.
       if (cancelled) return;
+      const syncKey = localStorage.getItem(SYNC_KEY_STORAGE_KEY);
+      if (syncKey) syncRef.current = startSync(database, syncKey);
       setDb(database);
 
       // The first emission from a reactive query can arrive before the
@@ -97,6 +101,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       cancelled = true;
       dashboardsSub?.unsubscribe();
       linksSub?.unsubscribe();
+      void syncRef.current?.stop();
+      syncRef.current = null;
     };
   }, []);
 
@@ -158,9 +164,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    void withBootstrapLock(bootstrap).finally(() => {
-      bootstrapping.current = false;
-    });
+    // Else a synced browser pushes a stray "Default"; outside the lock since non-leader tabs wait here.
+    const synced = syncRef.current?.awaitInitialReplication() ?? Promise.resolve();
+    void synced
+      .then(() => withBootstrapLock(bootstrap))
+      .finally(() => {
+        bootstrapping.current = false;
+      });
   }, [ready, db, dashboards]);
 
   // Keep the active dashboard valid.

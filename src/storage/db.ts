@@ -1,8 +1,12 @@
-import { createRxDatabase, type RxCollection, type RxDatabase } from "rxdb";
+import { addRxPlugin, createRxDatabase, type RxCollection, type RxDatabase } from "rxdb";
+import { RxDBLeaderElectionPlugin } from "rxdb/plugins/leader-election";
 import { getRxStorageDexie } from "rxdb/plugins/storage-dexie";
 
 import type { Dashboard, Link } from "../types";
 import { dashboardSchema, linkSchema } from "./schemas";
+
+// Many new tabs share one browser; only the leader tab runs sync.
+addRxPlugin(RxDBLeaderElectionPlugin);
 
 const originalConsoleWarn = console.warn;
 console.warn = (...args: unknown[]) => {
