@@ -11,7 +11,14 @@ import {
 } from "../lib/importExport";
 import { normalizeUrl } from "../lib/url";
 import { getDatabase, type AppDatabase } from "../storage/db";
-import { startSync, SYNC_KEY_STORAGE_KEY, type SyncHandle } from "../storage/sync";
+import {
+  checkSyncKey,
+  joinSyncKey,
+  startSync,
+  SYNC_KEY_STORAGE_KEY,
+  type SyncHandle,
+  type SyncStatus,
+} from "../storage/sync";
 import type { Dashboard, ExportedState, Link } from "../types";
 import { AppStateContext, type AppStateValue, type ImportSummary } from "./app-state-context";
 
@@ -62,6 +69,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     localStorage.getItem(ACTIVE_DASHBOARD_KEY),
   );
   const [ready, setReady] = useState(false);
+  const [syncKey, setSyncKey] = useState(() => localStorage.getItem(SYNC_KEY_STORAGE_KEY));
+  const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
+
+  function beginSync(database: AppDatabase, key: string) {
+    const handle = startSync(database, key);
+    handle.status$.subscribe(setSyncStatus);
+    syncRef.current = handle;
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -71,8 +86,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     getDatabase().then((database) => {
       // Guards against StrictMode's synchronous mount+cleanup+remount in dev.
       if (cancelled) return;
-      const syncKey = localStorage.getItem(SYNC_KEY_STORAGE_KEY);
-      if (syncKey) syncRef.current = startSync(database, syncKey);
+      const storedSyncKey = localStorage.getItem(SYNC_KEY_STORAGE_KEY);
+      if (storedSyncKey) beginSync(database, storedSyncKey);
       setDb(database);
 
       // The first emission from a reactive query can arrive before the
@@ -104,6 +119,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       void syncRef.current?.stop();
       syncRef.current = null;
     };
+  }, []);
+
+  // Another tab joined, created, or stopped a key; this tab's database or replication is stale.
+  useEffect(() => {
+    function onStorage(event: StorageEvent) {
+      if (event.key === SYNC_KEY_STORAGE_KEY) location.reload();
+    }
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
   }, []);
 
   // Bootstrap: pull in the previous app's localStorage.state whenever it's
@@ -312,6 +336,22 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     await doc?.patch({ dashboardId: targetDashboardId, order });
   }
 
+  function createSyncKey() {
+    if (!db) return;
+    const key = crypto.randomUUID();
+    localStorage.setItem(SYNC_KEY_STORAGE_KEY, key);
+    setSyncKey(key);
+    beginSync(db, key);
+  }
+
+  async function stopSync() {
+    await syncRef.current?.stop();
+    syncRef.current = null;
+    localStorage.removeItem(SYNC_KEY_STORAGE_KEY);
+    setSyncKey(null);
+    setSyncStatus(null);
+  }
+
   function exportState(): ExportedState {
     return serializeState(dashboards, links, activeDashboardId);
   }
@@ -368,9 +408,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       moveLinkToDashboard,
       exportState,
       importState,
+      syncKey,
+      syncStatus,
+      createSyncKey,
+      checkSyncKey,
+      joinSyncKey,
+      stopSync,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [ready, dashboards, links, activeDashboardId, db],
+    [ready, dashboards, links, activeDashboardId, db, syncKey, syncStatus],
   );
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;

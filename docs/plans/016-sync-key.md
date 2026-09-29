@@ -1,6 +1,6 @@
 # 016 — Sync key (Durable Object replication)
 
-Status: **in progress** — phases 1–2 done; phase 3 (UI) next.
+Status: **in progress** — phases 1–3 done; phase 3 awaiting browser check; phase 4 next.
 
 ## Goal
 
@@ -29,7 +29,7 @@ sees changes from other browsers live.
 | Sync key format | `crypto.randomUUID()` (122 random bits); Worker rejects anything that isn't a UUID | The key is the only access control |
 | Encryption | **None** — plain JSON in the Durable Object | Simplest and debuggable; anyone with the key or Cloudflare account access can read it. Add later by rotating to a new key |
 | Creating a new key | The creating browser pushes its current local data as the key's starting state | Nothing to replace — the key is empty |
-| Joining an existing key | **Replace local**: check the key has data, offer an export backup, then wipe local and pull the key's data | Avoids duplicates (every fresh browser has its own "Default" dashboard) |
+| Joining an existing key | **Replace local**: check the key has data, offer an export backup, then switch to a **new, empty database** (`launch-tabs:dbName`) and reload; the key's data is pulled into it | Avoids duplicates (every fresh browser has its own "Default" dashboard). Switching instead of wiping sidesteps hazard 1 entirely, needs no cross-tab wipe coordination, and leaves the old database behind as an implicit backup (orphaned; a few KB per join) |
 | Stop syncing | **Keep a local copy**: stop replication, forget the key; data stays as a local-only copy | Nothing lost; other browsers unaffected |
 | Sync UI | A **"Sync…" item** in the existing import/export menu opens a Sync dialog. Not synced: "Create sync key" button, or a key field + "Join". Synced: the key with a Copy button, connection status, "Stop syncing" | Top bar keeps the PRD's single icon button; status is visible only in the dialog |
 | Multi-tab | `waitForLeadership: true` (RxDB leader-election plugin) | A new-tab app has many tabs open; only one per browser needs a socket. Other tabs see changes through Dexie's cross-tab broadcast |
@@ -40,17 +40,19 @@ sees changes from other browsers live.
 1. **Wiping local data with `find().remove()` would delete the key's data for
    everyone.** RxDB removes docs by writing `_deleted` tombstones, and a new
    replication pushes every local change — including those tombstones — to
-   the server. The join wipe must drop storage entirely (`db.remove()`), not
-   delete documents. Easiest correct flow: save the key, `db.remove()`,
-   `location.reload()`; the fresh load starts from an empty database.
+   the server. **Resolved by design:** join never wipes — it points
+   `launch-tabs:dbName` at a new database and reloads (see the Join row).
 2. **Bootstrap could push a stray "Default" dashboard to the key.** A fresh
    (post-wipe) load sees zero dashboards and creates "Default" before the
    pull lands. When a sync key is set, bootstrap must `await
-   replicationState.awaitInitialReplication()` before deciding.
+   replicationState.awaitInitialReplication()` before deciding. **Done in
+   phase 2**, outside the bootstrap lock (non-leader tabs wait there).
 3. **A mistyped key on Join would wipe local data and pull nothing.** Join
    first calls `GET /api/sync/:key` and refuses a key with no documents.
+   **Done** (`checkSyncKey`, covered by `sync.test.ts`).
 4. **Other open tabs keep the old database after a join/stop.** Listen for
    the `storage` event on the sync-key `localStorage` entry and reload.
+   **Done** in `AppStateContext.tsx`.
 5. **Vitest shares `vite.config.ts`.** Load the Cloudflare plugin only when
    `process.env.VITEST` is unset, or tests boot the Workers runtime.
 
@@ -107,10 +109,16 @@ Changed:
 - `.oxlintrc.json` — `no-underscore-dangle` allows `_deleted` (RxDB's field).
 - `vite.config.ts` — add `cloudflare()` (skipped under Vitest).
 - `package.json` — `@cloudflare/vite-plugin` dev dependency.
-- `src/storage/db.ts` — `addRxPlugin(RxDBLeaderElectionPlugin)`.
+- `src/storage/db.ts` — `addRxPlugin(RxDBLeaderElectionPlugin)`; database
+  name read from `launch-tabs:dbName` (default `launch-tabs`).
 - `src/context/AppStateContext.tsx` — start/stop sync from the stored key
   (`launch-tabs:syncKey`), make bootstrap wait for the initial replication,
-  expose `createSyncKey`, `joinSyncKey`, `stopSync`, and `syncStatus`.
+  expose `syncKey`, `syncStatus`, `createSyncKey`, `checkSyncKey`,
+  `joinSyncKey`, `stopSync`; reload on the cross-tab `storage` event.
+  `checkSyncKey`/`joinSyncKey` live in `sync.ts` (no React state) and are
+  passed through the context so components keep using `useAppState`.
+- `src/storage/sync.test.ts` — `checkSyncKey`: normalization, empty key,
+  server-refused key, network failure.
 - `src/components/ImportExportBar.tsx` — "Sync…" menu item.
 - `.github/workflows/deploy.yml` — unchanged: `yarn build` writes
   `.wrangler/deploy/config.json`, which redirects `wrangler deploy` to the
@@ -143,8 +151,11 @@ Each phase ends green on `yarn build`, `yarn lint`, `yarn format:check`,
    into the key — use a fresh profile for the second browser.
    `syncStatus` and the create/join/stop functions move to phase 3, where
    the UI first needs them.
-3. **UI.** `SyncDialog`, menu item, create/join/stop flows, cross-tab
-   reload. Verify hazards 1–4 by hand: join from a browser with its own data
-   (the key's data must survive), join with a bad key, stop and keep data.
+3. **UI.** ✅ (code) `SyncDialog` (three views: not synced, confirm
+   replace, synced), "Sync…" menu item, create/join/stop flows, cross-tab
+   reload. Typecheck, lint, format, and tests (90) green. **Browser check
+   pending:** join from a browser with its own data (the key's data must
+   survive, local data must be replaced), join with a bad key, stop and keep
+   data, a second tab reloading on join/create/stop.
 4. **Docs + deploy.** PRD, TECHNICAL_DESIGN, AGENTS. Deploy, then repeat the
    phase 3 checks on `https://www.launchtabs.com`.

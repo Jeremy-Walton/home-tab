@@ -30,9 +30,12 @@ export function getDatabase(): Promise<AppDatabase> {
   return dbPromise;
 }
 
+// ponytail: joining a key switches database (wiping would push tombstones); orphans the old one.
+export const DB_NAME_STORAGE_KEY = "launch-tabs:dbName";
+
 async function createDatabase(): Promise<AppDatabase> {
   const db: AppDatabase = await createRxDatabase<AppCollections>({
-    name: "launch-tabs",
+    name: localStorage.getItem(DB_NAME_STORAGE_KEY) ?? "launch-tabs",
     storage: getRxStorageDexie(),
   });
 

@@ -4,6 +4,7 @@ import { useAppState } from "../context/useAppState";
 import { useClosingDialog } from "../hooks/useClosingDialog";
 import { cn } from "../lib/utils";
 import { OptionsMenu } from "./OptionsMenu";
+import { SyncDialog } from "./SyncDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,6 +43,7 @@ export function ImportExportBar({ className }: { className?: string }) {
   const { exportState, importState } = useAppState();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [feedback, setFeedback] = useState<{ title: string; message: string } | null>(null);
+  const [syncOpen, setSyncOpen] = useState(false);
 
   function handleExport() {
     const data = exportState();
@@ -81,6 +83,7 @@ export function ImportExportBar({ className }: { className?: string }) {
       <OptionsMenu label="Import / export" variant="ghost" size="icon-sm" align="end">
         <DropdownMenuItem onClick={handleExport}>Export</DropdownMenuItem>
         <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>Import</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setSyncOpen(true)}>Sync…</DropdownMenuItem>
       </OptionsMenu>
       <input
         ref={fileInputRef}
@@ -93,6 +96,7 @@ export function ImportExportBar({ className }: { className?: string }) {
           e.target.value = "";
         }}
       />
+      {syncOpen && <SyncDialog onExport={handleExport} onClose={() => setSyncOpen(false)} />}
       {feedback && (
         <FeedbackDialog
           title={feedback.title}
