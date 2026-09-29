@@ -30,3 +30,6 @@ dist-ssr
 !.yarn/plugins
 !.yarn/releases
 !.yarn/sdks
+
+# Wrangler
+.wrangler

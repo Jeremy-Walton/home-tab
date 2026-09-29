@@ -102,17 +102,16 @@ the PRD.
   their own commits, listed in `.git-blame-ignore-revs`. GitHub honours that
   file automatically; a local clone needs
   `git config blame.ignoreRevsFile .git-blame-ignore-revs` once.
-- **Hosting**: GitHub Pages on the custom domain
-  `https://www.launchtabs.com`, served from the domain root (`base: '/'` in
-  `vite.config.ts`). The domain is claimed by `public/CNAME`, which Vite
-  copies verbatim into `dist/` on every build — Pages reads it from the
-  deployed branch, so deleting it silently reverts the site to the
-  `github.io/home-tab/` project-pages path.
+- **Hosting**: a Cloudflare Worker with static assets (`wrangler.jsonc`),
+  serving `dist/` on the custom domain `https://www.launchtabs.com` from the
+  domain root (`base: '/'` in `vite.config.ts`). The hostname must never
+  change: IndexedDB and `localStorage` are per-origin, so a new hostname
+  starts every user with empty data.
 - **CI/CD**: GitHub Actions
   - `ci.yml` — runs `yarn lint`, `yarn format:check`, `yarn tsc -b`,
     `yarn test` on push to `main` and on every pull request.
   - `deploy.yml` — runs `yarn lint`, `yarn format:check`, `yarn test`, then
-    `yarn build` → deploys `dist/` to GitHub Pages on push to `main`.
+    `yarn build` → `wrangler deploy` on push to `main`.
 
 ## Why RxDB
 
