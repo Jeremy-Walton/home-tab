@@ -35,7 +35,7 @@ Cloudflare Worker + Durable Object in `worker/`) are built. See
 ## Commands
 
 - `yarn dev` — start the Vite dev server (also runs the Worker and Durable Object locally)
-- `yarn cf-typegen` — regenerate `worker-configuration.d.ts` after changing `wrangler.jsonc`
+- `yarn cf-typegen` — generate `worker-configuration.d.ts` (gitignored): once after cloning, and after changing `wrangler.jsonc`
 - `yarn build` — typecheck (`tsc -b`) then production build
 - `yarn lint` — oxlint (`yarn lint:fix` to auto-fix)
 - `yarn format` — oxfmt; `yarn format:check` to verify without writing

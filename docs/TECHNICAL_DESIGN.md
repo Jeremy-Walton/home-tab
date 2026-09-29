@@ -116,14 +116,18 @@ the PRD.
   the live one. The plugin also changes the build: `yarn build` writes
   `dist/client` + `dist/launch_tabs` and a `.wrangler/deploy/config.json`
   that redirects `wrangler deploy` to the built config. Worker types come
-  from `yarn cf-typegen` (`wrangler types`) into the committed
-  `worker-configuration.d.ts`, checked by `tsconfig.worker.json`; rerun it
+  from `yarn cf-typegen` (`wrangler types`) into
+  `worker-configuration.d.ts` (~16k lines, almost all Cloudflare's runtime
+  types), checked by `tsconfig.worker.json`. It is gitignored: both
+  workflows generate it before `tsc`, and each clone runs it once; rerun it
   after any `wrangler.jsonc` change.
 - **CI/CD**: GitHub Actions
-  - `ci.yml` — runs `yarn lint`, `yarn format:check`, `yarn tsc -b`,
-    `yarn test` on push to `main` and on every pull request.
-  - `deploy.yml` — runs `yarn lint`, `yarn format:check`, `yarn test`, then
-    `yarn build` → `wrangler deploy` on push to `main`.
+  - `ci.yml` — runs `yarn lint`, `yarn format:check`, `yarn cf-typegen`,
+    `yarn tsc -b`, `yarn test` on push to `main` and on every pull request.
+  - `deploy.yml` — runs `yarn lint`, `yarn format:check`, `yarn test`,
+    `yarn cf-typegen`, then `yarn build` → `wrangler deploy` on push to
+    `main`. Needs the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`
+    repo secrets.
 
 ## Why RxDB
 

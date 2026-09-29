@@ -33,3 +33,4 @@ dist-ssr
 
 # Wrangler
 .wrangler
+worker-configuration.d.ts
