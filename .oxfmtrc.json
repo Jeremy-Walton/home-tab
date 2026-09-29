@@ -11,6 +11,7 @@
     ".claude/**",
     ".github/**",
     "docs/**",
-    "skills-lock.json"
+    "skills-lock.json",
+    "worker-configuration.d.ts"
   ]
 }

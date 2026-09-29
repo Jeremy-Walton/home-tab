@@ -25,6 +25,7 @@ jobs:
       - run: yarn lint
       - run: yarn format:check
       - run: yarn test
+      - run: yarn cf-typegen
       - run: yarn build
       - uses: cloudflare/wrangler-action@v3
         with:

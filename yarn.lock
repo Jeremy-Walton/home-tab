@@ -456,6 +456,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@cloudflare/vite-plugin@npm:^1.61.0":
+  version: 1.61.0
+  resolution: "@cloudflare/vite-plugin@npm:1.61.0"
+  dependencies:
+    "@cloudflare/unenv-preset": "npm:2.16.2"
+    miniflare: "npm:5.20260926.0-alpha"
+    unenv: "npm:2.0.0-rc.24"
+    workerd: "npm:1.20260926.1"
+    wrangler: "npm:4.142.0"
+    ws: "npm:8.21.0"
+  peerDependencies:
+    vite: ^6.1.0 || ^7.0.0 || ^8.0.0
+    wrangler: ^4.142.0
+  bin:
+    cf-vite: bin/cf-vite
+  checksum: 10c0/cb1daa5896d2046f3647f9cd5f2fb3a163da78f0a5a8e227ca52025cedbd7ac98406bed261db6a5b5ce2aa45a4d222c432c5e9a229d0a09f34ecd8a53dd35209
+  languageName: node
+  linkType: hard
+
 "@cloudflare/workerd-darwin-64@npm:1.20260926.1":
   version: 1.20260926.1
   resolution: "@cloudflare/workerd-darwin-64@npm:1.20260926.1"
@@ -4308,6 +4327,7 @@ __metadata:
   resolution: "launch-tabs@workspace:."
   dependencies:
     "@base-ui/react": "npm:^1.6.0"
+    "@cloudflare/vite-plugin": "npm:^1.61.0"
     "@dnd-kit/core": "npm:^6.3.1"
     "@dnd-kit/sortable": "npm:^10.0.0"
     "@dnd-kit/utilities": "npm:^3.2.2"
@@ -6764,7 +6784,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"wrangler@npm:^4.142.0":
+"wrangler@npm:4.142.0, wrangler@npm:^4.142.0":
   version: 4.142.0
   resolution: "wrangler@npm:4.142.0"
   dependencies:

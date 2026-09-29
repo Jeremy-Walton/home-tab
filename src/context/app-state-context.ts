@@ -1,5 +1,6 @@
 import { createContext } from "react";
 
+import type { SyncStatus } from "../storage/sync";
 import type { Dashboard, ExportedState, Link } from "../types";
 
 export interface ImportSummary {
@@ -29,6 +30,15 @@ export interface AppStateValue {
   moveLinkToDashboard: (linkId: string, targetDashboardId: string) => Promise<void>;
   exportState: () => ExportedState;
   importState: (data: unknown) => Promise<ImportSummary>;
+  syncKey: string | null;
+  /** null when not syncing. */
+  syncStatus: SyncStatus | null;
+  createSyncKey: () => void;
+  /** Resolves to the normalized key; rejects with a user-facing message. */
+  checkSyncKey: (rawKey: string) => Promise<string>;
+  /** Replaces this browser's data with the key's and reloads. */
+  joinSyncKey: (key: string) => void;
+  stopSync: () => Promise<void>;
 }
 
 export const AppStateContext = createContext<AppStateValue | null>(null);

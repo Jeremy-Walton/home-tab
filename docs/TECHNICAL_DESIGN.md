@@ -94,7 +94,8 @@ the PRD.
   `sortPackageJson` is on by default, so
   `package.json`'s key order is formatter-owned and a `yarn add` can leave
   `format:check` red until `yarn format` runs. Scope is `src/`,
-  `vite.config.ts`, and the root JSON configs — `docs/**`, `.github/**`, and
+  `worker/`, `vite.config.ts`, and the root JSON configs (not the generated
+  `worker-configuration.d.ts`) — `docs/**`, `.github/**`, and
   all Markdown are excluded via `ignorePatterns` and stay hand-managed. The
   version is pinned exactly (no caret) so a patch release can't silently
   reformat the tree in CI.
@@ -107,11 +108,26 @@ the PRD.
   domain root (`base: '/'` in `vite.config.ts`). The hostname must never
   change: IndexedDB and `localStorage` are per-origin, so a new hostname
   starts every user with empty data.
+- **Sync backend**: the same Worker (`worker/`) routes `/api/sync/*` to a
+  SQLite-backed Cloudflare Durable Object, one instance per sync key (see
+  "Sync" below). Everything runs on the Workers Free plan. Local dev uses
+  `@cloudflare/vite-plugin`, so `yarn dev` runs the app, the Worker, and the
+  Durable Object together; local sync data lives in `.wrangler/state`, never
+  the live one. The plugin also changes the build: `yarn build` writes
+  `dist/client` + `dist/launch_tabs` and a `.wrangler/deploy/config.json`
+  that redirects `wrangler deploy` to the built config. Worker types come
+  from `yarn cf-typegen` (`wrangler types`) into
+  `worker-configuration.d.ts` (~16k lines, almost all Cloudflare's runtime
+  types), checked by `tsconfig.worker.json`. It is gitignored: both
+  workflows generate it before `tsc`, and each clone runs it once; rerun it
+  after any `wrangler.jsonc` change.
 - **CI/CD**: GitHub Actions
-  - `ci.yml` — runs `yarn lint`, `yarn format:check`, `yarn tsc -b`,
-    `yarn test` on push to `main` and on every pull request.
-  - `deploy.yml` — runs `yarn lint`, `yarn format:check`, `yarn test`, then
-    `yarn build` → `wrangler deploy` on push to `main`.
+  - `ci.yml` — runs `yarn lint`, `yarn format:check`, `yarn cf-typegen`,
+    `yarn tsc -b`, `yarn test` on push to `main` and on every pull request.
+  - `deploy.yml` — runs `yarn lint`, `yarn format:check`, `yarn test`,
+    `yarn cf-typegen`, then `yarn build` → `wrangler deploy` on push to
+    `main`. Needs the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`
+    repo secrets.
 
 ## Why RxDB
 
@@ -157,11 +173,15 @@ Two RxDB collections, replacing the single-blob `AppState` approach:
 | `url`             | string           | scheme auto-prepended (`https://`) if missing |
 | `backgroundImageUrl` | string (optional) |                                       |
 
-### App-level state (active dashboard)
+### App-level state (`localStorage`)
 
-The currently active dashboard id is persisted as a plain `localStorage`
-key (`launch-tabs:activeDashboardId`, see `AppStateContext.tsx`) rather
-than an RxDB collection, since it's a single value with no query needs.
+Single values with no query needs live in plain `localStorage` keys rather
+than RxDB collections. None of them sync; each is per-browser.
+
+- `launch-tabs:activeDashboardId` — the active dashboard (`AppStateContext.tsx`).
+- `launch-tabs:syncKey` — the sync key, when syncing (`storage/sync.ts`).
+- `launch-tabs:dbName` — the RxDB database name, absent until the first
+  sync join (default `launch-tabs`; see "Sync").
 
 ### Why two collections instead of one with embedded links
 
@@ -183,7 +203,11 @@ Two distinct version concepts, kept separate:
   migrations automatically against a user's existing IndexedDB data the
   first time they open the app after the upgrade). No migration strategy
   exists yet because no schema change has happened yet — define one before
-  the first schema change ships, not after.
+  the first schema change ships, not after. Sync raises the stakes: the
+  server stores documents as raw JSON and never migrates them, and browsers
+  on the same key upgrade at different times, so a pulled document can be
+  in the old shape. A schema change must plan for that (e.g. a new
+  `replicationIdentifier` plus a server-side data version) before it ships.
 - **Export file format version** (`CURRENT_EXPORT_VERSION` in
   `src/lib/importExport.ts`, currently `1`): versions the *exported JSON
   file* shape, independent of the RxDB schemas above. See
@@ -194,12 +218,19 @@ Two distinct version concepts, kept separate:
 - `src/types/index.ts` — `Dashboard`, `Link`, `LegacyState`,
   `ExportedState` types (see `docs/DATA_FORMATS.md` for the wire shapes).
 - `src/storage/` — `schemas.ts` (RxDB schemas), `db.ts` (database/
-  collection setup, Dexie storage adapter).
+  collection setup, Dexie storage adapter, leader election), `sync.ts`
+  (`startSync`, `checkSyncKey`, `joinSyncKey` — see "Sync").
+- `worker/` — the Cloudflare Worker: `index.ts` (validates the key, forwards
+  `/api/sync/:key/*` to that key's Durable Object), `SyncRoom.ts` (the
+  Durable Object), `conflict.ts` (key validation + key-order-insensitive
+  document equality).
 - `src/context/` — `AppStateContext.tsx` (the `AppStateProvider`: owns the
   RxDB subscriptions, bootstrap/legacy-import effect, and every mutation:
   `addDashboard`, `updateDashboard`, `deleteDashboard`, `addLink`,
   `updateLink`, `deleteLink`, `reorderLinks`, `moveLinkToDashboard`,
-  `exportState`, `importState`), `useAppState.ts` (consumer hook),
+  `exportState`, `importState`, plus the sync state and actions:
+  `syncKey`, `syncStatus`, `createSyncKey`, `checkSyncKey`, `joinSyncKey`,
+  `stopSync`), `useAppState.ts` (consumer hook),
   `app-state-context.ts` (the context object + value type, split out for
   fast-refresh compatibility).
 - `src/hooks/useLinkDragAndDrop.ts` — dnd-kit sensor setup, the
@@ -236,7 +267,9 @@ Two distinct version concepts, kept separate:
   `ConfirmDialog.tsx` (shared delete-confirmation), `EditDialog.tsx`
   (shared edit-modal shell), `LinkEditModal.tsx`/`DashboardEditModal.tsx`
   (field sets on top of `EditDialog`), `ShortcutsDialog.tsx` (the `?`
-  overlay, rendering `SHORTCUTS`), `ImportExportBar.tsx`,
+  overlay, rendering `SHORTCUTS`), `ImportExportBar.tsx` (the top-bar menu:
+  Export, Import, Sync…), `SyncDialog.tsx` (create / confirm-join / synced
+  views),
   `LogoIcon.tsx`/`Wordmark.tsx` (branding).
 - `src/components/icons/` — `animated-icon.tsx` (the phosphor-animated runtime:
   weight resolution, triggers, reduced-motion handling) plus one file per icon
@@ -329,9 +362,51 @@ in `docs/DATA_FORMATS.md` — this is the implementation summary:
   instead of duplicating it. Falls back to running unlocked where the Web
   Locks API is unavailable (e.g. jsdom in tests).
 
+## Sync
+
+Product behavior is in `docs/PRD.md`'s "Sync" section. Implementation:
+
+- **Protocol**: RxDB's generic `replicateRxCollection` (free core), one
+  replication per collection, `replicationIdentifier`
+  `launch-tabs-<collection>-<key>`. Server routes, all under
+  `/api/sync/:key`:
+  - `GET /` → `{ count }` of non-deleted documents (used by Join).
+  - `POST /:collection/pull` `{ checkpoint, batchSize }` →
+    `{ documents, checkpoint }`. The checkpoint is `{ seq }`, a per-key
+    counter the server stamps on every write, so client schemas need no
+    sync metadata.
+  - `POST /:collection/push` → the server's copy of every row whose
+    `assumedMasterState` doesn't match what it stores (RxDB's conflict
+    contract; the client's default handler keeps the server copy).
+  - `GET /ws` → WebSocket (Hibernation API). The server sends only the
+    changed collection's name after a successful push; the client answers
+    with a pull (`stream$` emits `RESYNC`), and pulls both collections on
+    every (re)connect to cover anything missed. Ceiling: each change costs
+    one HTTP pull per connected browser; move pull/push onto the socket if
+    the free plan's 100k requests/day ever matters.
+- **Key**: `crypto.randomUUID()`, lowercase; the Worker 404s anything else.
+  It is the only access control, and data is stored as plain JSON (no
+  end-to-end encryption).
+- **Multi-tab**: RxDB leader election. Only the leader tab replicates and
+  holds the socket; other tabs see changes through Dexie's cross-tab
+  broadcast and report status `standby`. A `storage` event on
+  `launch-tabs:syncKey` (create, join, or stop in another tab) reloads the
+  tab.
+- **Create**: pushes the browser's current data to the empty key.
+- **Join**: `checkSyncKey` refuses a key with no documents, the dialog
+  offers an export backup, then `joinSyncKey` points `launch-tabs:dbName` at
+  a new database and reloads; the key's data is pulled into it. See "Known
+  Gotchas" for why it never wipes the existing database. Each join orphans
+  the previous database (a few KB) — it also serves as an implicit backup.
+- **Stop**: cancels replication and forgets the key; the data stays as a
+  local-only copy.
+- **Bootstrap**: when a key is set, the bootstrap effect awaits the initial
+  replication before deciding whether to create "Default" (see "Known
+  Gotchas").
+
 ## Testing Focus
 
-**Current actual coverage** (`yarn test`, 81 tests across 7 files):
+**Current actual coverage** (`yarn test`, 90 tests across 9 files):
 
 - `lib/url.test.ts` — `normalizeUrl` scheme-prepending behavior.
 - `lib/importExport.test.ts` — legacy-shape detection and
@@ -364,6 +439,11 @@ in `docs/DATA_FORMATS.md` — this is the implementation summary:
   background image via `updateDashboard` (confirmed the field is actually
   removed from the stored document, not left stale — see "Known Gotchas"
   history for why this needed characterizing).
+- `storage/sync.test.ts` — `checkSyncKey` (stubbed `fetch`): key
+  normalization, refusing a key with no data or one the server rejects, and
+  a separate message for a network failure.
+- `worker/conflict.test.ts` — sync-key validation and the key-order-
+  insensitive document equality behind server-side conflict detection.
 
 **Not currently covered by the automated suite**, despite React Testing
 Library + jsdom being installed and configured (`src/test/setup.ts`):
@@ -395,6 +475,12 @@ Library + jsdom being installed and configured (`src/test/setup.ts`):
   that is actually on screen, or drive one with Playwright (whose browser is
   never occluded, and which takes `reducedMotion: 'reduce'` as a context option
   rather than needing a `matchMedia` shim).
+- Sync end to end: the Durable Object, replication, conflicts, and the
+  WebSocket poke. These were verified during development with ad hoc
+  scripts against `yarn dev` (HTTP/WebSocket checks, and two in-memory RxDB
+  databases running the real `startSync`), not a checked-in suite. The
+  `SyncDialog` flows, leader election across tabs, and cross-tab reload are
+  browser-verified only.
 
 If component-level automated coverage is added later, these are the
 remaining highest-value targets: drag-and-drop/click-suppression behavior
@@ -672,6 +758,23 @@ broken image URL, a dashboard with a background, and an empty dashboard.
   `useAltHeld` adds native `blur`/`visibilitychange`/`contextmenu` listeners
   specifically to reset the held state in those cases — removing them would
   strand the digit badges visible after the user alt-tabs away and back.
+- **Never clear a synced browser's data by deleting documents.** RxDB
+  deletes by writing `_deleted` tombstones, and replication pushes them, so
+  `find().remove()` (or `deleteDashboard`'s cascade, run over "everything")
+  would delete the data for every browser on the key. That is why Join
+  switches to a fresh database (`launch-tabs:dbName`) instead of wiping the
+  current one. Any future "reset" feature must do the same, or stop sync
+  first *and* never restart it on that database.
+- **With `waitForLeadership: true`, `awaitInitialReplication()` never
+  resolves in a non-leader tab** (until it becomes leader). The bootstrap
+  effect awaits it *outside* the `launch-tabs:bootstrap` Web Lock for this
+  reason: awaited inside, a non-leader tab would hold the lock forever and
+  deadlock the leader's own bootstrap. Without the wait, a freshly joined
+  browser sees zero dashboards before the pull lands and pushes a stray
+  "Default" to every browser on the key.
+- **Vitest shares `vite.config.ts`.** `cloudflare()` is skipped when
+  `process.env.VITEST` is set; without that, every test run boots the
+  Workers runtime.
 
 ## Open Items
 
@@ -679,8 +782,8 @@ broken image URL, a dashboard with a background, and an empty dashboard.
   change — see "Schema versioning" above; the export format side of this
   is done (`CURRENT_EXPORT_VERSION`), what remains open is only the RxDB
   collection-schema half.
-- Which RxDB replication plugin to adopt, deferred until a backend is
-  chosen.
+- No way to delete a sync key's server data for everyone, and no
+  end-to-end encryption — both deliberately deferred (see "Sync").
 - No client-side validation beyond URL scheme normalization (see PRD "Open
   Items") — decide whether that's ever needed.
 - No automated coverage for RxDB/drag-and-drop/reorder logic (see "Testing
