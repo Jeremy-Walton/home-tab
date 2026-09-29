@@ -5,9 +5,10 @@
   "rules": {
     "react-hooks/exhaustive-deps": "error",
     "react/only-export-components": "error",
-    "react/react-in-jsx-scope": "off"
+    "react/react-in-jsx-scope": "off",
+    "no-underscore-dangle": ["warn", { "allow": ["_deleted"] }]
   },
-  "ignorePatterns": ["dist"],
+  "ignorePatterns": ["dist", "worker-configuration.d.ts"],
   "overrides": [
     {
       "files": ["src/components/ui/**/*.tsx", "src/components/icons/**/*.tsx"],

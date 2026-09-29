@@ -1,9 +1,11 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "launch-tabs",
+  "main": "./worker/index.ts",
   "compatibility_date": "2026-09-26",
-  "assets": {
-    "directory": "./dist",
+  "durable_objects": {
+    "bindings": [{ "name": "SYNC_ROOM", "class_name": "SyncRoom" }],
   },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["SyncRoom"] }],
   "routes": [{ "pattern": "www.launchtabs.com", "custom_domain": true }],
 }

@@ -1,6 +1,6 @@
 # 016 — Sync key (Durable Object replication)
 
-Status: **planned** — not started.
+Status: **in progress** — phase 1 (server) done; phase 2 next.
 
 ## Goal
 
@@ -97,7 +97,14 @@ Changed:
 
 - `wrangler.jsonc` — `main`, the `SYNC_ROOM` Durable Object binding, and a
   `migrations` entry with `new_sqlite_classes: ["SyncRoom"]` (free plan
-  requires SQLite-backed objects).
+  requires SQLite-backed objects). The `assets` block is gone: the Vite
+  plugin builds to `dist/client` + `dist/launch_tabs` and points assets at
+  `dist/client` itself.
+- `package.json` — `cf-typegen` script (`wrangler types`); rerun it after any
+  `wrangler.jsonc` change. The generated `worker-configuration.d.ts` is
+  committed so CI's `tsc -b` needs no Cloudflare step, and is excluded from
+  oxlint/oxfmt.
+- `.oxlintrc.json` — `no-underscore-dangle` allows `_deleted` (RxDB's field).
 - `vite.config.ts` — add `cloudflare()` (skipped under Vitest).
 - `package.json` — `@cloudflare/vite-plugin` dev dependency.
 - `src/storage/db.ts` — `addRxPlugin(RxDBLeaderElectionPlugin)`.
@@ -105,8 +112,9 @@ Changed:
   (`launch-tabs:syncKey`), make bootstrap wait for the initial replication,
   expose `createSyncKey`, `joinSyncKey`, `stopSync`, and `syncStatus`.
 - `src/components/ImportExportBar.tsx` — "Sync…" menu item.
-- `.github/workflows/deploy.yml` — likely unchanged; confirm `wrangler
-  deploy` picks up the config the Vite plugin writes at build time.
+- `.github/workflows/deploy.yml` — unchanged: `yarn build` writes
+  `.wrangler/deploy/config.json`, which redirects `wrangler deploy` to the
+  built config (confirmed with `--dry-run`).
 - Docs: `docs/PRD.md` (Scope and "Out of Scope" currently say no sync; add a
   "Sync" section), `docs/TECHNICAL_DESIGN.md` (Stack, Project Structure,
   Testing Focus, Known Gotchas — hazard 1 belongs there), `AGENTS.md`
@@ -117,9 +125,12 @@ Changed:
 Each phase ends green on `yarn build`, `yarn lint`, `yarn format:check`,
 `yarn test`.
 
-1. **Server.** Worker, `SyncRoom`, wrangler config, worker tsconfig, Vite
-   plugin, `conflict.test.ts`. Verify with `curl` against `yarn dev`: push a
-   doc, pull it back, push a stale `assumedMasterState` and get a conflict.
+1. **Server.** ✅ Worker, `SyncRoom`, wrangler config, worker tsconfig, Vite
+   plugin, `conflict.test.ts`. Verified against `yarn dev` with a scripted
+   HTTP + WebSocket check: key/collection validation, insert, pull with
+   checkpoints, update with reordered-key master, stale-master conflict,
+   tombstones excluded from the Join count, and one WebSocket poke per
+   successful push. Not yet deployed — ships with phase 4.
 2. **Client replication.** `sync.ts`, leader election, bootstrap wait,
    stored key. No UI yet — set `launch-tabs:syncKey` by hand in two browser
    profiles and confirm edits, reorders, moves, and deletes cross over live.
